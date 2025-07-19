@@ -19,52 +19,23 @@ def compileCode() -> None:
     """
     Compile the source code using the commands specified in the config file.
     """
-    print("Compiling source code.")
-    logger.info("[autoHack] Compiling source code.")
-    logger.debug(
-        f"[autoHack] Compile command: {config.getConfigEntry('commands.compile.source')}"
-    )
-    process = subprocess.Popen(config.getConfigEntry("commands.compile.source"))
-    process.communicate()
-    if process.returncode != 0:
-        logger.error("[autoHack] Compilation failed.")
-        raise RuntimeError("Compilation failed.")
-    logger.info("[autoHack] Source code compiled successfully.")
-
-    print("Compiling standard code.")
-    logger.info("[autoHack] Compiling standard code.")
-    logger.debug(
-        f"[autoHack] Compile command: {config.getConfigEntry('commands.compile.std')}"
-    )
-    process = subprocess.Popen(config.getConfigEntry("commands.compile.std"))
-    process.communicate()
-    if process.returncode != 0:
-        logger.error("[autoHack] Standard code compilation failed.")
-        raise RuntimeError("Standard code compilation failed.")
-    logger.info("[autoHack] Standard code compiled successfully.")
-
-    print("Compiling checker code.")
-    logger.info("[autoHack] Compiling checker code.")
-    logger.debug(
-        f"[autoHack] Compile command: {config.getConfigEntry('commands.checker.compile')}"
-    )
-    process = subprocess.Popen(config.getConfigEntry("commands.checker.compile"))
-    process.communicate()
-    if process.returncode != 0:
-        logger.error("[autoHack] Checker code compilation failed.")
-        raise RuntimeError("Checker code compilation failed.")
-    logger.info("[autoHack] Checker code compiled successfully.")
-
-    print("Compiling generator code.")
-    logger.info("[autoHack] Compiling generator code.")
-    logger.debug(
-        f"[autoHack] Compile command: {config.getConfigEntry('commands.generator.compile')}"
-    )
-    process = subprocess.Popen(config.getConfigEntry("commands.generator.compile"))
-    process.communicate()
-    if process.returncode != 0:
-        logger.error("[autoHack] Generator code compilation failed.")
-        raise RuntimeError("Generator code compilation failed.")
+    fileList = [
+        ["commands.compile.source", "source code"],
+        ["commands.compile.std", "standard code"],
+        ["commands.compile.checker", "checker code"],
+        ["commands.compile.generator", "generator code"],
+    ]
+    for file in fileList:
+        compileCommand = config.getConfigEntry(file[0])
+        print(f"Compiling {file[1]}.")
+        logger.info(f"[autoHack] Compiling {file[1]}.")
+        logger.debug(f"[autoHack] Compile command: {compileCommand}")
+        process = subprocess.Popen(compileCommand)
+        process.communicate()
+        if process.returncode != 0:
+            logger.error(f"[autoHack] {file[1].capitalize()} compilation failed.")
+            raise RuntimeError(f"{file[1].capitalize()} compilation failed.")
+        logger.info(f"[autoHack] {file[1].capitalize()} compiled successfully.")
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import logging, json, os
 
 class Config:
     DEFAULT_CONFIG: Dict[str, Any] = {
-        "version": 1,
+        "version": 3,
         "maximum_number_of_data": 10,
         "time_limit": 1000,
         "memory_limit": 256,
@@ -32,7 +32,7 @@ class Config:
                     "-Wl,--stack=268435456",
                     "-O2",
                 ],
-                "check": [
+                "checker": [
                     "g++",
                     "checker.cpp",
                     "-o",
@@ -54,7 +54,7 @@ class Config:
                 "std": [
                     "./std",
                 ],
-                "check": [
+                "checker": [
                     "./checker",
                     "$(outputfile)",
                     "$(ansfile)",
