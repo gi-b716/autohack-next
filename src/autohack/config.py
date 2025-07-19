@@ -24,19 +24,44 @@ class Config:
                     "-Wl,--stack=268435456",
                     "-O2",
                 ],
-                "std": ["g++", "std.cpp", "-o", "std", "-Wl,--stack=268435456", "-O2"],
+                "std": [
+                    "g++",
+                    "std.cpp",
+                    "-o",
+                    "std",
+                    "-Wl,--stack=268435456",
+                    "-O2",
+                ],
+                "check": [
+                    "g++",
+                    "checker.cpp",
+                    "-o",
+                    "checker",
+                    "-O2",
+                ],
+                "generator": [
+                    "g++",
+                    "generator.cpp",
+                    "-o",
+                    "generator",
+                    "-O2",
+                ],
             },
             "run": {
-                "source": ["./source"],
-                "std": ["./std"],
-            },
-            "checker": {
-                "compile": ["g++", "checker.cpp", "-o", "checker", "-O2"],
-                "run": ["./checker", "$(inputfile)", "$(outputfile)", "$(ansfile)"],
-            },
-            "generator": {
-                "compile": ["g++", "generator.cpp", "-o", "generator", "-O2"],
-                "run": ["./generator"],
+                "source": [
+                    "./source",
+                ],
+                "std": [
+                    "./std",
+                ],
+                "check": [
+                    "./checker",
+                    "$(outputfile)",
+                    "$(ansfile)",
+                ],
+                "generator": [
+                    "./generator",
+                ],
             },
         },
         "command_run_at_the_end": "",
@@ -45,10 +70,13 @@ class Config:
     def __init__(self, configFilePath: str, logger: logging.Logger) -> None:
         self.logger = logger
         self.configFilePath = configFilePath
-        self.logger.debug(f"[config] Config file path: \"{self.configFilePath}\"")
+        self.logger.debug(f'[config] Config file path: "{self.configFilePath}"')
         self.config = self.loadConfig()
 
     def loadConfig(self) -> Dict[str, Any]:
+        """
+        Load the configuration from the config file.
+        """
         if not os.path.exists(self.configFilePath):
             print("Config file not found.\nCreating a new one...", end="")
             json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
@@ -74,6 +102,12 @@ class Config:
     def merge_configs(
         self, old: Dict[str, Any], new_default: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
+        Merge the old config with the new default config.
+        - If a key exists in both, the value from the old config is used.
+        - If a key exists only in the new default config, it is added.
+        - If a key exists only in the old config, it is ignored.
+        """
         merged = {}
         for key in new_default:
             if (
@@ -87,6 +121,9 @@ class Config:
         return merged
 
     def getConfigEntry(self, entryName: str) -> Any:
+        """
+        Get a specific entry from the config file.
+        """
         entryTree = entryName.split(".")
         result = self.config
 
@@ -99,6 +136,10 @@ class Config:
         return result
 
     def modifyConfigEntry(self, entryName: str, newValue: Any) -> bool:
+        """
+        Modify a specific entry in the config file.
+        Returns True if the entry was modified, False if it does not exist.
+        """
         entryTree = entryName.split(".")
         currentLevel = self.config
 
