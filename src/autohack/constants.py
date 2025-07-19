@@ -1,7 +1,5 @@
-from platformdirs import user_config_path
+import os
 
-CONFIG_NAME = "config.yaml"
+DATA_FOLDER_PATH = os.path.join(os.getcwd(), ".autohack")
 
-CONFIG_LOCATION = user_config_path(appname="autohack", appauthor=False, ensure_exists=True)
-
-CONFIG_FULL_PATH = CONFIG_LOCATION / CONFIG_NAME
+CONFIG_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "config.json")
