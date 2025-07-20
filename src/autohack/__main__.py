@@ -4,9 +4,12 @@ from .logger import Logger
 import subprocess, platform, logging, os
 
 if not os.path.isdir(DATA_FOLDER_PATH):
-    os.mkdir(DATA_FOLDER_PATH)
+    os.makedirs(DATA_FOLDER_PATH)
     if platform.system().lower() == "windows":
         os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
+
+if not os.path.isdir(LOG_FOLDER_PATH):
+    os.makedirs(LOG_FOLDER_PATH)
 
 # TODO Remember to delete DEBUG tag
 logger = Logger(LOG_FOLDER_PATH, logging.DEBUG).logger
