@@ -11,8 +11,8 @@ if not os.path.isdir(DATA_FOLDER_PATH):
 # TODO Remember to delete DEBUG tag
 logger = Logger(LOG_FOLDER_PATH, logging.DEBUG).logger
 config = Config(CONFIG_FILE_PATH, logger)
-logger.debug(f'[autoHack] Data folder path: "{DATA_FOLDER_PATH}"')
-logger.info("[autoHack] Initialized.")
+logger.debug(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
+logger.info("[autohack] Initialized.")
 
 
 def compileCode() -> None:
@@ -28,14 +28,14 @@ def compileCode() -> None:
     for file in fileList:
         compileCommand = config.getConfigEntry(file[0])
         print(f"Compiling {file[1]}.")
-        logger.info(f"[autoHack] Compiling {file[1]}.")
-        logger.debug(f"[autoHack] Compile command: {compileCommand}")
+        logger.info(f"[autohack] Compiling {file[1]}.")
+        logger.debug(f"[autohack] Compile command: {compileCommand}")
         process = subprocess.Popen(compileCommand)
         process.communicate()
         if process.returncode != 0:
-            logger.error(f"[autoHack] {file[1].capitalize()} compilation failed.")
+            logger.error(f"[autohack] {file[1].capitalize()} compilation failed.")
             raise RuntimeError(f"{file[1].capitalize()} compilation failed.")
-        logger.info(f"[autoHack] {file[1].capitalize()} compiled successfully.")
+        logger.info(f"[autohack] {file[1].capitalize()} compiled successfully.")
 
 
 if __name__ == "__main__":
@@ -43,5 +43,5 @@ if __name__ == "__main__":
         compileCode()
     except RuntimeError as e:
         print(f"Error while compiling code.")
-        logger.critical(f"[autoHack] Error: {e}")
+        logger.critical(f"[autohack] Error: {e}")
         exit(1)

@@ -9,5 +9,5 @@ wheels/
 # Virtual environments
 .venv
 
-# autoHack data folder
+# autohack data folder
 .autohack/

@@ -10,11 +10,11 @@ class Logger:
         if not os.path.isdir(self.logFolder):
             os.mkdir(self.logFolder)
 
-        self.logger = logging.getLogger("autoHack")
+        self.logger = logging.getLogger("autohack")
         self.logger.setLevel(logLevel)
         logFilePath = os.path.join(
             self.logFolder,
-            f"autoHack-{time.strftime("%Y-%m-%d_%H-%M-%S",time.localtime(time.time()))}.log",
+            f"autohack-{time.strftime("%Y-%m-%d_%H-%M-%S",time.localtime(time.time()))}.log",
         )
         logFile = logging.FileHandler(logFilePath, encoding="utf-8")
         logFile.setLevel(logLevel)
@@ -23,6 +23,6 @@ class Logger:
         )
         self.logger.addHandler(logFile)
 
-        self.logger.debug(f"[logger] Log file: \"{logFilePath}\"")
+        self.logger.debug(f'[logger] Log file: "{logFilePath}"')
         self.logger.debug(f"[logger] Log level: {logging.getLevelName(logLevel)}")
         self.logger.info("[logger] Logger initialized.")
