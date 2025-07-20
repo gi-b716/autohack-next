@@ -80,7 +80,8 @@ class Config:
         if not os.path.exists(self.configFilePath):
             print("Config file not found.\nCreating a new one...", end="")
             json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
-            print("\rConfig file created.")
+            # 额外的空格以确保输出不会因为 Creating a new one... 的长度而多出来一个奇怪的点
+            print("\rConfig file created. ")
             self.logger.info("[config] Config file created.")
             return Config.DEFAULT_CONFIG.copy()
 
