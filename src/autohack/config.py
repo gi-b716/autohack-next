@@ -3,8 +3,8 @@ import logging, json, os
 
 
 class Config:
-    DEFAULT_CONFIG: Dict[str, Any] = {
-        "version": 3,
+    DEFAULT_CONFIG = {
+        "_version": 3,
         "maximum_number_of_data": 10,
         "time_limit": 1000,
         "memory_limit": 256,
@@ -70,30 +70,22 @@ class Config:
     def __init__(self, configFilePath: str, logger: logging.Logger) -> None:
         self.logger = logger
         self.configFilePath = configFilePath
-        self.logger.debug(f'[config] Config file path: "{self.configFilePath}"')
+        self.logger.info(f'[config] Config file path: "{self.configFilePath}"')
         self.config = self.loadConfig()
 
     def loadConfig(self) -> Dict[str, Any]:
-        """
-        Load the configuration from the config file.
-        """
         if not os.path.exists(self.configFilePath):
-            print("Config file not found.\nCreating a new one...", end="")
             json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
-            # 额外的空格以确保输出不会因为 Creating a new one... 的长度而多出来一个奇怪的点
-            print("\rConfig file created. ")
             self.logger.info("[config] Config file created.")
             return Config.DEFAULT_CONFIG.copy()
 
         with open(self.configFilePath, "r") as configFile:
             config = json.load(configFile)
 
-        if Config.DEFAULT_CONFIG["version"] > config.get("version", 0):
-            print("Config file version is outdated.\nUpdating...", end="")
+        if Config.DEFAULT_CONFIG["_version"] > config.get("_version", 0):
             merged_config = self.merge_configs(config, Config.DEFAULT_CONFIG)
-            merged_config["version"] = Config.DEFAULT_CONFIG["version"]
+            merged_config["_version"] = Config.DEFAULT_CONFIG["_version"]
             json.dump(merged_config, open(self.configFilePath, "w"), indent=4)
-            print("\rConfig file updated.")
             self.logger.info("[config] Config file updated.")
             config = merged_config
 
@@ -121,10 +113,7 @@ class Config:
                 merged[key] = old.get(key, new_default[key])
         return merged
 
-    def getConfigEntry(self, entryName: str) -> Any:
-        """
-        Get a specific entry from the config file.
-        """
+    def getConfigEntry(self, entryName: str):
         entryTree = entryName.split(".")
         result = self.config
 
@@ -136,11 +125,8 @@ class Config:
         self.logger.debug(f'[config] Get config entry: "{entryName}" = "{result}"')
         return result
 
-    def modifyConfigEntry(self, entryName: str, newValue: Any) -> bool:
-        """
-        Modify a specific entry in the config file.
-        Returns True if the entry was modified, False if it does not exist.
-        """
+    def modifyConfigEntry(self, entryName: str, newValue) -> bool:
+        """Returns True if the entry was modified, False if it does not exist."""
         entryTree = entryName.split(".")
         currentLevel = self.config
 

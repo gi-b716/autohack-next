@@ -2,7 +2,7 @@ import logging, time, os
 
 
 class Logger:
-    def __init__(self, logFolder: str, logLevel=logging.INFO) -> None:
+    def __init__(self, logFolder: str, logLevel=logging.WARNING) -> None:
         self.logFolder = logFolder
         self.logLevel = logLevel
 
@@ -23,6 +23,9 @@ class Logger:
         )
         self.logger.addHandler(logFile)
 
-        self.logger.debug(f'[logger] Log file: "{logFilePath}"')
-        self.logger.debug(f"[logger] Log level: {logging.getLevelName(logLevel)}")
+        self.logger.info(f'[logger] Log file: "{logFilePath}"')
+        self.logger.info(f"[logger] Log level: {logging.getLevelName(logLevel)}")
         self.logger.info("[logger] Logger initialized.")
+
+    def getLogger(self) -> logging.Logger:
+        return self.logger
