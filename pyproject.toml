@@ -1,7 +1,7 @@
 [project]
 name = "autohack"
 version = "0.1.0"
-description = "Add your description here"
+description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
