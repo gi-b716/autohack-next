@@ -83,7 +83,7 @@ class Config:
             config = json.load(configFile)
 
         if Config.DEFAULT_CONFIG["_version"] > config.get("_version", 0):
-            merged_config = self.merge_configs(config, Config.DEFAULT_CONFIG)
+            merged_config = self.mergeConfigs(config, Config.DEFAULT_CONFIG)
             merged_config["_version"] = Config.DEFAULT_CONFIG["_version"]
             json.dump(merged_config, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file updated.")
@@ -92,8 +92,8 @@ class Config:
         self.logger.info("[config] Config file loaded.")
         return config
 
-    def merge_configs(
-        self, old: Dict[str, Any], new_default: Dict[str, Any]
+    def mergeConfigs(
+        self, old: Dict[str, Any], newDefault: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Merge the old config with the new default config.
@@ -102,18 +102,18 @@ class Config:
         - If a key exists only in the old config, it is ignored.
         """
         merged = {}
-        for key in new_default:
+        for key in newDefault:
             if (
                 key in old
-                and isinstance(new_default[key], dict)
+                and isinstance(newDefault[key], dict)
                 and isinstance(old[key], dict)
             ):
-                merged[key] = self.merge_configs(old[key], new_default[key])
+                merged[key] = self.mergeConfigs(old[key], newDefault[key])
             else:
-                merged[key] = old.get(key, new_default[key])
+                merged[key] = old.get(key, newDefault[key])
         return merged
 
-    def getConfigEntry(self, entryName: str):
+    def getConfigEntry(self, entryName: str) -> Any:
         entryTree = entryName.split(".")
         result = self.config
 
@@ -125,7 +125,7 @@ class Config:
         self.logger.debug(f'[config] Get config entry: "{entryName}" = "{result}"')
         return result
 
-    def modifyConfigEntry(self, entryName: str, newValue) -> bool:
+    def modifyConfigEntry(self, entryName: str, newValue: Any) -> bool:
         """Returns True if the entry was modified, False if it does not exist."""
         entryTree = entryName.split(".")
         currentLevel = self.config

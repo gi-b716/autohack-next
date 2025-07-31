@@ -14,9 +14,6 @@ config = config.Config(CONFIG_FILE_PATH, logger)
 logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
 clientID = str(uuid.uuid4())
 logger.info(f"[autohack] Client ID: {clientID}")
-filesPath = FilesPath(clientID)
-util.checkDirectoryExists(filesPath.clientFolderPath)
-logger.info(f"[autohack] Created client folder: {filesPath.clientFolderPath}")
 logger.info("[autohack] Initialized.")
 
 
@@ -31,9 +28,20 @@ if __name__ == "__main__":
         try:
             function.compileCode(file[0], file[1])
         except exception.CompilationError as e:
-            logger.error(f"[autohack] {e.fileName.capitalize()} compilation failed.")
+            logger.error(
+                f"[autohack] {e.fileName.capitalize()} compilation failed: {e}"
+            )
             print(f"\r{e}")
             exit(1)
         else:
             logger.info(f"[autohack] {file[1].capitalize()} compiled successfully.")
     print("\x1b[1K\rCompile finished.")
+
+    # try:
+    #     data = function.generateData(
+    #         config.getConfigEntry("commands.run.generator"), clientID
+    #     )
+    # except exception.DataGenerationError as e:
+    #     logger.error(f"[autohack] Data generation failed: {e}")
+    #     print(f"\r{e}")
+    #     exit(1)
