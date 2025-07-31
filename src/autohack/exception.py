@@ -9,15 +9,30 @@ class CompilationError(Exception):
         self.returnCode = returnCode
 
     def __str__(self) -> str:
-        return f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}\n\n{self.message}"
+        return f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}.\n\n{self.message}"
 
 
-class DataGenerationError(Exception):
-    def __init__(self, data: str, clientID: str, returnCode: int) -> None:
+class InputGenerationError(Exception):
+    def __init__(self, dataInput: str, clientID: str, returnCode: int) -> None:
         self.clientID = clientID
         self.returnCode = returnCode
         util.checkDirectoryExists(os.path.dirname(util.getTempInputFilePath(clientID)))
-        open(util.getTempInputFilePath(clientID), "w").write(data)
+        open(util.getTempInputFilePath(clientID), "w").write(dataInput)
 
     def __str__(self) -> str:
-        return f"Data generation failed with return code {self.returnCode}. Output saved to {util.getTempInputFilePath(self.clientID)}"
+        return f"Input generation failed with return code {self.returnCode}. Input saved to {util.getTempInputFilePath(self.clientID)}."
+
+
+class AnswerGenerationError(Exception):
+    def __init__(
+        self, dataInput: str, dataAnswer: str, clientID: str, returnCode: int
+    ) -> None:
+        self.clientID = clientID
+        self.returnCode = returnCode
+        util.checkDirectoryExists(os.path.dirname(util.getTempInputFilePath(clientID)))
+        util.checkDirectoryExists(os.path.dirname(util.getTempAnswerFilePath(clientID)))
+        open(util.getTempInputFilePath(clientID), "w").write(dataInput)
+        open(util.getTempAnswerFilePath(clientID), "w").write(dataAnswer)
+
+    def __str__(self) -> str:
+        return f"Answer generation failed with return code {self.returnCode}. Input saved to {util.getTempInputFilePath(self.clientID)}. Answer saved to {util.getTempAnswerFilePath(self.clientID)}."

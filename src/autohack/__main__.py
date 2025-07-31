@@ -37,11 +37,26 @@ if __name__ == "__main__":
             logger.info(f"[autohack] {file[1].capitalize()} compiled successfully.")
     print("\x1b[1K\rCompile finished.")
 
-    # try:
-    #     data = function.generateData(
-    #         config.getConfigEntry("commands.run.generator"), clientID
-    #     )
-    # except exception.DataGenerationError as e:
-    #     logger.error(f"[autohack] Data generation failed: {e}")
-    #     print(f"\r{e}")
-    #     exit(1)
+    try:
+        dataInput = function.generateInput(
+            config.getConfigEntry("commands.run.generator"), clientID
+        )
+    except exception.InputGenerationError as e:
+        logger.error(f"[autohack] Input generation failed: {e}")
+        print(f"\r{e}")
+        exit(1)
+
+    try:
+        dataAnswer = function.generateAnswer(
+            config.getConfigEntry("commands.run.std"),
+            dataInput,
+            clientID,
+        )
+    except exception.AnswerGenerationError as e:
+        logger.error(f"[autohack] Answer generation failed: {e}")
+        print(f"\r{e}")
+        exit(1)
+
+    os.system("cls" if platform.system().lower() == "windows" else "clear")
+    print(dataInput, end="")
+    print(dataAnswer, end="")

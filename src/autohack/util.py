@@ -9,3 +9,7 @@ def checkDirectoryExists(directory: str) -> None:
 
 def getTempInputFilePath(clientID: str) -> str:
     return os.path.join(TEMP_FOLDER_PATH, clientID, "input")
+
+
+def getTempAnswerFilePath(clientID: str) -> str:
+    return os.path.join(TEMP_FOLDER_PATH, clientID, "answer")
