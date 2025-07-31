@@ -1,11 +1,11 @@
 from .constant import *
 from . import exception, function, config, logger, util
-import platform, logging, uuid, os
+import logging, uuid, os
 
 util.checkDirectoryExists(DATA_FOLDER_PATH)
 util.checkDirectoryExists(LOG_FOLDER_PATH)
 util.checkDirectoryExists(TEMP_FOLDER_PATH)
-if platform.system().lower() == "windows":
+if util.mswindows():
     os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
 
 # TODO Remember to delete DEBUG tag
@@ -37,26 +37,33 @@ if __name__ == "__main__":
             logger.info(f"[autohack] {file[1].capitalize()} compiled successfully.")
     print("\x1b[1K\rCompile finished.")
 
-    try:
-        dataInput = function.generateInput(
-            config.getConfigEntry("commands.run.generator"), clientID
-        )
-    except exception.InputGenerationError as e:
-        logger.error(f"[autohack] Input generation failed: {e}")
-        print(f"\r{e}")
-        exit(1)
+    # try:
+    #     dataInput = function.generateInput(
+    #         config.getConfigEntry("commands.run.generator"), clientID
+    #     )
+    # except exception.InputGenerationError as e:
+    #     logger.error(f"[autohack] Input generation failed: {e}")
+    #     print(f"\r{e}")
+    #     exit(1)
 
-    try:
-        dataAnswer = function.generateAnswer(
-            config.getConfigEntry("commands.run.std"),
-            dataInput,
-            clientID,
-        )
-    except exception.AnswerGenerationError as e:
-        logger.error(f"[autohack] Answer generation failed: {e}")
-        print(f"\r{e}")
-        exit(1)
+    # try:
+    #     dataAnswer = function.generateAnswer(
+    #         config.getConfigEntry("commands.run.std"),
+    #         dataInput,
+    #         clientID,
+    #     )
+    # except exception.AnswerGenerationError as e:
+    #     logger.error(f"[autohack] Answer generation failed: {e}")
+    #     print(f"\r{e}")
+    #     exit(1)
 
-    os.system("cls" if platform.system().lower() == "windows" else "clear")
-    print(dataInput, end="")
-    print(dataAnswer, end="")
+    # result = function.runSourceCode(
+    #     config.getConfigEntry("commands.run.source"), dataInput, 1, 10000000
+    # )
+
+    # # os.system("cls" if util.mswindows() else "clear")
+    # print()
+    # print(dataInput.decode(), end="")
+    # print(dataAnswer.decode(), end="")
+    # print(f"{result.timeOut}, {result.memoryOut}, {result.returnCode}")
+    # print(result.stdout.decode())
