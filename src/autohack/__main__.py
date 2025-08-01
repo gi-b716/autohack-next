@@ -10,7 +10,7 @@ if __name__ == "__main__":
         os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
 
     # TODO Remember to delete DEBUG tag
-    logger = logger.Logger(LOG_FOLDER_PATH, logging.DEBUG).getLogger()
+    logger = logger.Logger(LOG_FOLDER_PATH, logging.WARNING).getLogger()
     config = config.Config(CONFIG_FILE_PATH, logger)
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     clientID = str(uuid.uuid4())
@@ -23,7 +23,6 @@ if __name__ == "__main__":
     fileList = [
         [config.getConfigEntry("commands.compile.source"), "source code"],
         [config.getConfigEntry("commands.compile.std"), "standard code"],
-        # [config.getConfigEntry("commands.compile.checker"), "checker code"],
         [config.getConfigEntry("commands.compile.generator"), "generator code"],
     ]
     for file in fileList:

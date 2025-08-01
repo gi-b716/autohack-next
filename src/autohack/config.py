@@ -11,11 +11,6 @@ class Config:
         # MiB
         "memory_limit": 256,
         "error_data_number_limit": 1,
-        "filenames": {
-            "input": "hack$(id).in",
-            "output": "hack$(id).out",
-            "answer": "hack$(id).ans",
-        },
         "commands": {
             "compile": {
                 "source": [
@@ -34,13 +29,6 @@ class Config:
                     "-Wl,--stack=268435456",
                     "-O2",
                 ],
-                # "checker": [
-                #     "g++",
-                #     "checker.cpp",
-                #     "-o",
-                #     "checker",
-                #     "-O2",
-                # ],
                 "generator": [
                     "g++",
                     "generator.cpp",
@@ -56,11 +44,6 @@ class Config:
                 "std": [
                     "./std",
                 ],
-                # "checker": [
-                #     "./checker",
-                #     "$(outputfile)",
-                #     "$(ansfile)",
-                # ],
                 "generator": [
                     "./generator",
                 ],
