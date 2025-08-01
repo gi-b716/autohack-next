@@ -11,6 +11,7 @@ class Config:
         # MiB
         "memory_limit": 256,
         "error_data_number_limit": 1,
+        "thread_count": 4,
         "commands": {
             "compile": {
                 "source": [
