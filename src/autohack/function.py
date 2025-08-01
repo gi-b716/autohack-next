@@ -3,7 +3,6 @@ import subprocess
 
 
 def compileCode(compileCommand: str, fileName: str) -> None:
-    print(f"\x1b[1K\rCompile {fileName}.", end="")
     process = subprocess.Popen(
         compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
@@ -13,7 +12,6 @@ def compileCode(compileCommand: str, fileName: str) -> None:
 
 
 def generateInput(generateCommand: str, clientID: str) -> bytes:
-    print(f"\x1b[1K\rGenerate input.", end="")
     process = subprocess.Popen(
         generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
     )
@@ -24,7 +22,6 @@ def generateInput(generateCommand: str, clientID: str) -> bytes:
 
 
 def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> bytes:
-    print(f"\x1b[1K\rGenerate answer.", end="")
     process = subprocess.Popen(
         generateCommand,
         stdin=subprocess.PIPE,
@@ -42,7 +39,6 @@ def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> byt
 def runSourceCode(
     runCommand: str, dataInput: bytes, timeLimit: int | None, memoryLimit: int | None
 ) -> util.CodeRunner.Result:
-    print(f"\x1b[1K\rRun source code.", end="")
     result = util.CodeRunner().run(
         runCommand,
         inputContent=dataInput,

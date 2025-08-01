@@ -4,9 +4,11 @@ import logging, json, os
 
 class Config:
     DEFAULT_CONFIG = {
-        "_version": 3,
+        "_version": 4,
         "maximum_number_of_data": 10,
+        # ms
         "time_limit": 1000,
+        # MiB
         "memory_limit": 256,
         "error_data_number_limit": 1,
         "filenames": {
@@ -32,13 +34,13 @@ class Config:
                     "-Wl,--stack=268435456",
                     "-O2",
                 ],
-                "checker": [
-                    "g++",
-                    "checker.cpp",
-                    "-o",
-                    "checker",
-                    "-O2",
-                ],
+                # "checker": [
+                #     "g++",
+                #     "checker.cpp",
+                #     "-o",
+                #     "checker",
+                #     "-O2",
+                # ],
                 "generator": [
                     "g++",
                     "generator.cpp",
@@ -54,11 +56,11 @@ class Config:
                 "std": [
                     "./std",
                 ],
-                "checker": [
-                    "./checker",
-                    "$(outputfile)",
-                    "$(ansfile)",
-                ],
+                # "checker": [
+                #     "./checker",
+                #     "$(outputfile)",
+                #     "$(ansfile)",
+                # ],
                 "generator": [
                     "./generator",
                 ],

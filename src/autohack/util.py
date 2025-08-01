@@ -25,6 +25,7 @@ class CodeRunner:
         psutilProcess = psutil.Process(pid)
         while True:
             try:
+                # 测出来是资源监视器内存中提交那栏 *1024
                 if psutilProcess.memory_info().vms > memoryLimit:
                     self.memoryOut = True
                     psutilProcess.kill()
@@ -79,6 +80,9 @@ def getTempInputFilePath(clientID: str) -> str:
 def getTempAnswerFilePath(clientID: str) -> str:
     return os.path.join(TEMP_FOLDER_PATH, clientID, "answer")
 
+
+def getHackDataFolderPath(dataID: int) -> str:
+    return os.path.join(HACK_DATA_FOLDER_PATH, str(dataID))
 
 def mswindows() -> bool:
     try:
