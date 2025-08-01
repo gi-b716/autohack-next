@@ -1,5 +1,5 @@
 [project]
-name = "autohack"
+name = "autohack-next"
 version = "1.0.0"
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
