@@ -49,7 +49,6 @@ class Config:
                 ],
             },
         },
-        "command_run_at_the_end": "",
     }
 
     def __init__(self, configFilePath: str, logger: logging.Logger) -> None:
