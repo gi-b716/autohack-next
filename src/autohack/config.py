@@ -4,8 +4,8 @@ import logging, json, os
 
 class Config:
     DEFAULT_CONFIG = {
-        "_version": 4,
-        "maximum_number_of_data": 10,
+        "_version": 5,
+        "maximum_number_of_data": 1000,
         # ms
         "time_limit": 1000,
         # MiB

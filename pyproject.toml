@@ -1,10 +1,31 @@
 [project]
 name = "autohack-next"
-version = "1.0.0"
+version = "1.0.1"
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
 requires-python = ">=3.13"
+license = {file = "COPYING"}
+authors = [
+    {name = "gi-b716", email = "gi-b716@users.noreply.github.com"}
+]
+keywords = ["competitive-programming", "hack", "testing", "automation"]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+]
 dependencies = [
     "platformdirs>=4.3.8",
     "psutil>=7.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/gi-b716/autohack-next"
+Documentation = "https://github.com/gi-b716/autohack-next/blob/main/README.md"
+Repository = "https://github.com/gi-b716/autohack-next.git"
+"Bug Tracker" = "https://github.com/gi-b716/autohack-next/issues"
+
+# [project.scripts]
+# autohack = "autohack.__main__"

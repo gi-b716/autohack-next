@@ -11,4 +11,6 @@ TEMP_FOLDER_PATH = dirs.user_runtime_dir
 
 CONFIG_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "config.json")
 
-HACK_DATA_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "hackdata")
+CURRENT_HACK_DATA_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "hackdata")
+
+HACK_DATA_STORAGE_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "datastorage")

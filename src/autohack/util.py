@@ -22,7 +22,11 @@ class CodeRunner:
         self.memoryOut = False
 
     def memoryMonitor(self, pid: int, memoryLimit: int) -> None:
-        psutilProcess = psutil.Process(pid)
+        try:
+            psutilProcess = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            # 跑的太他妈快了，没测到
+            return
         while True:
             try:
                 # 测出来是资源监视器内存中提交那栏 *1024
@@ -81,8 +85,25 @@ def getTempAnswerFilePath(clientID: str) -> str:
     return os.path.join(TEMP_FOLDER_PATH, clientID, "answer")
 
 
+def getHackDataStorageFolderPath(clientID: str) -> str:
+    return os.path.join(HACK_DATA_STORAGE_FOLDER_PATH, clientID)
+
+
 def getHackDataFolderPath(dataID: int) -> str:
-    return os.path.join(HACK_DATA_FOLDER_PATH, str(dataID))
+    return os.path.join(CURRENT_HACK_DATA_FOLDER_PATH, str(dataID))
+
+
+def getInputFilePath(dataID: int) -> str:
+    return os.path.join(getHackDataFolderPath(dataID), "input")
+
+
+def getAnswerFilePath(dataID: int) -> str:
+    return os.path.join(getHackDataFolderPath(dataID), "answer")
+
+
+def getOutputFilePath(dataID: int) -> str:
+    return os.path.join(getHackDataFolderPath(dataID), "output")
+
 
 def mswindows() -> bool:
     try:

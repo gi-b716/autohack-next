@@ -12,20 +12,23 @@ class Logger:
 
         self.logger = logging.getLogger("autohack")
         self.logger.setLevel(logLevel)
-        logFilePath = os.path.join(
+        self.logFilePath = os.path.join(
             self.logFolder,
             f"autohack-{time.strftime("%Y-%m-%d_%H-%M-%S",time.localtime(time.time()))}.log",
         )
-        logFile = logging.FileHandler(logFilePath, encoding="utf-8")
+        logFile = logging.FileHandler(self.logFilePath, encoding="utf-8")
         logFile.setLevel(logLevel)
         logFile.setFormatter(
             logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
         )
         self.logger.addHandler(logFile)
 
-        self.logger.info(f'[logger] Log file: "{logFilePath}"')
+        self.logger.info(f'[logger] Log file: "{self.logFilePath}"')
         self.logger.info(f"[logger] Log level: {logging.getLevelName(logLevel)}")
         self.logger.info("[logger] Logger initialized.")
 
     def getLogger(self) -> logging.Logger:
         return self.logger
+
+    def getLogFilePath(self) -> str:
+        return self.logFilePath
