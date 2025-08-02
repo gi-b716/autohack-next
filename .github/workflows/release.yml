@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - '*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., 1.0.0)'
+        required: true
+        type: string
 
 jobs:
   release:
@@ -25,6 +31,15 @@ jobs:
     - name: Build package
       run: python -m build
     
+    - name: Get tag name
+      id: tag
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "name=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+        else
+          echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Get commit hash
       id: commit
       run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -35,8 +50,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref_name }}
-        release_name: ${{ github.ref_name }}
+        tag_name: ${{ steps.tag.outputs.name }}
+        release_name: ${{ steps.tag.outputs.name }}
         body: ${{ steps.commit.outputs.hash }}
         draft: false
         prerelease: false
@@ -44,7 +59,7 @@ jobs:
     - name: Upload Release Assets
       run: |
         for file in dist/*; do
-          gh release upload ${{ github.ref_name }} "$file"
+          gh release upload ${{ steps.tag.outputs.name }} "$file"
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
