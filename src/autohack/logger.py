@@ -1,3 +1,4 @@
+from .i18n import _
 import logging, time, os
 
 
@@ -23,9 +24,9 @@ class Logger:
         )
         self.logger.addHandler(logFile)
 
-        self.logger.info(f'[logger] Log file: "{logFilePath}"')
-        self.logger.info(f"[logger] Log level: {logging.getLevelName(logLevel)}")
-        self.logger.info("[logger] Logger initialized.")
+        self.logger.info(_('Log file: "{0}"').format(logFilePath))
+        self.logger.info(_("Log level: {0}").format(logging.getLevelName(logLevel)))
+        self.logger.info(_("Logger initialized."))
 
     def getLogger(self) -> logging.Logger:
         return self.logger

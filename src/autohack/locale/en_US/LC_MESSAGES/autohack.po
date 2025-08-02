@@ -1,0 +1,130 @@
+# English translation for autohack.
+# Copyright (C) 2025 autohack
+# This file is distributed under the same license as the autohack package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: autohack 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-02 12:00+0800\n"
+"PO-Revision-Date: 2025-08-02 12:00+0800\n"
+"Last-Translator: autohack team\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Main initialization messages
+msgid "Data folder path: \"{0}\""
+msgstr "Data folder path: \"{0}\""
+
+msgid "Client ID: {0}"
+msgstr "Client ID: {0}"
+
+msgid "Initialized."
+msgstr "Initialized."
+
+# Compilation messages
+msgid "Compile {0}."
+msgstr "Compile {0}."
+
+msgid "Compile finished."
+msgstr "Compile finished."
+
+msgid "{0} compilation failed: {1}"
+msgstr "{0} compilation failed: {1}"
+
+msgid "{0} compiled successfully."
+msgstr "{0} compiled successfully."
+
+# Data generation and processing
+msgid "{0}: Generate input."
+msgstr "{0}: Generate input."
+
+msgid "{0}: Generate answer."
+msgstr "{0}: Generate answer."
+
+msgid "{0}: Run source code."
+msgstr "{0}: Run source code."
+
+msgid "{0}: Accepted."
+msgstr "{0}: Accepted."
+
+msgid "Generating data {0}."
+msgstr "Generating data {0}."
+
+msgid "Generating answer for data {0}."
+msgstr "Generating answer for data {0}."
+
+msgid "Run source code for data {0}."
+msgstr "Run source code for data {0}."
+
+# Error messages
+msgid "Input generation failed: {0}"
+msgstr "Input generation failed: {0}"
+
+msgid "Answer generation failed: {0}"
+msgstr "Answer generation failed: {0}"
+
+msgid "Memory limit exceeded for data {0}."
+msgstr "Memory limit exceeded for data {0}."
+
+msgid "Time limit exceeded for data {0}."
+msgstr "Time limit exceeded for data {0}."
+
+msgid "Runtime error for data {0} with return code {1}."
+msgstr "Runtime error for data {0} with return code {1}."
+
+msgid "Wrong answer for data {0}. Checker output: {1}"
+msgstr "Wrong answer for data {0}. Checker output: {1}"
+
+# Final messages
+msgid "Finished. {0} data generated, {1} error data found."
+msgstr "Finished. {0} data generated, {1} error data found."
+
+# Thread messages
+msgid "Thread #{0}: Starting..."
+msgstr "Thread #{0}: Starting..."
+
+msgid "Thread #{0}: Finished."
+msgstr "Thread #{0}: Finished."
+
+msgid "Thread #{0}: Error: {0}"
+msgstr "Thread #{0}: Error: {0}"
+
+# Config messages
+msgid "Config file path: \"{0}\""
+msgstr "Config file path: \"{0}\""
+
+msgid "Config file created."
+msgstr "Config file created."
+
+msgid "Config file updated."
+msgstr "Config file updated."
+
+msgid "Config file loaded."
+msgstr "Config file loaded."
+
+msgid "Get config entry: \"{0}\" = \"{1}\""
+msgstr "Get config entry: \"{0}\" = \"{1}\""
+
+msgid "Modify entry: \"{0}\" = \"{1}\""
+msgstr "Modify entry: \"{0}\" = \"{1}\""
+
+# Logger messages
+msgid "Log file: \"{0}\""
+msgstr "Log file: \"{0}\""
+
+msgid "Log level: {0}"
+msgstr "Log level: {0}"
+
+msgid "Logger initialized."
+msgstr "Logger initialized."
+
+# Checker messages
+msgid "No differences found."
+msgstr "No differences found."
+
+msgid "Difference found at line {0}, column {1}."
+msgstr "Difference found at line {0}, column {1}."

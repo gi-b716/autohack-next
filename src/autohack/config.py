@@ -1,4 +1,5 @@
 from typing import Dict, Any
+from .i18n import _
 import logging, json, os
 
 
@@ -54,13 +55,13 @@ class Config:
     def __init__(self, configFilePath: str, logger: logging.Logger) -> None:
         self.logger = logger
         self.configFilePath = configFilePath
-        self.logger.info(f'[config] Config file path: "{self.configFilePath}"')
+        self.logger.info(_('Config file path: "{0}"').format(self.configFilePath))
         self.config = self.loadConfig()
 
     def loadConfig(self) -> Dict[str, Any]:
         if not os.path.exists(self.configFilePath):
             json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
-            self.logger.info("[config] Config file created.")
+            self.logger.info(_("Config file created."))
             return Config.DEFAULT_CONFIG.copy()
 
         with open(self.configFilePath, "r") as configFile:
@@ -70,10 +71,10 @@ class Config:
             merged_config = self.mergeConfigs(config, Config.DEFAULT_CONFIG)
             merged_config["_version"] = Config.DEFAULT_CONFIG["_version"]
             json.dump(merged_config, open(self.configFilePath, "w"), indent=4)
-            self.logger.info("[config] Config file updated.")
+            self.logger.info(_("Config file updated."))
             config = merged_config
 
-        self.logger.info("[config] Config file loaded.")
+        self.logger.info(_("Config file loaded."))
         return config
 
     def mergeConfigs(
@@ -106,7 +107,9 @@ class Config:
             if result is None:
                 break
 
-        self.logger.debug(f'[config] Get config entry: "{entryName}" = "{result}"')
+        self.logger.debug(
+            _('Get config entry: "{0}" = "{1}"').format(entryName, result)
+        )
         return result
 
     def modifyConfigEntry(self, entryName: str, newValue: Any) -> bool:
@@ -124,5 +127,5 @@ class Config:
         currentLevel[lastLevel] = newValue
 
         json.dump(self.config, open(self.configFilePath, "w"), indent=4)
-        self.logger.debug(f'[config] Modify entry: "{entryName}" = "{newValue}"')
+        self.logger.debug(_('Modify entry: "{0}" = "{1}"').format(entryName, newValue))
         return True

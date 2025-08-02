@@ -1,0 +1,130 @@
+# Chinese (Simplified) translation for autohack.
+# Copyright (C) 2025 autohack
+# This file is distributed under the same license as the autohack package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: autohack 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-02 12:00+0800\n"
+"PO-Revision-Date: 2025-08-02 12:00+0800\n"
+"Last-Translator: autohack team\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Main initialization messages
+msgid "Data folder path: \"{0}\""
+msgstr "数据文件夹路径：\"{0}\""
+
+msgid "Client ID: {0}"
+msgstr "客户端ID：{0}"
+
+msgid "Initialized."
+msgstr "已初始化。"
+
+# Compilation messages
+msgid "Compile {0}."
+msgstr "编译{0}。"
+
+msgid "Compile finished."
+msgstr "编译完成。"
+
+msgid "{0} compilation failed: {1}"
+msgstr "{0}编译失败：{1}"
+
+msgid "{0} compiled successfully."
+msgstr "{0}编译成功。"
+
+# Data generation and processing
+msgid "{0}: Generate input."
+msgstr "{0}：生成输入。"
+
+msgid "{0}: Generate answer."
+msgstr "{0}：生成答案。"
+
+msgid "{0}: Run source code."
+msgstr "{0}：运行源代码。"
+
+msgid "{0}: Accepted."
+msgstr "{0}：通过。"
+
+msgid "Generating data {0}."
+msgstr "正在生成数据{0}。"
+
+msgid "Generating answer for data {0}."
+msgstr "正在为数据{0}生成答案。"
+
+msgid "Run source code for data {0}."
+msgstr "为数据{0}运行源代码。"
+
+# Error messages
+msgid "Input generation failed: {0}"
+msgstr "输入生成失败：{0}"
+
+msgid "Answer generation failed: {0}"
+msgstr "答案生成失败：{0}"
+
+msgid "Memory limit exceeded for data {0}."
+msgstr "数据{0}内存超限。"
+
+msgid "Time limit exceeded for data {0}."
+msgstr "数据{0}时间超限。"
+
+msgid "Runtime error for data {0} with return code {1}."
+msgstr "数据{0}运行时错误，返回码{1}。"
+
+msgid "Wrong answer for data {0}. Checker output: {1}"
+msgstr "数据{0}答案错误。检查器输出：{1}"
+
+# Final messages
+msgid "Finished. {0} data generated, {1} error data found."
+msgstr "完成。生成了{0}个数据，发现{1}个错误数据。"
+
+# Thread messages
+msgid "Thread #{0}: Starting..."
+msgstr "线程#{0}：正在启动..."
+
+msgid "Thread #{0}: Finished."
+msgstr "线程#{0}：已完成。"
+
+msgid "Thread #{0}: Error: {0}"
+msgstr "线程#{0}：错误：{0}"
+
+# Config messages
+msgid "Config file path: \"{0}\""
+msgstr "配置文件路径：\"{0}\""
+
+msgid "Config file created."
+msgstr "配置文件已创建。"
+
+msgid "Config file updated."
+msgstr "配置文件已更新。"
+
+msgid "Config file loaded."
+msgstr "配置文件已加载。"
+
+msgid "Get config entry: \"{0}\" = \"{1}\""
+msgstr "获取配置项：\"{0}\" = \"{1}\""
+
+msgid "Modify entry: \"{0}\" = \"{1}\""
+msgstr "修改配置项：\"{0}\" = \"{1}\""
+
+# Logger messages
+msgid "Log file: \"{0}\""
+msgstr "日志文件：\"{0}\""
+
+msgid "Log level: {0}"
+msgstr "日志级别：{0}"
+
+msgid "Logger initialized."
+msgstr "日志记录器已初始化。"
+
+# Checker messages
+msgid "No differences found."
+msgstr "未发现差异。"
+
+msgid "Difference found at line {0}, column {1}."
+msgstr "在第{0}行第{1}列发现差异。"

@@ -1,0 +1,131 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the autohack package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: autohack 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-02 12:00+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Main initialization messages
+msgid "Data folder path: \"{0}\""
+msgstr ""
+
+msgid "Client ID: {0}"
+msgstr ""
+
+msgid "Initialized."
+msgstr ""
+
+# Compilation messages
+msgid "Compile {0}."
+msgstr ""
+
+msgid "Compile finished."
+msgstr ""
+
+msgid "{0} compilation failed: {1}"
+msgstr ""
+
+msgid "{0} compiled successfully."
+msgstr ""
+
+# Data generation and processing
+msgid "{0}: Generate input."
+msgstr ""
+
+msgid "{0}: Generate answer."
+msgstr ""
+
+msgid "{0}: Run source code."
+msgstr ""
+
+msgid "{0}: Accepted."
+msgstr ""
+
+msgid "Generating data {0}."
+msgstr ""
+
+msgid "Generating answer for data {0}."
+msgstr ""
+
+msgid "Run source code for data {0}."
+msgstr ""
+
+# Error messages
+msgid "Input generation failed: {0}"
+msgstr ""
+
+msgid "Answer generation failed: {0}"
+msgstr ""
+
+msgid "Memory limit exceeded for data {0}."
+msgstr ""
+
+msgid "Time limit exceeded for data {0}."
+msgstr ""
+
+msgid "Runtime error for data {0} with return code {1}."
+msgstr ""
+
+msgid "Wrong answer for data {0}. Checker output: {1}"
+msgstr ""
+
+# Final messages
+msgid "Finished. {0} data generated, {1} error data found."
+msgstr ""
+
+# Thread messages
+msgid "Thread #{0}: Starting..."
+msgstr ""
+
+msgid "Thread #{0}: Finished."
+msgstr ""
+
+msgid "Thread #{0}: Error: {0}"
+msgstr ""
+
+# Config messages
+msgid "Config file path: \"{0}\""
+msgstr ""
+
+msgid "Config file created."
+msgstr ""
+
+msgid "Config file updated."
+msgstr ""
+
+msgid "Config file loaded."
+msgstr ""
+
+msgid "Get config entry: \"{0}\" = \"{1}\""
+msgstr ""
+
+msgid "Modify entry: \"{0}\" = \"{1}\""
+msgstr ""
+
+# Logger messages
+msgid "Log file: \"{0}\""
+msgstr ""
+
+msgid "Log level: {0}"
+msgstr ""
+
+msgid "Logger initialized."
+msgstr ""
+
+# Checker messages
+msgid "No differences found."
+msgstr ""
+
+msgid "Difference found at line {0}, column {1}."
+msgstr ""
