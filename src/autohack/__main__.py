@@ -1,15 +1,21 @@
 from .constant import *
 from . import exception, function, checker, config, logger, util
-import logging, shutil, time, uuid, os
+import logging, shutil, time, uuid, sys, os
 
 if __name__ == "__main__":
+    if "--debug" in sys.argv:
+        print("Debug mode enabled. Logging level set to DEBUG.")
+
     util.checkDirectoryExists(DATA_FOLDER_PATH)
     util.checkDirectoryExists(LOG_FOLDER_PATH)
     util.checkDirectoryExists(TEMP_FOLDER_PATH)
     if util.mswindows():
         os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
 
-    loggerObject = logger.Logger(LOG_FOLDER_PATH, logging.WARNING)
+    loggerObject = logger.Logger(
+        LOG_FOLDER_PATH,
+        logging.DEBUG if "--debug" in sys.argv else logging.INFO,
+    )
     logger = loggerObject.getLogger()
     config = config.Config(CONFIG_FILE_PATH, logger)
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
@@ -58,7 +64,7 @@ if __name__ == "__main__":
             print(f"\r{e}")
             exit(1)
         else:
-            logger.info(f"[autohack] {file[1].capitalize()} compiled successfully.")
+            logger.debug(f"[autohack] {file[1].capitalize()} compiled successfully.")
     print("\x1b[1K\rCompile finished.")
 
     dataCount, errorDataCount = 0, 0
@@ -81,7 +87,7 @@ if __name__ == "__main__":
         open(util.getInputFilePath(errorDataCount), "wb").write(dataInput)
         open(util.getAnswerFilePath(errorDataCount), "wb").write(dataAnswer)
         open(util.getOutputFilePath(errorDataCount), "wb").write(dataOutput)
-        logger.warning(logMessage)
+        logger.info(logMessage)
         print(message)
 
     startTime = time.time()
@@ -92,7 +98,7 @@ if __name__ == "__main__":
         dataCount += 1
 
         try:
-            logger.info(f"[autohack] Generating data {dataCount}.")
+            logger.debug(f"[autohack] Generating data {dataCount}.")
             print(f"\x1b[1K\r{dataCount}: Generate input.", end="")
             dataInput = function.generateInput(generateCommand, clientID)
         except exception.InputGenerationError as e:
@@ -101,7 +107,7 @@ if __name__ == "__main__":
             exit(1)
 
         try:
-            logger.info(f"[autohack] Generating answer for data {dataCount}.")
+            logger.debug(f"[autohack] Generating answer for data {dataCount}.")
             print(f"\x1b[1K\r{dataCount}: Generate answer.", end="")
             dataAnswer = function.generateAnswer(
                 stdCommand,
@@ -113,7 +119,7 @@ if __name__ == "__main__":
             print(f"\x1b[1K\r{e}")
             exit(1)
 
-        logger.info(f"[autohack] Run source code for data {dataCount}.")
+        logger.debug(f"[autohack] Run source code for data {dataCount}.")
         print(f"\x1b[1K\r{dataCount}: Run source code.", end="")
         result = function.runSourceCode(
             sourceCommand, dataInput, timeLimit, memoryLimit
