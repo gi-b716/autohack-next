@@ -1,4 +1,5 @@
-from . import exception, util
+from .core.exception import *
+from .core.util import *
 import subprocess
 
 
@@ -11,7 +12,7 @@ def compileCode(compileCommand: str, fileName: str) -> None:
         return
     output = process.communicate()[0]
     if process.returncode != 0:
-        raise exception.CompilationError(fileName, output, process.returncode)
+        raise CompilationError(fileName, output, process.returncode)
 
 
 def generateInput(generateCommand: str, clientID: str) -> bytes:
@@ -23,7 +24,7 @@ def generateInput(generateCommand: str, clientID: str) -> bytes:
         return b""
     dataInput = process.communicate()[0]
     if process.returncode != 0:
-        raise exception.InputGenerationError(dataInput, clientID, process.returncode)
+        raise InputGenerationError(dataInput, clientID, process.returncode)
     return dataInput
 
 
@@ -39,17 +40,15 @@ def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> byt
         return b""
     dataAnswer = process.communicate(dataInput)[0]
     if process.returncode != 0:
-        raise exception.AnswerGenerationError(
-            dataInput, dataAnswer, clientID, process.returncode
-        )
+        raise AnswerGenerationError(dataInput, dataAnswer, clientID, process.returncode)
     return dataAnswer
 
 
 def runSourceCode(
     runCommand: str, dataInput: bytes, timeLimit: int | None, memoryLimit: int | None
-) -> util.CodeRunner.Result:
+) -> CodeRunner.Result:
     try:
-        result = util.CodeRunner().run(
+        result = CodeRunner().run(
             runCommand,
             inputContent=dataInput,
             timeLimit=timeLimit,
@@ -59,5 +58,5 @@ def runSourceCode(
             stderr=subprocess.DEVNULL,
         )
     except OSError:
-        return util.CodeRunner.Result(False, False, 0, b"", b"")
+        return CodeRunner.Result(False, False, 0, b"", b"")
     return result

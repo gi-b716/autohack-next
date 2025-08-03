@@ -11,10 +11,10 @@ if __name__ == "__main__":
     if "--debug" in sys.argv:
         print("Debug mode enabled. Logging level set to DEBUG.")
 
-    util.checkDirectoryExists(DATA_FOLDER_PATH)
-    util.checkDirectoryExists(LOG_FOLDER_PATH)
-    util.checkDirectoryExists(TEMP_FOLDER_PATH)
-    if util.mswindows():
+    checkDirectoryExists(DATA_FOLDER_PATH)
+    checkDirectoryExists(LOG_FOLDER_PATH)
+    checkDirectoryExists(TEMP_FOLDER_PATH)
+    if mswindows():
         os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
 
     loggerObject = Logger(
@@ -31,23 +31,23 @@ if __name__ == "__main__":
     symlinkFallback = False
 
     print(
-        f"Hack data storaged to {CURRENT_HACK_DATA_FOLDER_PATH}.\n{' '*19}or {util.getHackDataStorageFolderPath(clientID)}\nLog file: {loggerObject.getLogFilePath()}"
+        f"Hack data storaged to {CURRENT_HACK_DATA_FOLDER_PATH}.\n{' '*19}or {getHackDataStorageFolderPath(clientID)}\nLog file: {loggerObject.getLogFilePath()}"
     )
-    util.checkDirectoryExists(util.getHackDataStorageFolderPath(clientID))
+    checkDirectoryExists(getHackDataStorageFolderPath(clientID))
     if os.path.islink(CURRENT_HACK_DATA_FOLDER_PATH):
         os.unlink(CURRENT_HACK_DATA_FOLDER_PATH)
     elif os.path.isdir(CURRENT_HACK_DATA_FOLDER_PATH):
         shutil.rmtree(CURRENT_HACK_DATA_FOLDER_PATH)
     try:
         os.symlink(
-            util.getHackDataStorageFolderPath(clientID),
+            getHackDataStorageFolderPath(clientID),
             CURRENT_HACK_DATA_FOLDER_PATH,
             target_is_directory=True,
         )
     except OSError:
         symlinkFallback = True
         logger.warning("[autohack] Symlink creation failed. Using fallback method.")
-        util.checkDirectoryExists(CURRENT_HACK_DATA_FOLDER_PATH)
+        checkDirectoryExists(CURRENT_HACK_DATA_FOLDER_PATH)
 
     for i in range(3):
         print(f"\x1b[1K\rStarting in {3-i} seconds...", end="")
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         print(f"\x1b[1K\rCompile {file[1]}.", end="")
         try:
             compileCode(file[0], file[1])
-        except exception.CompilationError as e:
+        except CompilationError as e:
             logger.error(
                 f"[autohack] {e.fileName.capitalize()} compilation failed: {e}"
             )
@@ -88,10 +88,10 @@ if __name__ == "__main__":
     ) -> None:
         global errorDataCount, logger
         errorDataCount += 1
-        util.checkDirectoryExists(util.getHackDataFolderPath(errorDataCount))
-        open(util.getInputFilePath(errorDataCount), "wb").write(dataInput)
-        open(util.getAnswerFilePath(errorDataCount), "wb").write(dataAnswer)
-        open(util.getOutputFilePath(errorDataCount), "wb").write(dataOutput)
+        checkDirectoryExists(getHackDataFolderPath(errorDataCount))
+        open(getInputFilePath(errorDataCount), "wb").write(dataInput)
+        open(getAnswerFilePath(errorDataCount), "wb").write(dataAnswer)
+        open(getOutputFilePath(errorDataCount), "wb").write(dataOutput)
         logger.info(logMessage)
         print(message)
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
             logger.debug(f"[autohack] Generating data {dataCount}.")
             print(f"\x1b[1K\r{dataCount}: Generate input.", end="")
             dataInput = generateInput(generateCommand, clientID)
-        except exception.InputGenerationError as e:
+        except InputGenerationError as e:
             logger.error(f"[autohack] Input generation failed: {e}")
             print(f"\x1b[1K\r{e}")
             exit(1)
@@ -119,19 +119,14 @@ if __name__ == "__main__":
                 dataInput,
                 clientID,
             )
-        except exception.AnswerGenerationError as e:
+        except AnswerGenerationError as e:
             logger.error(f"[autohack] Answer generation failed: {e}")
             print(f"\x1b[1K\r{e}")
             exit(1)
 
         logger.debug(f"[autohack] Run source code for data {dataCount}.")
         print(f"\x1b[1K\r{dataCount}: Run source code.", end="")
-        result = runSourceCode(
-            sourceCommand, dataInput, timeLimit, memoryLimit
-        )
-
-        if result.stdout is None:
-            result.stdout = b""
+        result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
 
         if result.memoryOut:
             saveErrorData(
@@ -179,11 +174,11 @@ if __name__ == "__main__":
     if symlinkFallback:
         print(f"Saving hack data to data storage folder...", end="")
         logger.info(
-            f"[autohack] Saving hack data to data storage folder: {util.getHackDataStorageFolderPath(clientID)}"
+            f"[autohack] Saving hack data to data storage folder: {getHackDataStorageFolderPath(clientID)}"
         )
         shutil.copytree(
             CURRENT_HACK_DATA_FOLDER_PATH,
-            util.getHackDataStorageFolderPath(clientID),
+            getHackDataStorageFolderPath(clientID),
             dirs_exist_ok=True,
         )
         print("\x1b[1K\rHack data saved to data storage folder.")
