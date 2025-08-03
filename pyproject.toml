@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = {file = "COPYING"}
 authors = [
-    {name = "gi-b716", email = "gi-b716@users.noreply.github.com"}
+    {name = "gi-b716", email = "sganyunchi@163.com"}
 ]
-keywords = ["competitive-programming", "hack", "testing", "automation"]
+keywords = ["competitive-programming", "hack", "automation"]
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
