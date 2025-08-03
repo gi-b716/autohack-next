@@ -7,7 +7,7 @@ from .checker import *
 from .function import *
 import logging, shutil, time, uuid, sys, os
 
-if __name__ == "__main__":
+if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     if "--debug" in sys.argv:
         print("Debug mode enabled. Logging level set to DEBUG.")
 
