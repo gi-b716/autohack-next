@@ -18,6 +18,12 @@ Run the following command:
 python -m autohack
 ```
 
+or
+
+```bash
+autohack
+```
+
 On the first run, it will generate a `.autohack` folder in the current directory and exit.
 
 After adjusting the settings in `.autohack/config.json`, run it again to start using.

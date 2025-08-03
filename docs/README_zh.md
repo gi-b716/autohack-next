@@ -18,6 +18,12 @@ autohack-next 作为包发布在了 pypi 上，使用 Python 包管理器安装�
 python -m autohack
 ```
 
+或
+
+```bash
+autohack
+```
+
 第一次运行时，会在当前目录生成 `.autohack` 文件夹并退出。
 
 在 `.autohack/config.json` 中调整设置后再次运行即可。
