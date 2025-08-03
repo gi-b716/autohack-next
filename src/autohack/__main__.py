@@ -1,5 +1,10 @@
-from .constant import *
-from . import exception, function, checker, config, logger, util
+from .core.constant import *
+from .core.exception import *
+from .core.util import *
+from .lib.config import *
+from .lib.logger import *
+from .checker import *
+from .function import *
 import logging, shutil, time, uuid, sys, os
 
 if __name__ == "__main__":
@@ -12,12 +17,12 @@ if __name__ == "__main__":
     if util.mswindows():
         os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
 
-    loggerObject = logger.Logger(
+    loggerObject = Logger(
         LOG_FOLDER_PATH,
         logging.DEBUG if "--debug" in sys.argv else logging.INFO,
     )
     logger = loggerObject.getLogger()
-    config = config.Config(CONFIG_FILE_PATH, logger)
+    config = Config(CONFIG_FILE_PATH, logger)
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     clientID = str(uuid.uuid4())
     logger.info(f"[autohack] Client ID: {clientID}")
@@ -56,7 +61,7 @@ if __name__ == "__main__":
     for file in fileList:
         print(f"\x1b[1K\rCompile {file[1]}.", end="")
         try:
-            function.compileCode(file[0], file[1])
+            compileCode(file[0], file[1])
         except exception.CompilationError as e:
             logger.error(
                 f"[autohack] {e.fileName.capitalize()} compilation failed: {e}"
@@ -100,7 +105,7 @@ if __name__ == "__main__":
         try:
             logger.debug(f"[autohack] Generating data {dataCount}.")
             print(f"\x1b[1K\r{dataCount}: Generate input.", end="")
-            dataInput = function.generateInput(generateCommand, clientID)
+            dataInput = generateInput(generateCommand, clientID)
         except exception.InputGenerationError as e:
             logger.error(f"[autohack] Input generation failed: {e}")
             print(f"\x1b[1K\r{e}")
@@ -109,7 +114,7 @@ if __name__ == "__main__":
         try:
             logger.debug(f"[autohack] Generating answer for data {dataCount}.")
             print(f"\x1b[1K\r{dataCount}: Generate answer.", end="")
-            dataAnswer = function.generateAnswer(
+            dataAnswer = generateAnswer(
                 stdCommand,
                 dataInput,
                 clientID,
@@ -121,9 +126,12 @@ if __name__ == "__main__":
 
         logger.debug(f"[autohack] Run source code for data {dataCount}.")
         print(f"\x1b[1K\r{dataCount}: Run source code.", end="")
-        result = function.runSourceCode(
+        result = runSourceCode(
             sourceCommand, dataInput, timeLimit, memoryLimit
         )
+
+        if result.stdout is None:
+            result.stdout = b""
 
         if result.memoryOut:
             saveErrorData(
@@ -153,7 +161,7 @@ if __name__ == "__main__":
             )
             continue
 
-        checkerResult = checker.basicChecker(result.stdout, dataAnswer)
+        checkerResult = basicChecker(result.stdout, dataAnswer)
         if not checkerResult[0]:
             saveErrorData(
                 dataInput,
