@@ -89,20 +89,14 @@ def getHackDataStorageFolderPath(clientID: str) -> str:
     return os.path.join(HACK_DATA_STORAGE_FOLDER_PATH, clientID)
 
 
-def getHackDataFolderPath(dataID: int) -> str:
-    return os.path.join(CURRENT_HACK_DATA_FOLDER_PATH, str(dataID))
+def getHackDataFilePath(dataID: int, filePath: str) -> str:
+    return os.path.join(
+        CURRENT_HACK_DATA_FOLDER_PATH, filePath.replace("$(id)", str(dataID))
+    )
 
 
-def getInputFilePath(dataID: int) -> str:
-    return os.path.join(getHackDataFolderPath(dataID), "input")
-
-
-def getAnswerFilePath(dataID: int) -> str:
-    return os.path.join(getHackDataFolderPath(dataID), "answer")
-
-
-def getOutputFilePath(dataID: int) -> str:
-    return os.path.join(getHackDataFolderPath(dataID), "output")
+def getHackDataFolderPath(dataID: int, filePath: str) -> str:
+    return os.path.dirname(getHackDataFilePath(dataID, filePath))
 
 
 def mswindows() -> bool:

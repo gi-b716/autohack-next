@@ -4,13 +4,18 @@ import logging, json, os
 
 class Config:
     DEFAULT_CONFIG = {
-        "_version": 5,
+        "_version": 6,
         "maximum_number_of_data": 1000,
         # ms
         "time_limit": 1000,
         # MiB
         "memory_limit": 256,
         "error_data_number_limit": 1,
+        "paths": {
+            "input": "$(id)/input",
+            "answer": "$(id)/answer",
+            "output": "$(id)/output",
+        },
         "commands": {
             "compile": {
                 "source": [

@@ -78,6 +78,9 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     sourceCommand = config.getConfigEntry("commands.run.source")
     timeLimit = config.getConfigEntry("time_limit")
     memoryLimit = config.getConfigEntry("memory_limit") * 1024 * 1024
+    inputFilePath = config.getConfigEntry("paths.input")
+    answerFilePath = config.getConfigEntry("paths.answer")
+    outputFilePath = config.getConfigEntry("paths.output")
 
     def saveErrorData(
         dataInput: bytes,
@@ -88,10 +91,12 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     ) -> None:
         global errorDataCount, logger
         errorDataCount += 1
-        checkDirectoryExists(getHackDataFolderPath(errorDataCount))
-        open(getInputFilePath(errorDataCount), "wb").write(dataInput)
-        open(getAnswerFilePath(errorDataCount), "wb").write(dataAnswer)
-        open(getOutputFilePath(errorDataCount), "wb").write(dataOutput)
+        checkDirectoryExists(getHackDataFolderPath(errorDataCount, inputFilePath))
+        checkDirectoryExists(getHackDataFolderPath(errorDataCount, answerFilePath))
+        checkDirectoryExists(getHackDataFolderPath(errorDataCount, outputFilePath))
+        open(getHackDataFilePath(errorDataCount, inputFilePath), "wb").write(dataInput)
+        open(getHackDataFilePath(errorDataCount, answerFilePath), "wb").write(dataAnswer)
+        open(getHackDataFilePath(errorDataCount, outputFilePath), "wb").write(dataOutput)
         logger.info(logMessage)
         print(message)
 
