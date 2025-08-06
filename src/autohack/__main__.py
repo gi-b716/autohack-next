@@ -95,8 +95,12 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
         checkDirectoryExists(getHackDataFolderPath(errorDataCount, answerFilePath))
         checkDirectoryExists(getHackDataFolderPath(errorDataCount, outputFilePath))
         open(getHackDataFilePath(errorDataCount, inputFilePath), "wb").write(dataInput)
-        open(getHackDataFilePath(errorDataCount, answerFilePath), "wb").write(dataAnswer)
-        open(getHackDataFilePath(errorDataCount, outputFilePath), "wb").write(dataOutput)
+        open(getHackDataFilePath(errorDataCount, answerFilePath), "wb").write(
+            dataAnswer
+        )
+        open(getHackDataFilePath(errorDataCount, outputFilePath), "wb").write(
+            dataOutput
+        )
         logger.info(logMessage)
         print(message)
 
@@ -176,17 +180,22 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     print(
         f"\x1b[1K\rFinished. {dataCount} data generated, {errorDataCount} error data found.\nTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data."
     )
-    if symlinkFallback:
-        print(f"Saving hack data to data storage folder...", end="")
-        logger.info(
-            f"[autohack] Saving hack data to data storage folder: {getHackDataStorageFolderPath(clientID)}"
-        )
-        shutil.copytree(
-            CURRENT_HACK_DATA_FOLDER_PATH,
-            getHackDataStorageFolderPath(clientID),
-            dirs_exist_ok=True,
-        )
-        print("\x1b[1K\rHack data saved to data storage folder.")
+    if errorDataCount > 0:
+        if symlinkFallback:
+            print(f"Saving hack data to data storage folder...", end="")
+            shutil.copytree(
+                CURRENT_HACK_DATA_FOLDER_PATH,
+                getHackDataStorageFolderPath(clientID),
+                dirs_exist_ok=True,
+            )
+            print("\x1b[1K\rHack data saved to data storage folder.")
+            logger.info(
+                f"[autohack] Hack data saved to data storage folder: {getHackDataStorageFolderPath(clientID)}"
+            )
+    else:
+        shutil.rmtree(getHackDataStorageFolderPath(clientID))
+        print("No error data found. Hack data folder removed.")
+        logger.info("[autohack] No error data found. Hack data folder removed.")
     if (
         os.path.exists(HACK_DATA_STORAGE_FOLDER_PATH)
         and os.path.getsize(HACK_DATA_STORAGE_FOLDER_PATH) > 256 * 1024 * 1024
@@ -197,3 +206,10 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
         print(
             f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}"
         )
+
+    comment = input("Comment (optional): ")
+    open(RECORD_FILE_PATH, "a+").write(
+        f"{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))} / {clientID}\n{dataCount} data generated, {errorDataCount} error data found.\nTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.\n{comment}\n\n"
+    )
+    print(f"Record saved to {RECORD_FILE_PATH}.")
+    logger.info(f"[autohack] Record saved to {RECORD_FILE_PATH}.")
