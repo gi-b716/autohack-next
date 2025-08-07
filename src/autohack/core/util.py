@@ -1,4 +1,4 @@
-from .constant import *
+from .path import *
 import subprocess, threading, psutil, os
 
 
@@ -75,28 +75,6 @@ class CodeRunner:
 def checkDirectoryExists(directory: str) -> None:
     if not os.path.exists(directory):
         os.makedirs(directory)
-
-
-def getTempInputFilePath(clientID: str) -> str:
-    return os.path.join(TEMP_FOLDER_PATH, clientID, "input")
-
-
-def getTempAnswerFilePath(clientID: str) -> str:
-    return os.path.join(TEMP_FOLDER_PATH, clientID, "answer")
-
-
-def getHackDataStorageFolderPath(clientID: str) -> str:
-    return os.path.join(HACK_DATA_STORAGE_FOLDER_PATH, clientID)
-
-
-def getHackDataFilePath(dataID: int, filePath: str) -> str:
-    return os.path.join(
-        CURRENT_HACK_DATA_FOLDER_PATH, filePath.replace("$(id)", str(dataID))
-    )
-
-
-def getHackDataFolderPath(dataID: int, filePath: str) -> str:
-    return os.path.dirname(getHackDataFilePath(dataID, filePath))
 
 
 def mswindows() -> bool:
