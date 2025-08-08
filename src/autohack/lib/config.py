@@ -1,5 +1,5 @@
 from typing import Dict, Any
-import logging, json, os
+import logging, json, sys, os
 
 
 class Config:
@@ -67,7 +67,7 @@ class Config:
             json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file created.")
             print(f"Config file created at {self.configFilePath}.")
-            exit(0)
+            sys.exit(0)
             # return Config.DEFAULT_CONFIG.copy()
 
         with open(self.configFilePath, "r") as configFile:
