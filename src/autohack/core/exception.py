@@ -1,4 +1,4 @@
-from .util import *
+from autohack.core.util import *
 import os
 
 

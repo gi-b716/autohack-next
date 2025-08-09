@@ -12,8 +12,10 @@ on:
         type: string
 
 jobs:
-  release:
+  build-python:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.name }}
 
     steps:
     - uses: actions/checkout@v4
@@ -26,7 +28,7 @@ jobs:
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install build twine
+        python -m pip install build
 
     - name: Build package
       run: python -m build
@@ -40,6 +42,97 @@ jobs:
           echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
         fi
 
+    - name: Upload Python artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-dist
+        path: dist/
+
+  build-executables:
+    needs: build-python
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install UPX
+      uses: crazy-max/ghaction-upx@v3
+      with:
+        install-only: true
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .
+
+    - name: Build executable (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.tag }} src/autohack/__main__.py
+        mv __main__.bin autohack
+
+    - name: Build executable (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.tag }} src/autohack/__main__.py
+        mv __main__.exe autohack.exe
+
+    - name: Create release package (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        mkdir release-package
+        cp README.md release-package/
+        cp autohack release-package/
+        cd release-package
+        zip -r ../autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip .
+
+    - name: Create release package (Windows)
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        mkdir release-package
+        cp README.md release-package/
+        cp autohack.exe release-package/autohack.exe
+        cd release-package
+        Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip
+    
+    - name: Upload executable artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: executable-${{ matrix.platform }}
+        path: autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip
+
+  release:
+    needs: [build-python, build-executables]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Python artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: python-dist
+        path: dist/
+
+    - name: Download executable artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: executable-*
+        merge-multiple: true
+
     - name: Get commit hash
       id: commit
       run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -50,16 +143,21 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.tag.outputs.name }}
-        release_name: ${{ steps.tag.outputs.name }}
+        tag_name: ${{ needs.build-python.outputs.tag }}
+        release_name: ${{ needs.build-python.outputs.tag }}
         body: ${{ steps.commit.outputs.hash }}
         draft: false
         prerelease: false
 
     - name: Upload Release Assets
       run: |
+        # Upload Python packages
         for file in dist/*; do
-          gh release upload ${{ steps.tag.outputs.name }} "$file"
+          gh release upload ${{ needs.build-python.outputs.tag }} "$file"
+        done
+        # Upload executable packages
+        for file in autohack-*-*.zip; do
+          gh release upload ${{ needs.build-python.outputs.tag }} "$file"
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,4 +166,6 @@ jobs:
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: twine upload dist/*
+      run: |
+        python -m pip install twine
+        twine upload dist/*

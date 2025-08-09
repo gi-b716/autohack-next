@@ -1,4 +1,4 @@
-from .path import *
+from autohack.core.path import *
 import subprocess, threading, psutil, os
 
 

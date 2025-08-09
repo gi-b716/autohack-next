@@ -1,6 +1,6 @@
 [project]
 name = "autohack-next"
-version = "1.0.4"
+version = "1.0.5"
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -29,3 +29,9 @@ Repository = "https://github.com/gi-b716/autohack-next.git"
 
 [project.scripts]
 autohack = "autohack.scripts:entrypoint"
+
+[project.optional-dependencies]
+build = [
+    "build>=1.3.0",
+    "nuitka>=2.7.12"
+]

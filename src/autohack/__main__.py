@@ -1,13 +1,18 @@
-from .core.exception import *
-from .core.path import *
-from .core.util import *
-from .lib.config import *
-from .lib.logger import *
-from .checker import *
-from .function import *
+from autohack.core.constant import *
+from autohack.core.exception import *
+from autohack.core.path import *
+from autohack.core.util import *
+from autohack.lib.config import *
+from autohack.lib.logger import *
+from autohack.checker import *
+from autohack.function import *
 import logging, shutil, time, uuid, sys, os
 
 if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
+    if "--version" in sys.argv:
+        print(VERSION)
+        sys.exit(0)
+
     if "--debug" in sys.argv:
         print("Debug mode enabled. Logging level set to DEBUG.")
 

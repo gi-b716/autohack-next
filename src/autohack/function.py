@@ -1,5 +1,5 @@
-from .core.exception import *
-from .core.util import *
+from autohack.core.exception import *
+from autohack.core.util import *
 import subprocess
 
 
