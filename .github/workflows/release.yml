@@ -67,15 +67,26 @@ jobs:
       with:
         python-version: '3.13'
 
-    - name: Install UPX
+    - name: Install UPX (Linux)
+      if: matrix.platform == 'linux'
       uses: crazy-max/ghaction-upx@v3
       with:
         install-only: true
 
+    - name: Install UPX (Windows)
+      if: matrix.platform == 'windows'
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.2/upx-5.0.2-win64.zip" -OutFile "upx.zip"
+        Expand-Archive -Path "upx.zip" -DestinationPath "."
+        $upxPath = (Get-ChildItem -Path "." -Name "upx-*" -Directory | Select-Object -First 1)
+        $env:PATH = "$PWD\$upxPath;$env:PATH"
+        echo "$PWD\$upxPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install .
+        python -m pip install .[build]
 
     - name: Build executable (Linux)
       if: matrix.platform == 'linux'
@@ -162,10 +173,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        python -m pip install twine
-        twine upload dist/*
+    # - name: Publish to PyPI
+    #   env:
+    #     TWINE_USERNAME: __token__
+    #     TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+    #   run: |
+    #     python -m pip install twine
+    #     twine upload dist/*
