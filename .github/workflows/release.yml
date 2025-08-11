@@ -139,13 +139,13 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download Python artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: python-dist
         path: dist/
 
     - name: Download executable artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: executable-*
         merge-multiple: true
