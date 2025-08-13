@@ -86,6 +86,9 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     inputFilePath = config.getConfigEntry("paths.input")
     answerFilePath = config.getConfigEntry("paths.answer")
     outputFilePath = config.getConfigEntry("paths.output")
+    maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
+    errorDataLimit = config.getConfigEntry("error_data_number_limit")
+    refreshSpeed = config.getConfigEntry("refresh_speed")
 
     def saveErrorData(
         dataInput: bytes,
@@ -111,26 +114,31 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
 
     startTime = time.time()
 
-    maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
-    errorDataLimit = config.getConfigEntry("error_data_number_limit")
-
     while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
         errorDataLimit <= 0 or errorDataCount < errorDataLimit
     ):
+        # TODO: Refresh when running exe. Use threading or async?
+        if dataCount % refreshSpeed == 0 and dataCount > 0:
+            currentTime = time.time()
+            print(
+                f"\n\x1b[2K\rTime taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" (%{dataCount*100/maximumDataLimit:.0f})" if maximumDataLimit > 0 else ""}\x1b[1A",
+                end="",
+            )
+
         dataCount += 1
 
         try:
             logger.debug(f"[autohack] Generating data {dataCount}.")
-            print(f"\x1b[1K\r{dataCount}: Generate input.", end="")
+            print(f"\x1b[2K\r{dataCount}: Generate input.", end="")
             dataInput = generateInput(generateCommand, clientID)
         except InputGenerationError as e:
             logger.error(f"[autohack] Input generation failed: {e}")
-            print(f"\x1b[1K\r{e}")
+            print(f"\x1b[2K\r{e}")
             exit(1)
 
         try:
             logger.debug(f"[autohack] Generating answer for data {dataCount}.")
-            print(f"\x1b[1K\r{dataCount}: Generate answer.", end="")
+            print(f"\x1b[2K\r{dataCount}: Generate answer.", end="")
             dataAnswer = generateAnswer(
                 stdCommand,
                 dataInput,
@@ -138,11 +146,11 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
             )
         except AnswerGenerationError as e:
             logger.error(f"[autohack] Answer generation failed: {e}")
-            print(f"\x1b[1K\r{e}")
+            print(f"\x1b[2K\r{e}")
             exit(1)
 
         logger.debug(f"[autohack] Run source code for data {dataCount}.")
-        print(f"\x1b[1K\r{dataCount}: Run source code.", end="")
+        print(f"\x1b[2K\r{dataCount}: Run source code.", end="")
         result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
 
         if result.memoryOut:
@@ -150,7 +158,7 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
                 dataInput,
                 dataAnswer,
                 result.stdout,
-                f"\x1b[1K\r[{errorDataCount+1}]: Memory limit exceeded for data {dataCount}.",
+                f"\x1b[2K\r[{errorDataCount+1}]: Memory limit exceeded for data {dataCount}.",
                 f"[autohack] Memory limit exceeded for data {dataCount}.",
             )
             continue
@@ -159,7 +167,7 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
                 dataInput,
                 dataAnswer,
                 result.stdout,
-                f"\x1b[1K\r[{errorDataCount+1}]: Time limit exceeded for data {dataCount}.",
+                f"\x1b[2K\r[{errorDataCount+1}]: Time limit exceeded for data {dataCount}.",
                 f"[autohack] Time limit exceeded for data {dataCount}.",
             )
             continue
@@ -168,7 +176,7 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
                 dataInput,
                 dataAnswer,
                 result.stdout,
-                f"\x1b[1K\r[{errorDataCount+1}]: Runtime error for data {dataCount} with return code {result.returnCode}.",
+                f"\x1b[2K\r[{errorDataCount+1}]: Runtime error for data {dataCount} with return code {result.returnCode}.",
                 f"[autohack] Runtime error for data {dataCount} with return code {result.returnCode}.",
             )
             continue
@@ -179,14 +187,14 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
                 dataInput,
                 dataAnswer,
                 result.stdout,
-                f"\x1b[1K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
+                f"\x1b[2K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
                 f"[autohack] Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}",
             )
 
     endTime = time.time()
 
     print(
-        f"\x1b[1K\rFinished. {dataCount} data generated, {errorDataCount} error data found.\nTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data."
+        f"\x1b[2K\rFinished. {dataCount} data generated, {errorDataCount} error data found.\n\x1b[2K\rTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data."
     )
     if errorDataCount > 0:
         if symlinkFallback:
