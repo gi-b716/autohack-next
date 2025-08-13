@@ -9,7 +9,7 @@ class CompilationError(Exception):
         self.returnCode = returnCode
 
     def __str__(self) -> str:
-        return f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}.\n\n{self.message.decode()}"
+        return f"\x1b[1;31m{self.fileName.capitalize()} compilation failed with return code {self.returnCode}.\x1b[0m\n\n{self.message.decode()}"
 
 
 class InputGenerationError(Exception):
@@ -20,7 +20,7 @@ class InputGenerationError(Exception):
         open(getTempInputFilePath(clientID), "wb").write(dataInput)
 
     def __str__(self) -> str:
-        return f"Input generation failed with return code {self.returnCode}. Input saved to {getTempInputFilePath(self.clientID)}."
+        return f"\x1b[1;31mInput generation failed with return code {self.returnCode}. Input saved to {getTempInputFilePath(self.clientID)}.\x1b[0m"
 
 
 class AnswerGenerationError(Exception):
@@ -35,4 +35,4 @@ class AnswerGenerationError(Exception):
         open(getTempAnswerFilePath(clientID), "wb").write(dataAnswer)
 
     def __str__(self) -> str:
-        return f"Answer generation failed with return code {self.returnCode}. Input saved to {getTempInputFilePath(self.clientID)}. Answer saved to {getTempAnswerFilePath(self.clientID)}."
+        return f"\x1b[1;31mAnswer generation failed with return code {self.returnCode}. Input saved to {getTempInputFilePath(self.clientID)}. Answer saved to {getTempAnswerFilePath(self.clientID)}.\x1b[0m"

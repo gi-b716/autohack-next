@@ -6,8 +6,8 @@ DATA_FOLDER_PATH = os.path.join(os.getcwd(), ".autohack")
 
 RECORD_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "record.txt")
 
-# LOG_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "logs")
-LOG_FOLDER_PATH = dirs.user_log_dir
+LOG_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "logs")
+# LOG_FOLDER_PATH = dirs.user_log_dir
 
 TEMP_FOLDER_PATH = dirs.user_runtime_dir
 
