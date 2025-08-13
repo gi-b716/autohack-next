@@ -4,8 +4,8 @@ import logging, json, sys, os
 
 class Config:
     DEFAULT_CONFIG = {
-        "_version": 6,
-        "maximum_number_of_data": 1000,
+        "_version": 7,
+        "maximum_number_of_data": 0,
         # ms
         "time_limit": 1000,
         # MiB
@@ -23,7 +23,6 @@ class Config:
                     "source.cpp",
                     "-o",
                     "source",
-                    "-Wl,--stack=268435456",
                     "-O2",
                 ],
                 "std": [
@@ -31,7 +30,6 @@ class Config:
                     "std.cpp",
                     "-o",
                     "std",
-                    "-Wl,--stack=268435456",
                     "-O2",
                 ],
                 "generator": [

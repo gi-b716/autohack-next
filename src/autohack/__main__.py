@@ -111,9 +111,12 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
 
     startTime = time.time()
 
-    while dataCount < config.getConfigEntry(
-        "maximum_number_of_data"
-    ) and errorDataCount < config.getConfigEntry("error_data_number_limit"):
+    maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
+    errorDataLimit = config.getConfigEntry("error_data_number_limit")
+
+    while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
+        errorDataLimit <= 0 or errorDataCount < errorDataLimit
+    ):
         dataCount += 1
 
         try:
