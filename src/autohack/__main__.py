@@ -31,13 +31,12 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     clientID = str(uuid.uuid4())
     logger.info(f"[autohack] Client ID: {clientID}")
-    logger.info("[autohack] Initialized.")
+    print(f"autohack-next {VERSION} - Client ID: {clientID}")
+    logger.info(f"[autohack] Initialized. Version: {VERSION}")
 
     symlinkFallback = False
 
-    print(
-        f"Hack data storaged to {CURRENT_HACK_DATA_FOLDER_PATH}.\n{' '*19}or {getHackDataStorageFolderPath(clientID)}\nLog file: {loggerObject.getLogFilePath()}"
-    )
+    print()
     checkDirectoryExists(getHackDataStorageFolderPath(clientID))
     if os.path.islink(CURRENT_HACK_DATA_FOLDER_PATH):
         os.unlink(CURRENT_HACK_DATA_FOLDER_PATH)
@@ -51,9 +50,14 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
         )
     except OSError:
         symlinkFallback = True
+        print("Hack data folder symlink creation failed. Using fallback method.")
         logger.warning("[autohack] Symlink creation failed. Using fallback method.")
         checkDirectoryExists(CURRENT_HACK_DATA_FOLDER_PATH)
+    print(
+        f"Hack data storaged to {CURRENT_HACK_DATA_FOLDER_PATH}.\n{' '*18}and {getHackDataStorageFolderPath(clientID)}\nLog file: {loggerObject.getLogFilePath()}"
+    )
 
+    print()
     for i in range(3):
         print(f"\x1b[1K\rStarting in {3-i} seconds...", end="")
         time.sleep(1)
@@ -114,6 +118,7 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
 
     startTime = time.time()
 
+    print()
     while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
         errorDataLimit <= 0 or errorDataCount < errorDataLimit
     ):
