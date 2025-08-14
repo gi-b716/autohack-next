@@ -97,6 +97,8 @@ try:
         errorDataLimit = config.getConfigEntry("error_data_number_limit")
         refreshSpeed = config.getConfigEntry("refresh_speed")
 
+        lastError = False
+
         def saveErrorData(
             dataInput: bytes,
             dataAnswer: bytes,
@@ -104,8 +106,9 @@ try:
             message: str,
             logMessage: str,
         ) -> None:
-            global errorDataCount, logger
+            global errorDataCount, lastError, logger
             errorDataCount += 1
+            lastError = True
             checkDirectoryExists(getHackDataFolderPath(errorDataCount, inputFilePath))
             checkDirectoryExists(getHackDataFolderPath(errorDataCount, answerFilePath))
             checkDirectoryExists(getHackDataFolderPath(errorDataCount, outputFilePath))
@@ -128,7 +131,8 @@ try:
             errorDataLimit <= 0 or errorDataCount < errorDataLimit
         ):
             # TODO: Refresh when running exe. Use threading or async?
-            if dataCount % refreshSpeed == 0 and dataCount > 0:
+            if (dataCount % refreshSpeed == 0 or lastError) and dataCount > 0:
+                lastError = False
                 currentTime = time.time()
                 print(
                     f"\n\x1b[2K\rTime taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" (%{dataCount*100/maximumDataLimit:.0f})" if maximumDataLimit > 0 else ""}\x1b[1A",
@@ -168,7 +172,7 @@ try:
                     dataInput,
                     dataAnswer,
                     result.stdout,
-                    f"\x1b[2K\r[{errorDataCount+1}]: Memory limit exceeded for data {dataCount}.",
+                    f"{"\x1b[1A" if errorDataCount > 0 else "\x1b[2K"}\r[{errorDataCount+1}]: Memory limit exceeded for data {dataCount}.\n\x1b[2K",
                     f"[autohack] Memory limit exceeded for data {dataCount}.",
                 )
                 continue
@@ -177,7 +181,7 @@ try:
                     dataInput,
                     dataAnswer,
                     result.stdout,
-                    f"\x1b[2K\r[{errorDataCount+1}]: Time limit exceeded for data {dataCount}.",
+                    f"{"\x1b[1A" if errorDataCount > 0 else "\x1b[2K"}\r[{errorDataCount+1}]: Time limit exceeded for data {dataCount}.\n\x1b[2K",
                     f"[autohack] Time limit exceeded for data {dataCount}.",
                 )
                 continue
@@ -186,7 +190,7 @@ try:
                     dataInput,
                     dataAnswer,
                     result.stdout,
-                    f"\x1b[2K\r[{errorDataCount+1}]: Runtime error for data {dataCount} with return code {result.returnCode}.",
+                    f"{"\x1b[1A" if errorDataCount > 0 else "\x1b[2K"}\r[{errorDataCount+1}]: Runtime error for data {dataCount} with return code {result.returnCode}.\n\x1b[2K",
                     f"[autohack] Runtime error for data {dataCount} with return code {result.returnCode}.",
                 )
                 continue
@@ -197,7 +201,7 @@ try:
                     dataInput,
                     dataAnswer,
                     result.stdout,
-                    f"\x1b[2K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
+                    f"{"\x1b[1A" if errorDataCount > 0 else "\x1b[2K"}\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n\x1b[2K{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}\n\x1b[2K",
                     f"[autohack] Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}",
                 )
 
