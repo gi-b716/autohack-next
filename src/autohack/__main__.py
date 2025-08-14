@@ -197,7 +197,7 @@ try:
                     dataInput,
                     dataAnswer,
                     result.stdout,
-                    f"\x1b[2K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
+                    f"\x1b[2K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n\x1b[2K\r{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
                     f"[autohack] Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}",
                 )
 
