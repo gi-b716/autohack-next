@@ -103,6 +103,10 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    - name: Get commit hash
+      id: commit
+      run: echo "short_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
@@ -172,7 +176,7 @@ jobs:
         cp README.md release-package/
         cp autohack release-package/
         cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip .
+        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ steps.commit.outputs.short_hash }}.zip .
 
     - name: Create release package (Windows)
       if: matrix.platform == 'windows'
@@ -182,7 +186,7 @@ jobs:
         cp README.md release-package/
         cp autohack.exe release-package/autohack.exe
         cd release-package
-        Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip
+        Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ steps.commit.outputs.short_hash }}.zip
 
     - name: Create release package (macOS)
       if: matrix.platform == 'macos'
@@ -191,7 +195,7 @@ jobs:
         cp README.md release-package/
         cp autohack release-package/
         cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip .
+        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ steps.commit.outputs.short_hash }}.zip .
 
     - name: Create release package (FreeBSD)
       if: matrix.platform == 'freebsd'
@@ -200,13 +204,13 @@ jobs:
         cp README.md release-package/
         cp autohack release-package/
         cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip .
+        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ steps.commit.outputs.short_hash }}.zip .
 
     - name: Upload executable artifacts
       uses: actions/upload-artifact@v4
       with:
         name: executable-${{ matrix.platform }}-${{ matrix.arch }}
-        path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip
+        path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ steps.commit.outputs.short_hash }}.zip
 
   release:
     needs: [build-python, build-executables]
@@ -253,11 +257,6 @@ jobs:
         release_name: ${{ needs.build-python.outputs.tag }}
         body: |
           Release created from commit: ${{ steps.commit.outputs.hash }}
-          
-          This release includes:
-          - Python packages (wheel and source distribution)
-          - Cross-platform executables for Linux, Windows, macOS, and FreeBSD
-          - Support for AMD64 and ARM64 architectures
         draft: false
         prerelease: ${{ contains(needs.build-python.outputs.tag, '-') || github.event.inputs.run_from_commit == 'true' }}
 
@@ -273,7 +272,7 @@ jobs:
           fi
         done
         # Upload executable packages
-        for file in autohack-*-*-*.zip; do
+        for file in autohack-*-*-*-*.zip; do
           # Check if file already exists in release
           if ! gh release view ${{ needs.build-python.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
             gh release upload ${{ needs.build-python.outputs.tag }} "$file"
