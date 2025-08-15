@@ -7,9 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g., 1.0.0)'
-        required: true
+        description: 'Tag to release (e.g., 1.0.0) or leave empty to use commit hash'
+        required: false
         type: string
+      run_from_commit:
+        description: 'Run from commit (uses commit hash as tag)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-python:
@@ -38,7 +43,11 @@ jobs:
       id: tag
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "name=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          if [ "${{ inputs.run_from_commit }}" = "true" ] || [ -z "${{ inputs.tag }}" ]; then
+            echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          else
+            echo "name=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          fi
         else
           echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
         fi
@@ -56,6 +65,7 @@ jobs:
         path: dist/
 
     - name: Publish to PyPI
+      if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_from_commit != 'true' && inputs.tag != '')
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
@@ -221,7 +231,19 @@ jobs:
       id: commit
       run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
+    - name: Check if release exists
+      id: check_release
+      run: |
+        if gh release view ${{ needs.build-python.outputs.tag }} > /dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Create Release
+      if: steps.check_release.outputs.exists == 'false'
       uses: actions/create-release@v1
       id: create_release
       env:
@@ -229,19 +251,35 @@ jobs:
       with:
         tag_name: ${{ needs.build-python.outputs.tag }}
         release_name: ${{ needs.build-python.outputs.tag }}
-        body: ${{ steps.commit.outputs.hash }}
+        body: |
+          Release created from commit: ${{ steps.commit.outputs.hash }}
+          
+          This release includes:
+          - Python packages (wheel and source distribution)
+          - Cross-platform executables for Linux, Windows, macOS, and FreeBSD
+          - Support for AMD64 and ARM64 architectures
         draft: false
-        prerelease: false
+        prerelease: ${{ contains(needs.build-python.outputs.tag, '-') || github.event.inputs.run_from_commit == 'true' }}
 
     - name: Upload Release Assets
       run: |
         # Upload Python packages
         for file in dist/*; do
-          gh release upload ${{ needs.build-python.outputs.tag }} "$file"
+          # Check if file already exists in release
+          if ! gh release view ${{ needs.build-python.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+            gh release upload ${{ needs.build-python.outputs.tag }} "$file"
+          else
+            echo "File $(basename "$file") already exists in release, skipping..."
+          fi
         done
         # Upload executable packages
         for file in autohack-*-*-*.zip; do
-          gh release upload ${{ needs.build-python.outputs.tag }} "$file"
+          # Check if file already exists in release
+          if ! gh release view ${{ needs.build-python.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+            gh release upload ${{ needs.build-python.outputs.tag }} "$file"
+          else
+            echo "File $(basename "$file") already exists in release, skipping..."
+          fi
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
