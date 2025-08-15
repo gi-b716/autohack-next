@@ -62,7 +62,7 @@ jobs:
       id: changelog
       run: |
         # Fetch all tags to ensure we have complete history
-        git fetch --tags --unshallow || git fetch --tags
+        git fetch --tags --unshallow --force
         
         # Get the latest non-prerelease tag (excluding current tag if it exists)
         CURRENT_TAG="${{ steps.tag.outputs.name }}"
