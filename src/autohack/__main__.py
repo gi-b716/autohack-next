@@ -97,6 +97,8 @@ try:
         errorDataLimit = config.getConfigEntry("error_data_number_limit")
         refreshSpeed = config.getConfigEntry("refresh_speed")
 
+        lastStatusError = False
+
         def saveErrorData(
             dataInput: bytes,
             dataAnswer: bytes,
@@ -104,7 +106,8 @@ try:
             message: str,
             logMessage: str,
         ) -> None:
-            global errorDataCount, logger
+            global lastStatusError, errorDataCount, logger
+            lastStatusError = True
             errorDataCount += 1
             checkDirectoryExists(getHackDataFolderPath(errorDataCount, inputFilePath))
             checkDirectoryExists(getHackDataFolderPath(errorDataCount, answerFilePath))
@@ -127,14 +130,6 @@ try:
         while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
             errorDataLimit <= 0 or errorDataCount < errorDataLimit
         ):
-            # TODO: Refresh when running exe. Use threading or async?
-            if dataCount % refreshSpeed == 0 and dataCount > 0:
-                currentTime = time.time()
-                print(
-                    f"\n\x1b[2K\rTime taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" (%{dataCount*100/maximumDataLimit:.0f})" if maximumDataLimit > 0 else ""}\x1b[1A",
-                    end="",
-                )
-
             dataCount += 1
 
             try:
@@ -162,6 +157,15 @@ try:
             logger.debug(f"[autohack] Run source code for data {dataCount}.")
             print(f"\x1b[2K\r{dataCount}: Run source code.", end="")
             result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
+
+            # TODO: Refresh when running exe. Use threading or async?
+            if dataCount % refreshSpeed == 0 or lastStatusError:
+                lastStatusError = False
+                currentTime = time.time()
+                print(
+                    f"\n\x1b[2K\rTime taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" (%{dataCount*100/maximumDataLimit:.0f})" if maximumDataLimit > 0 else ""}\x1b[1A",
+                    end="",
+                )
 
             if result.memoryOut:
                 saveErrorData(
