@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.name }}
+      version-id: ${{ steps.version_id.outputs.version-id }}
 
     steps:
     - uses: actions/checkout@v5
@@ -41,6 +42,12 @@ jobs:
         else
           echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
         fi
+
+    - name: Get version ID
+      id: version_id
+      run: |
+        cd src
+        echo "version-id=$(python -m autohack --version-id)" >> $GITHUB_OUTPUT
 
     - name: Upload Python artifacts
       uses: actions/upload-artifact@v4
@@ -97,13 +104,13 @@ jobs:
     - name: Build executable (Linux)
       if: matrix.platform == 'linux'
       run: |
-        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.tag }} --assume-yes-for-downloads src/autohack/__main__.py
+        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
         mv __main__.bin autohack
 
     - name: Build executable (Windows)
       if: matrix.platform == 'windows'
       run: |
-        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.tag }} --assume-yes-for-downloads src/autohack/__main__.py
+        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
         mv __main__.exe autohack.exe
 
     - name: Create release package (Linux)
@@ -124,7 +131,7 @@ jobs:
         cp autohack.exe release-package/autohack.exe
         cd release-package
         Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip
-    
+
     - name: Upload executable artifacts
       uses: actions/upload-artifact@v4
       with:

@@ -1,7 +1,7 @@
 python -m pip install --upgrade pip
-python -m pip install .
+python -m pip install .[build]
 python -m build
-python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=$(python -m autohack --version) src\autohack\__main__.py
+python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=$(python -m autohack --version-id) src\autohack\__main__.py
 Move-Item __main__.exe autohack.exe
 mkdir release-package
 Copy-Item README.md release-package/

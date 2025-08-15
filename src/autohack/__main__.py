@@ -14,6 +14,10 @@ try:
             print(VERSION)
             sys.exit(0)
 
+        if "--version-id" in sys.argv:
+            print(VERSION_ID)
+            sys.exit(0)
+
         if "--debug" in sys.argv:
             print("Debug mode enabled. Logging level set to DEBUG.")
 
