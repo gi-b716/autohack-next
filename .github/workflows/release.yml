@@ -66,10 +66,28 @@ jobs:
     strategy:
       matrix:
         include:
+          # Linux
           - os: ubuntu-latest
             platform: linux
+            arch: amd64
+          - os: ubuntu-latest
+            platform: linux
+            arch: arm64
+          # Windows
           - os: windows-latest
             platform: windows
+            arch: amd64
+          # macOS
+          - os: macos-latest
+            platform: macos
+            arch: amd64
+          - os: macos-14
+            platform: macos
+            arch: arm64
+          # FreeBSD (using cross-compilation on Linux)
+          - os: ubuntu-latest
+            platform: freebsd
+            arch: amd64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -96,6 +114,17 @@ jobs:
         $env:PATH = "$PWD\$upxPath;$env:PATH"
         echo "$PWD\$upxPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
+    - name: Install UPX (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        brew install upx
+
+    - name: Set up QEMU (for ARM64 cross-compilation)
+      if: matrix.arch == 'arm64' && matrix.platform == 'linux'
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -113,6 +142,19 @@ jobs:
         python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
         mv __main__.exe autohack.exe
 
+    - name: Build executable (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+        mv __main__.bin autohack
+
+    - name: Build executable (FreeBSD)
+      if: matrix.platform == 'freebsd'
+      run: |
+        # Note: This is experimental cross-compilation for FreeBSD
+        python -m nuitka --standalone --onefile --follow-imports --remove-output --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+        mv __main__.bin autohack
+
     - name: Create release package (Linux)
       if: matrix.platform == 'linux'
       run: |
@@ -120,7 +162,7 @@ jobs:
         cp README.md release-package/
         cp autohack release-package/
         cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip .
+        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip .
 
     - name: Create release package (Windows)
       if: matrix.platform == 'windows'
@@ -130,13 +172,31 @@ jobs:
         cp README.md release-package/
         cp autohack.exe release-package/autohack.exe
         cd release-package
-        Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip
+        Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip
+
+    - name: Create release package (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        mkdir release-package
+        cp README.md release-package/
+        cp autohack release-package/
+        cd release-package
+        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip .
+
+    - name: Create release package (FreeBSD)
+      if: matrix.platform == 'freebsd'
+      run: |
+        mkdir release-package
+        cp README.md release-package/
+        cp autohack release-package/
+        cd release-package
+        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip .
 
     - name: Upload executable artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: executable-${{ matrix.platform }}
-        path: autohack-${{ matrix.platform }}-${{ needs.build-python.outputs.tag }}.zip
+        name: executable-${{ matrix.platform }}-${{ matrix.arch }}
+        path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}.zip
 
   release:
     needs: [build-python, build-executables]
@@ -180,7 +240,7 @@ jobs:
           gh release upload ${{ needs.build-python.outputs.tag }} "$file"
         done
         # Upload executable packages
-        for file in autohack-*-*.zip; do
+        for file in autohack-*-*-*.zip; do
           gh release upload ${{ needs.build-python.outputs.tag }} "$file"
         done
       env:
