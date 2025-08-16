@@ -10,6 +10,10 @@ try:
     import argparse, logging, shutil, time, uuid, sys, os
 
     if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
+        # Hide cursor
+        # https://www.cnblogs.com/chargedcreeper/p/-/ANSI
+        print("\x1b[?25l", end="")
+
         parser = argparse.ArgumentParser(
             prog="autohack", description="autohack-next - Automated hack data generator"
         )
@@ -256,7 +260,8 @@ try:
                 f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}"
             )
 
-        comment = input("\nComment (optional): ")
+        comment = input("\nComment (optional): \x1b[?25h")
+        print("\x1b[?25l", end="")
         open(RECORD_FILE_PATH, "a+").write(
             f"{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))} / {clientID}\n{dataCount} data generated, {errorDataCount} error data found.\nTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.\n{comment}\n\n"
         )
