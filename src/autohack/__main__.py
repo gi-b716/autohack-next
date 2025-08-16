@@ -7,18 +7,33 @@ try:
     from autohack.lib.logger import *
     from autohack.checker import *
     from autohack.function import *
-    import logging, shutil, time, uuid, sys, os
+    import argparse, logging, shutil, time, uuid, sys, os
 
     if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
-        if "--version" in sys.argv:
+        parser = argparse.ArgumentParser(
+            prog="autohack", description="autohack-next - Automated hack data generator"
+        )
+        parser.add_argument(
+            "--version", action="store_true", help="Show version information"
+        )
+        parser.add_argument("--version-id", action="store_true", help="Show version ID")
+        parser.add_argument(
+            "--debug",
+            action="store_true",
+            help="Enable debug mode with DEBUG logging level",
+        )
+
+        args = parser.parse_args()
+
+        if args.version:
             print(VERSION)
             sys.exit(0)
 
-        if "--version-id" in sys.argv:
+        if args.version_id:
             print(VERSION_ID)
             sys.exit(0)
 
-        if "--debug" in sys.argv:
+        if args.debug:
             print("Debug mode enabled. Logging level set to DEBUG.")
 
         checkDirectoryExists(DATA_FOLDER_PATH)
@@ -29,7 +44,7 @@ try:
 
         loggerObject = Logger(
             LOG_FOLDER_PATH,
-            logging.DEBUG if "--debug" in sys.argv else logging.INFO,
+            logging.DEBUG if args.debug else logging.INFO,
         )
         logger = loggerObject.getLogger()
         config = Config(CONFIG_FILE_PATH, logger)
