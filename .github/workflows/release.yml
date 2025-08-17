@@ -281,19 +281,19 @@ jobs:
       - name: Build executable (Linux)
         if: matrix.platform == 'linux'
         run: |
-          python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+          python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
           mv __main__.bin autohack
 
       - name: Build executable (Windows)
         if: matrix.platform == 'windows'
         run: |
-          python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+          python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
           mv __main__.exe autohack.exe
 
       - name: Build executable (macOS)
         if: matrix.platform == 'macos'
         run: |
-          python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+          python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
           mv __main__.bin autohack
 
       - name: Create release package (Linux)
