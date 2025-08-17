@@ -29,7 +29,7 @@ jobs:
       tag: ${{ steps.tag.outputs.name }}
       version: ${{ steps.version.outputs.version }}
       version-id: ${{ steps.version_id.outputs.version-id }}
-      hash: ${{ steps.commit.outputs.short_hash }}
+      hash: ${{ steps.commit.outputs.hash }}
 
     steps:
       - uses: actions/checkout@v5
@@ -134,8 +134,8 @@ jobs:
             git log $COMMIT_RANGE \
               --pretty=format:"%an | [mailto:%ae]" | \
               sort | uniq -c | sort -nr | \
-              while read count name email; do
-                echo "- **$name** ($count commits)" >> changelog.md
+              while read count info; do
+                echo "- **$info** ($count commits)" >> changelog.md
               done
           else
             echo "No contributors in this release." >> changelog.md
