@@ -3,442 +3,441 @@ name: Release
 on:
   push:
     tags:
-      - '*.*.*'
+      - "*.*.*"
     branches:
       - main
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g., 1.0.0) or leave empty to use commit hash'
+        description: "Tag to release (e.g., 1.0.0) or leave empty to use commit hash"
         required: false
         type: string
       run_from_commit:
-        description: 'Run from commit (uses commit hash as tag)'
+        description: "Run from commit (uses commit hash as tag)"
         required: false
         default: false
         type: boolean
 
 jobs:
-  build-python:
+  pre-jobs:
     runs-on: ubuntu-latest
-    # Only run if it's a tag push, manual dispatch, or commit message contains [ci release]
     if: |
       github.event_name == 'workflow_dispatch' ||
       startsWith(github.ref, 'refs/tags/') ||
       contains(github.event.head_commit.message, '[ci release]')
     outputs:
       tag: ${{ steps.tag.outputs.name }}
+      version: ${{ steps.version.outputs.version }}
       version-id: ${{ steps.version_id.outputs.version-id }}
       hash: ${{ steps.commit.outputs.short_hash }}
 
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Set up Python 3.13
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
-
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[build]
-
-    - name: Build package
-      run: python -m build
-
-    - name: Get tag name
-      id: tag
-      run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          if [ "${{ inputs.run_from_commit }}" = "true" ] || [ -z "${{ inputs.tag }}" ]; then
+      - name: Get tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.run_from_commit }}" = "true" ] || [ -z "${{ inputs.tag }}" ]; then
+              echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            else
+              echo "name=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+            fi
+          elif [ "${{ contains(github.event.head_commit.message, '[ci release]') }}" = "true" ]; then
             echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           else
-            echo "name=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
-        elif [ "${{ contains(github.event.head_commit.message, '[ci release]') }}" = "true" ]; then
-          # If commit message contains [ci release], use commit hash as tag (like run_from_commit mode)
-          echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        else
-          # For tag pushes
-          echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-        fi
 
-    - name: Get version ID
-      id: version_id
-      run: |
-        cd src
-        echo "version-id=$(python -m autohack --version-id)" >> $GITHUB_OUTPUT
+      - name: Get version
+        id: version
+        run: |
+          cd src
+          echo "version=$(python -m autohack --version)" >> $GITHUB_OUTPUT
 
-    - name: Get commit hash
-      id: commit
-      run: echo "short_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get version ID
+        id: version_id
+        run: |
+          cd src
+          echo "version-id=$(python -m autohack --version-id)" >> $GITHUB_OUTPUT
 
-    - name: Generate complete changelog
-      id: changelog
-      run: |
-        # Fetch all tags to ensure we have complete history
-        git fetch --tags --unshallow --force || git fetch --tags
+      - name: Get commit hash
+        id: commit
+        run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-        # Get the latest non-prerelease tag (excluding current tag if it exists)
-        CURRENT_TAG="${{ steps.tag.outputs.name }}"
+      - name: Generate complete changelog
+        run: |
+          # Fetch all tags to ensure we have complete history
+          git fetch --tags --unshallow --force || git fetch --tags --force
 
-        # Get all tags sorted by version, excluding prereleases and current tag
-        PREV_TAG=$(git tag --list --sort=-version:refname | \
-          grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | \
-          grep -v "^$CURRENT_TAG$" | \
-          head -1)
+          # Get the latest non-prerelease tag (excluding current tag if it exists)
+          CURRENT_TAG="${{ steps.tag.outputs.name }}"
 
-        if [ -z "$PREV_TAG" ]; then
-          # If no previous release found, use the first commit
-          PREV_TAG=$(git rev-list --max-parents=0 HEAD)
-          echo "No previous release found, using first commit: $PREV_TAG"
-        else
-          echo "Previous release found: $PREV_TAG"
-        fi
+          # Get all tags sorted by version, excluding prereleases and current tag
+          PREV_TAG=$(git tag --list --sort=-version:refname | \
+            grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | \
+            grep -v "^$CURRENT_TAG$" | \
+            head -1)
 
-        # Create changelog file
-        echo "# Release $CURRENT_TAG" > changelog.md
-        echo "" >> changelog.md
-
-        # Get commits between previous tag and current commit
-        if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
-          if [ "$PREV_TAG" = "$(git rev-list --max-parents=0 HEAD)" ]; then
-            COMMIT_RANGE="HEAD"
-            echo "## 📝 All Changes (Initial Release)" >> changelog.md
+          if [ -z "$PREV_TAG" ]; then
+            # If no previous release found, use the first commit
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+            echo "No previous release found, using first commit: $PREV_TAG"
           else
-            COMMIT_RANGE="$PREV_TAG..HEAD"
-            echo "## 📝 Changes since $PREV_TAG" >> changelog.md
+            echo "Previous release found: $PREV_TAG"
           fi
-        else
-          COMMIT_RANGE="HEAD"
-          echo "## 📝 All Changes" >> changelog.md
-        fi
 
-        echo "" >> changelog.md
-
-        # Count commits
-        COMMIT_COUNT=$(git rev-list --count $COMMIT_RANGE)
-        if [ "$COMMIT_COUNT" -eq 0 ]; then
-          echo "No new commits since last release." >> changelog.md
-        else
-          echo "**$COMMIT_COUNT commits** in this release:" >> changelog.md
+          # Create changelog file
+          echo "# Release $CURRENT_TAG" > changelog.md
           echo "" >> changelog.md
 
-          # Generate commit log with better formatting
-          git log $COMMIT_RANGE \
-            --pretty=format:"- [\`%h\`](../../commit/%H) %s (%an, %ad)" \
-            --date=short \
-            --reverse >> changelog.md
-        fi
+          # Get commits between previous tag and current commit
+          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
+            if [ "$PREV_TAG" = "$(git rev-list --max-parents=0 HEAD)" ]; then
+              COMMIT_RANGE="HEAD"
+              echo "## 📝 All Changes (Initial Release)" >> changelog.md
+            else
+              COMMIT_RANGE="$PREV_TAG..HEAD"
+              echo "## 📝 Changes since $PREV_TAG" >> changelog.md
+            fi
+          else
+            COMMIT_RANGE="HEAD"
+            echo "## 📝 All Changes" >> changelog.md
+          fi
 
-        echo "" >> changelog.md
-        echo "" >> changelog.md
+          echo "" >> changelog.md
 
-        # Generate contributors list with commit counts
-        echo "## 👥 Contributors" >> changelog.md
-        echo "" >> changelog.md
+          # Count commits
+          COMMIT_COUNT=$(git rev-list --count $COMMIT_RANGE)
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "No new commits since last release." >> changelog.md
+          else
+            echo "**$COMMIT_COUNT commits** in this release:" >> changelog.md
+            echo "" >> changelog.md
 
-        if [ "$COMMIT_COUNT" -gt 0 ]; then
-          # Get contributors with commit counts
-          git log $COMMIT_RANGE \
-            --pretty=format:"%an|%ae" | \
-            sort | uniq -c | sort -nr | \
-            while read count name email; do
-              echo "- **$name** ($count commits)" >> changelog.md
-            done
-        else
-          echo "No contributors in this release." >> changelog.md
-        fi
+            # Generate commit log with better formatting
+            git log $COMMIT_RANGE \
+              --pretty=format:"- [\`%h\`](../../commit/%H) %s (%an, %ad)" \
+              --date=short \
+              --reverse >> changelog.md
+          fi
 
-        echo "" >> changelog.md
-        echo "" >> changelog.md
+          echo "" >> changelog.md
+          echo "" >> changelog.md
 
-        # Add build information
-        echo "## 🏗️ Build Information" >> changelog.md
-        echo "" >> changelog.md
-        echo "- **Commit**: [\`$(git rev-parse HEAD)\`](../../commit/$(git rev-parse HEAD))" >> changelog.md
-        echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> changelog.md
-        echo "- **Release Type**: $(if [ '${{ contains(steps.tag.outputs.name, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}' = 'true' ]; then echo 'Pre-release'; else echo 'Stable'; fi)" >> changelog.md
-        echo "" >> changelog.md
+          # Generate contributors list with commit counts
+          echo "## 👥 Contributors" >> changelog.md
+          echo "" >> changelog.md
 
-        # Platform information
-        echo "## 🖥️ Supported Platforms" >> changelog.md
-        echo "" >> changelog.md
-        echo "| Platform | Architecture | Package Name |" >> changelog.md
-        echo "|----------|--------------|--------------|" >> changelog.md
-        echo "| Linux | AMD64 | \`autohack-linux-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-        echo "| Linux | ARM64 | \`autohack-linux-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-        echo "| Windows | AMD64 | \`autohack-windows-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-        echo "| macOS | AMD64 (Intel) | \`autohack-macos-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-        echo "| macOS | ARM64 (Apple Silicon) | \`autohack-macos-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-        echo "| FreeBSD | AMD64 | \`autohack-freebsd-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-        echo "" >> changelog.md
+          if [ "$COMMIT_COUNT" -gt 0 ]; then
+            # Get contributors with commit counts
+            git log $COMMIT_RANGE \
+              --pretty=format:"%an | [mailto:%ae]" | \
+              sort | uniq -c | sort -nr | \
+              while read count name email; do
+                echo "- **$name** ($count commits)" >> changelog.md
+              done
+          else
+            echo "No contributors in this release." >> changelog.md
+          fi
 
-        echo "## 📦 Installation" >> changelog.md
-        echo "" >> changelog.md
-        echo "### Python Package" >> changelog.md
-        echo "\`\`\`bash" >> changelog.md
-        echo "pip install autohack-next==$CURRENT_TAG" >> changelog.md
-        echo "\`\`\`" >> changelog.md
-        echo "" >> changelog.md
-        echo "### Standalone Executable" >> changelog.md
-        echo "1. Download the appropriate package for your platform from the assets below" >> changelog.md
-        echo "2. Extract the zip file" >> changelog.md
-        echo "3. Run the \`autohack\` executable" >> changelog.md
+          echo "" >> changelog.md
 
-    - name: Upload Python artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-dist
-        path: dist/
+          # Add build information
+          echo "## 🏗️ Build Information" >> changelog.md
+          echo "" >> changelog.md
+          echo "- **Commit**: [\`$(git rev-parse HEAD)\`](../../commit/$(git rev-parse HEAD))" >> changelog.md
+          echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> changelog.md
+          echo "- **Release Type**: $(if [ '${{ contains(steps.tag.outputs.name, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}' = 'true' ]; then echo 'Pre-release'; else echo 'Stable'; fi)" >> changelog.md
+          echo "" >> changelog.md
 
-    - name: Upload changelog
-      uses: actions/upload-artifact@v4
-      with:
-        name: changelog
-        path: changelog.md
+          # Platform information
+          echo "## 🖥️ Supported Platforms" >> changelog.md
+          echo "" >> changelog.md
+          echo "| Platform | Architecture | Package Name |" >> changelog.md
+          echo "|----------|--------------|--------------|" >> changelog.md
+          echo "| Linux | AMD64 | \`autohack-linux-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Linux | ARM64 | \`autohack-linux-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Windows | AMD64 | \`autohack-windows-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| macOS | AMD64 (Intel) | \`autohack-macos-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| macOS | ARM64 (Apple Silicon) | \`autohack-macos-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| FreeBSD | AMD64 | \`autohack-freebsd-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "" >> changelog.md
+
+          echo "## 📦 Installation" >> changelog.md
+          echo "" >> changelog.md
+          echo "### Python Package" >> changelog.md
+          echo "" >> changelog.md
+          echo "\`\`\`bash" >> changelog.md
+          echo "pip install autohack-next==${{ steps.version.outputs.version }}" >> changelog.md
+          echo "\`\`\`" >> changelog.md
+          echo "" >> changelog.md
+          echo "### Standalone Executable" >> changelog.md
+          echo "" >> changelog.md
+          echo "1. Download the appropriate package for your platform from the assets below" >> changelog.md
+          echo "2. Extract the zip file" >> changelog.md
+          echo "3. Run the \`autohack\` executable" >> changelog.md
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+
+  build-python:
+    needs: pre-jobs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[build]
+
+      - name: Build package
+        run: python -m build
+
+      - name: Upload Python artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
 
   build-executables:
-    needs: build-python
+    needs: [pre-jobs, build-python]
     strategy:
       matrix:
         include:
+          # https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
           # Linux
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             platform: linux
-            arch: amd64
-          - os: ubuntu-latest
+            arch: x64
+          - os: ubuntu-24.04-arm
             platform: linux
             arch: arm64
           # Windows
           - os: windows-latest
             platform: windows
-            arch: amd64
+            arch: x64
+          - os: windows-11-arm
+            platform: windows
+            arch: arm64
           # macOS
-          - os: macos-latest
+          - os: macos-13
             platform: macos
-            arch: amd64
-          - os: macos-14
+            arch: Intel
+          - os: macos-15
             platform: macos
             arch: arm64
-          # FreeBSD (using cross-compilation on Linux)
-          - os: ubuntu-latest
-            platform: freebsd
-            arch: amd64
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Download changelog
-      uses: actions/download-artifact@v4
-      with:
-        name: changelog
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
 
-    - name: Set up Python 3.13
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.13'
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
-    - name: Install UPX (Linux)
-      if: matrix.platform == 'linux'
-      uses: crazy-max/ghaction-upx@v3
-      with:
-        install-only: true
+      - name: Install UPX (Linux)
+        if: matrix.platform == 'linux'
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
 
-    - name: Install UPX (Windows)
-      if: matrix.platform == 'windows'
-      shell: pwsh
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.2/upx-5.0.2-win64.zip" -OutFile "upx.zip"
-        Expand-Archive -Path "upx.zip" -DestinationPath "."
-        $upxPath = (Get-ChildItem -Path "." -Name "upx-*" -Directory | Select-Object -First 1)
-        $env:PATH = "$PWD\$upxPath;$env:PATH"
-        echo "$PWD\$upxPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      # - name: Install UPX (Windows)
+      #   if: matrix.platform == 'windows'
+      #   shell: pwsh
+      #   run: |
+      #     Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.2/upx-5.0.2-win64.zip" -OutFile "upx.zip"
+      #     Expand-Archive -Path "upx.zip" -DestinationPath "."
+      #     $upxPath = (Get-ChildItem -Path "." -Name "upx-*" -Directory | Select-Object -First 1)
+      #     $env:PATH = "$PWD\$upxPath;$env:PATH"
+      #     echo "$PWD\$upxPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Install UPX (macOS)
-      if: matrix.platform == 'macos'
-      run: |
-        brew install upx
+      - name: Install UPX (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          winget install upx
 
-    - name: Set up QEMU (for ARM64 cross-compilation)
-      if: matrix.arch == 'arm64' && matrix.platform == 'linux'
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
+      - name: Install UPX (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          brew install upx
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[build]
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[build]
 
-    - name: Build executable (Linux)
-      if: matrix.platform == 'linux'
-      run: |
-        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
-        mv __main__.bin autohack
+      - name: Build executable (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+          mv __main__.bin autohack
 
-    - name: Build executable (Windows)
-      if: matrix.platform == 'windows'
-      run: |
-        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
-        mv __main__.exe autohack.exe
+      - name: Build executable (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+          mv __main__.exe autohack.exe
 
-    - name: Build executable (macOS)
-      if: matrix.platform == 'macos'
-      run: |
-        python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
-        mv __main__.bin autohack
+      - name: Build executable (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          python -m nuitka --standalone --onefile --follow-imports --remove-output --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.pre-jobs.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
+          mv __main__.bin autohack
 
-    - name: Build executable (FreeBSD)
-      if: matrix.platform == 'freebsd'
-      run: |
-        # Note: This is experimental cross-compilation for FreeBSD
-        python -m nuitka --standalone --onefile --follow-imports --remove-output --lto=yes --warn-implicit-exceptions --warn-unusual-code --file-version=${{ needs.build-python.outputs.version-id }} --assume-yes-for-downloads src/autohack/__main__.py
-        mv __main__.bin autohack
+      - name: Create release package (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          mkdir release-package
+          cp README.md release-package/
+          cp changelog.md release-package/CHANGELOG.md
+          cp autohack release-package/
+          cd release-package
+          zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip .
 
-    - name: Create release package (Linux)
-      if: matrix.platform == 'linux'
-      run: |
-        mkdir release-package
-        cp README.md release-package/
-        cp changelog.md release-package/CHANGELOG.md
-        cp autohack release-package/
-        cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ needs.build-python.outputs.hash }}.zip .
+      - name: Create release package (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          mkdir release-package
+          cp README.md release-package/
+          cp changelog.md release-package/CHANGELOG.md
+          cp autohack.exe release-package/autohack.exe
+          cd release-package
+          Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip
 
-    - name: Create release package (Windows)
-      if: matrix.platform == 'windows'
-      shell: pwsh
-      run: |
-        mkdir release-package
-        cp README.md release-package/
-        cp changelog.md release-package/CHANGELOG.md
-        cp autohack.exe release-package/autohack.exe
-        cd release-package
-        Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ needs.build-python.outputs.hash }}.zip
+      - name: Create release package (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          mkdir release-package
+          cp README.md release-package/
+          cp changelog.md release-package/CHANGELOG.md
+          cp autohack release-package/
+          cd release-package
+          zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip .
 
-    - name: Create release package (macOS)
-      if: matrix.platform == 'macos'
-      run: |
-        mkdir release-package
-        cp README.md release-package/
-        cp changelog.md release-package/CHANGELOG.md
-        cp autohack release-package/
-        cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ needs.build-python.outputs.hash }}.zip .
-
-    - name: Create release package (FreeBSD)
-      if: matrix.platform == 'freebsd'
-      run: |
-        mkdir release-package
-        cp README.md release-package/
-        cp changelog.md release-package/CHANGELOG.md
-        cp autohack release-package/
-        cd release-package
-        zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ needs.build-python.outputs.hash }}.zip .
-
-    - name: Upload executable artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: executable-${{ matrix.platform }}-${{ matrix.arch }}
-        path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.build-python.outputs.tag }}-${{ needs.build-python.outputs.hash }}.zip
+      - name: Upload executable artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: executable-${{ matrix.platform }}-${{ matrix.arch }}
+          path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip
 
   release:
-    needs: [build-python, build-executables]
+    needs: [pre-jobs, build-python, build-executables]
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-    - name: Download Python artifacts
-      uses: actions/download-artifact@v5
-      with:
-        name: python-dist
-        path: dist/
+      - name: Download Python artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: python-dist
+          path: dist/
 
-    - name: Download changelog
-      uses: actions/download-artifact@v5
-      with:
-        name: changelog
+      - name: Download changelog
+        uses: actions/download-artifact@v5
+        with:
+          name: changelog
 
-    - name: Download executable artifacts
-      uses: actions/download-artifact@v5
-      with:
-        pattern: executable-*
-        merge-multiple: true
+      - name: Download executable artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: executable-*
+          merge-multiple: true
 
-    - name: Read changelog for release
-      id: read_changelog
-      run: |
-        {
-          echo 'changelog<<EOF'
-          cat changelog.md
-          echo EOF
-        } >> $GITHUB_OUTPUT
+      - name: Read changelog for release
+        id: read_changelog
+        run: |
+          {
+            echo 'changelog<<EOF'
+            cat changelog.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
 
-    - name: Check if release exists
-      id: check_release
-      run: |
-        if gh release view ${{ needs.build-python.outputs.tag }} > /dev/null 2>&1; then
-          echo "exists=true" >> $GITHUB_OUTPUT
-        else
-          echo "exists=false" >> $GITHUB_OUTPUT
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create Release
-      if: steps.check_release.outputs.exists == 'false'
-      uses: actions/create-release@v1
-      id: create_release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ needs.build-python.outputs.tag }}
-        release_name: ${{ needs.build-python.outputs.tag }}
-        body: ${{ steps.read_changelog.outputs.changelog }}
-        draft: false
-        prerelease: ${{ contains(needs.build-python.outputs.tag, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}
-
-    - name: Update existing release
-      if: steps.check_release.outputs.exists == 'true'
-      run: |
-        # Update the existing release with new changelog
-        gh release edit ${{ needs.build-python.outputs.tag }} \
-          --notes "${{ steps.read_changelog.outputs.changelog }}"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Release Assets
-      run: |
-        # Upload Python packages
-        for file in dist/*; do
-          # Check if file already exists in release
-          if ! gh release view ${{ needs.build-python.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
-            gh release upload ${{ needs.build-python.outputs.tag }} "$file"
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view ${{ needs.pre-jobs.outputs.tag }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "File $(basename "$file") already exists in release, skipping..."
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
-        done
-        # Upload executable packages
-        for file in autohack-*-*-*-*.zip; do
-          # Check if file already exists in release
-          if ! gh release view ${{ needs.build-python.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
-            gh release upload ${{ needs.build-python.outputs.tag }} "$file"
-          else
-            echo "File $(basename "$file") already exists in release, skipping..."
-          fi
-        done
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Publish to PyPI
-      if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && inputs.run_from_commit != 'true' && inputs.tag != '')
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        python -m pip install --upgrade pip twine
-        twine upload dist/*
+      - name: Create Release
+        if: steps.check_release.outputs.exists == 'false'
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.pre-jobs.outputs.tag }}
+          release_name: ${{ needs.pre-jobs.outputs.tag }}
+          body: ${{ steps.read_changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ contains(needs.pre-jobs.outputs.tag, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}
+
+      - name: Update existing release
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          # Update the existing release with new changelog
+          gh release edit ${{ needs.pre-jobs.outputs.tag }} \
+            --notes "${{ steps.read_changelog.outputs.changelog }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        run: |
+          # Upload Python packages
+          for file in dist/*; do
+            # Check if file already exists in release
+            if ! gh release view ${{ needs.pre-jobs.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+              gh release upload ${{ needs.pre-jobs.outputs.tag }} "$file"
+            else
+              echo "File $(basename "$file") already exists in release, skipping..."
+            fi
+          done
+          # Upload executable packages
+          for file in autohack-*-*-*-*.zip; do
+            # Check if file already exists in release
+            if ! gh release view ${{ needs.pre-jobs.outputs.tag }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+              gh release upload ${{ needs.pre-jobs.outputs.tag }} "$file"
+            else
+              echo "File $(basename "$file") already exists in release, skipping..."
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Publish to PyPI
+        if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && inputs.run_from_commit != 'true' && inputs.tag != '')
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          python -m pip install --upgrade pip twine
+          twine upload dist/*
