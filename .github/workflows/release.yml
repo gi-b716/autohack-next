@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*.*.*'
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       tag:
@@ -19,6 +21,11 @@ on:
 jobs:
   build-python:
     runs-on: ubuntu-latest
+    # Only run if it's a tag push, manual dispatch, or commit message contains [ci release]
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/') ||
+      contains(github.event.head_commit.message, '[ci release]')
     outputs:
       tag: ${{ steps.tag.outputs.name }}
       version-id: ${{ steps.version_id.outputs.version-id }}
@@ -49,7 +56,11 @@ jobs:
           else
             echo "name=${{ inputs.tag }}" >> $GITHUB_OUTPUT
           fi
+        elif [ "${{ contains(github.event.head_commit.message, '[ci release]') }}" = "true" ]; then
+          # If commit message contains [ci release], use commit hash as tag (like run_from_commit mode)
+          echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         else
+          # For tag pushes
           echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
         fi
 
@@ -148,7 +159,7 @@ jobs:
         echo "" >> changelog.md
         echo "- **Commit**: [\`$(git rev-parse HEAD)\`](../../commit/$(git rev-parse HEAD))" >> changelog.md
         echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> changelog.md
-        echo "- **Release Type**: $(if [ '${{ contains(steps.tag.outputs.name, '-') || github.event.inputs.run_from_commit == 'true' }}' = 'true' ]; then echo 'Pre-release'; else echo 'Stable'; fi)" >> changelog.md
+        echo "- **Release Type**: $(if [ '${{ contains(steps.tag.outputs.name, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}' = 'true' ]; then echo 'Pre-release'; else echo 'Stable'; fi)" >> changelog.md
         echo "" >> changelog.md
 
         # Platform information
@@ -389,7 +400,7 @@ jobs:
         release_name: ${{ needs.build-python.outputs.tag }}
         body: ${{ steps.read_changelog.outputs.changelog }}
         draft: false
-        prerelease: ${{ contains(needs.build-python.outputs.tag, '-') || github.event.inputs.run_from_commit == 'true' }}
+        prerelease: ${{ contains(needs.build-python.outputs.tag, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}
 
     - name: Update existing release
       if: steps.check_release.outputs.exists == 'true'
@@ -424,7 +435,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish to PyPI
-      if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_from_commit != 'true' && inputs.tag != '')
+      if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && inputs.run_from_commit != 'true' && inputs.tag != '')
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
