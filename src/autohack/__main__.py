@@ -10,10 +10,6 @@ try:
     import argparse, logging, shutil, time, uuid, sys, os
 
     if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
-        # Hide cursor
-        # https://www.cnblogs.com/chargedcreeper/p/-/ANSI
-        sys.stdout.write("\x1b[?25l")
-
         parser = argparse.ArgumentParser(
             prog="autohack", description="autohack-next - Automated hack data generator"
         )
@@ -36,6 +32,10 @@ try:
         if args.version_id:
             sys.stdout.write(f"{VERSION_ID}\n")
             sys.exit(0)
+
+        # Hide cursor
+        # https://www.cnblogs.com/chargedcreeper/p/-/ANSI
+        sys.stdout.write("\x1b[?25l")
 
         if args.debug:
             sys.stdout.write("Debug mode enabled. Logging level set to DEBUG.\n")
