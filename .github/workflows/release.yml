@@ -166,12 +166,12 @@ jobs:
           echo "" >> changelog.md
           echo "| Platform | Architecture | Package Name |" >> changelog.md
           echo "|----------|--------------|--------------|" >> changelog.md
-          echo "| Linux | AMD64 | \`autohack-linux-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Linux | x64 | \`autohack-linux-x64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
           echo "| Linux | ARM64 | \`autohack-linux-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-          echo "| Windows | AMD64 | \`autohack-windows-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-          echo "| macOS | AMD64 (Intel) | \`autohack-macos-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Windows | x64 | \`autohack-windows-x64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Windows | ARM64 | \`autohack-windows-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| macOS | Intel | \`autohack-macos-Intel-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
           echo "| macOS | ARM64 (Apple Silicon) | \`autohack-macos-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
-          echo "| FreeBSD | AMD64 | \`autohack-freebsd-amd64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
           echo "" >> changelog.md
 
           echo "## 📦 Installation" >> changelog.md
