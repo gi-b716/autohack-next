@@ -266,13 +266,14 @@ try:
         open(RECORD_FILE_PATH, "a+").write(
             f"{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))} / {clientID}\n{dataCount} data generated, {errorDataCount} error data found.\nTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.\n{comment}\n\n"
         )
-        sys.stdout.write(f"Record saved to {RECORD_FILE_PATH}.\n")
+        # Remember to show cursor
+        sys.stdout.write(f"Record saved to {RECORD_FILE_PATH}.\n\x1b[?25h")
         logger.info(f"[autohack] Record saved to {RECORD_FILE_PATH}.")
 
 except KeyboardInterrupt:
     import sys
 
-    sys.stdout.write("\x1b[1;31mProcess interrupted by user.\n")
+    sys.stdout.write("\x1b[1;31mProcess interrupted by user.\n\x1b[?25h\x1b[0m")
     sys.exit(0)
 except Exception as e:
     import traceback, time, os
@@ -283,3 +284,4 @@ except Exception as e:
     sys.stdout.write(f"\x1b[1;31mError details saved to {errorFilePath}.\x1b[0m\n\n")
     # logger.critical(f"[autohack] Unhandled exception: {e.__str__()}")
     traceback.print_exc()
+    sys.stdout.write("\x1b[?25h")
