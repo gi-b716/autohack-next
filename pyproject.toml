@@ -1,9 +1,9 @@
 [project]
 name = "autohack-next"
-version = "1.0.7.post1"
+version = "1.0.8"
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
 license = {file = "COPYING"}
 authors = [
     {name = "gi-b716", email = "sganyunchi@163.com"}

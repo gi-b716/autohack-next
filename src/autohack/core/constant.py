@@ -1,3 +1,3 @@
-VERSION = "1.0.7.post1"
+VERSION = "1.0.8"
 # Windows executables will use this version.
-VERSION_ID = "1.0.7.1"
+VERSION_ID = "1.0.8"
