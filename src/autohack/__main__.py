@@ -101,8 +101,8 @@ try:
                 logger.error(
                     f"[autohack] {e.fileName.capitalize()} compilation failed: {e}"
                 )
-                sys.stdout.write(f"\r{e}\n")
-                exit(1)
+                sys.stdout.write(f"\r{e}\n\x1b[?25h")
+                sys.exit(1)
             else:
                 logger.debug(
                     f"[autohack] {file[1].capitalize()} compiled successfully."
@@ -163,8 +163,8 @@ try:
                 dataInput = generateInput(generateCommand, clientID)
             except InputGenerationError as e:
                 logger.error(f"[autohack] Input generation failed: {e}")
-                sys.stdout.write(f"\x1b[2K\r{e}\n")
-                exit(1)
+                sys.stdout.write(f"\x1b[2K\r{e}\n\x1b[?25h")
+                sys.exit(1)
 
             try:
                 logger.debug(f"[autohack] Generating answer for data {dataCount}.")
@@ -176,8 +176,8 @@ try:
                 )
             except AnswerGenerationError as e:
                 logger.error(f"[autohack] Answer generation failed: {e}")
-                sys.stdout.write(f"\x1b[2K\r{e}\n")
-                exit(1)
+                sys.stdout.write(f"\x1b[2K\r{e}\n\x1b[?25h")
+                sys.exit(1)
 
             logger.debug(f"[autohack] Run source code for data {dataCount}.")
             sys.stdout.write(f"\x1b[2K\r{dataCount}: Run source code.")
