@@ -65,7 +65,7 @@ class Config:
         if not os.path.exists(self.configFilePath):
             json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file created.")
-            print(f"Config file created at {self.configFilePath}.")
+            print(f"Config file created at {self.configFilePath}.\x1b[?25h")
             sys.exit(0)
             # return Config.DEFAULT_CONFIG.copy()
 
