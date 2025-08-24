@@ -45,7 +45,7 @@ def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> byt
 
 
 def runSourceCode(
-    runCommand: str, dataInput: bytes, timeLimit: int | None, memoryLimit: int | None
+    runCommand: str, dataInput: bytes, timeLimit: float | None, memoryLimit: int | None
 ) -> CodeRunner.Result:
     try:
         result = CodeRunner().run(

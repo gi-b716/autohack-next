@@ -113,7 +113,7 @@ try:
         generateCommand = config.getConfigEntry("commands.run.generator")
         stdCommand = config.getConfigEntry("commands.run.std")
         sourceCommand = config.getConfigEntry("commands.run.source")
-        timeLimit = config.getConfigEntry("time_limit")
+        timeLimit = config.getConfigEntry("time_limit") / 1000
         memoryLimit = config.getConfigEntry("memory_limit") * 1024 * 1024
         inputFilePath = config.getConfigEntry("paths.input")
         answerFilePath = config.getConfigEntry("paths.answer")
