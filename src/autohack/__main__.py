@@ -195,7 +195,7 @@ try:
                 saveErrorData(
                     dataInput,
                     dataAnswer,
-                    result.stdout,
+                    result.stdout, # type: ignore
                     f"\x1b[2K\r[{errorDataCount+1}]: Memory limit exceeded for data {dataCount}.",
                     f"[autohack] Memory limit exceeded for data {dataCount}.",
                 )
@@ -204,7 +204,7 @@ try:
                 saveErrorData(
                     dataInput,
                     dataAnswer,
-                    result.stdout,
+                    result.stdout, # type: ignore
                     f"\x1b[2K\r[{errorDataCount+1}]: Time limit exceeded for data {dataCount}.",
                     f"[autohack] Time limit exceeded for data {dataCount}.",
                 )
@@ -213,18 +213,18 @@ try:
                 saveErrorData(
                     dataInput,
                     dataAnswer,
-                    result.stdout,
+                    result.stdout, # type: ignore
                     f"\x1b[2K\r[{errorDataCount+1}]: Runtime error for data {dataCount} with return code {result.returnCode}.",
                     f"[autohack] Runtime error for data {dataCount} with return code {result.returnCode}.",
                 )
                 continue
 
-            checkerResult = basicChecker(result.stdout, dataAnswer)
+            checkerResult = basicChecker(result.stdout, dataAnswer) # type: ignore
             if not checkerResult[0]:
                 saveErrorData(
                     dataInput,
                     dataAnswer,
-                    result.stdout,
+                    result.stdout, # type: ignore
                     f"\x1b[2K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n\x1b[2K\r{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
                     f"[autohack] Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}",
                 )

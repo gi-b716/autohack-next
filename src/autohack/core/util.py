@@ -70,7 +70,7 @@ class CodeRunner:
                 ),
             )
             monitor.start()
-            stdout, stderr = process.communicate(inputContent)
+            stdout, stderr = process.communicate(inputContent) # type: ignore
             # try:
             #     stdout, stderr = process.communicate(inputContent, timeout=timeLimit)
             # except subprocess.TimeoutExpired:
@@ -81,7 +81,7 @@ class CodeRunner:
             #         process.wait()
             #     timeOut = True
             returnCode = process.poll()
-        return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr)
+        return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr) # type: ignore
 
 
 def checkDirectoryExists(directory: str) -> None:
