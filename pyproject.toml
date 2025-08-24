@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=80.9.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "autohack-next"
-version = "1.0.8.post2"
+dynamic = ["version"]
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -20,6 +24,9 @@ dependencies = [
     "platformdirs>=4.3.8",
     "psutil>=7.0.0",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "autohack.core.constant.VERSION"}
 
 [project.urls]
 Homepage = "https://github.com/gi-b716/autohack-next"
