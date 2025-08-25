@@ -3,6 +3,7 @@ import platformdirs, os
 dirs = platformdirs.PlatformDirs("autohack", "Gavin", version="v1")
 
 DATA_FOLDER_PATH = os.path.join(os.getcwd(), ".autohack")
+GLOBAL_DATA_FOLDER_PATH = dirs.user_data_dir
 
 RECORD_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "record.txt")
 
@@ -12,6 +13,7 @@ LOG_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "logs")
 TEMP_FOLDER_PATH = dirs.user_runtime_dir
 
 CONFIG_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "config.json")
+GLOBAL_CONFIG_FILE_PATH = os.path.join(GLOBAL_DATA_FOLDER_PATH, "config.json")
 
 CURRENT_HACK_DATA_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "hackdata")
 

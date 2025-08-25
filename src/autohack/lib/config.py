@@ -3,59 +3,13 @@ import logging, json, sys, os
 
 
 class Config:
-    DEFAULT_CONFIG = {
-        "_version": 8,
-        "refresh_speed": 10,
-        "maximum_number_of_data": 0,
-        # ms
-        "time_limit": 1000,
-        # MiB
-        "memory_limit": 256,
-        "error_data_number_limit": 1,
-        "paths": {
-            "input": "$(id)/input",
-            "answer": "$(id)/answer",
-            "output": "$(id)/output",
-        },
-        "commands": {
-            "compile": {
-                "source": [
-                    "g++",
-                    "source.cpp",
-                    "-o",
-                    "source",
-                    "-O2",
-                ],
-                "std": [
-                    "g++",
-                    "std.cpp",
-                    "-o",
-                    "std",
-                    "-O2",
-                ],
-                "generator": [
-                    "g++",
-                    "generator.cpp",
-                    "-o",
-                    "generator",
-                    "-O2",
-                ],
-            },
-            "run": {
-                "source": [
-                    "./source",
-                ],
-                "std": [
-                    "./std",
-                ],
-                "generator": [
-                    "./generator",
-                ],
-            },
-        },
-    }
-
-    def __init__(self, configFilePath: str, logger: logging.Logger) -> None:
+    def __init__(
+        self,
+        configFilePath: str,
+        logger: logging.Logger,
+        defaultConfig: Dict[str, Any],
+    ) -> None:
+        self.defaultConfig = defaultConfig
         self.logger = logger
         self.configFilePath = configFilePath
         self.logger.info(f'[config] Config file path: "{self.configFilePath}"')
@@ -63,7 +17,7 @@ class Config:
 
     def loadConfig(self) -> Dict[str, Any]:
         if not os.path.exists(self.configFilePath):
-            json.dump(Config.DEFAULT_CONFIG, open(self.configFilePath, "w"), indent=4)
+            json.dump(self.defaultConfig, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file created.")
             print(f"Config file created at {self.configFilePath}.\x1b[?25h")
             sys.exit(0)
@@ -72,9 +26,9 @@ class Config:
         with open(self.configFilePath, "r") as configFile:
             config = json.load(configFile)
 
-        if Config.DEFAULT_CONFIG["_version"] > config.get("_version", 0):
-            merged_config = self.mergeConfigs(config, Config.DEFAULT_CONFIG)
-            merged_config["_version"] = Config.DEFAULT_CONFIG["_version"]
+        if self.defaultConfig["_version"] > config.get("_version", 0):
+            merged_config = self.mergeConfigs(config, self.defaultConfig)
+            merged_config["_version"] = self.defaultConfig["_version"]
             json.dump(merged_config, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file updated.")
             config = merged_config

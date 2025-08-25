@@ -10,6 +10,63 @@ try:
     import argparse, logging, shutil, time, uuid, sys, os
 
     if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
+        DEFAULT_CONFIG = {
+            "_version": 8,
+            "refresh_speed": 10,
+            "maximum_number_of_data": 0,
+            # ms
+            "time_limit": 1000,
+            # MiB
+            "memory_limit": 256,
+            "error_data_number_limit": 1,
+            "paths": {
+                "input": "$(id)/input",
+                "answer": "$(id)/answer",
+                "output": "$(id)/output",
+            },
+            "commands": {
+                "compile": {
+                    "source": [
+                        "g++",
+                        "source.cpp",
+                        "-o",
+                        "source",
+                        "-O2",
+                    ],
+                    "std": [
+                        "g++",
+                        "std.cpp",
+                        "-o",
+                        "std",
+                        "-O2",
+                    ],
+                    "generator": [
+                        "g++",
+                        "generator.cpp",
+                        "-o",
+                        "generator",
+                        "-O2",
+                    ],
+                },
+                "run": {
+                    "source": [
+                        "./source",
+                    ],
+                    "std": [
+                        "./std",
+                    ],
+                    "generator": [
+                        "./generator",
+                    ],
+                },
+            },
+        }
+
+        DEFAULT_GLOBAL_CONFIG = {
+            "_version": 1,
+            "language": "en_US",
+        }
+
         parser = argparse.ArgumentParser(
             prog="autohack", description="autohack-next - Automated hack data generator"
         )
@@ -51,7 +108,8 @@ try:
             logging.DEBUG if args.debug else logging.INFO,
         )
         logger = loggerObject.getLogger()
-        config = Config(CONFIG_FILE_PATH, logger)
+        config = Config(CONFIG_FILE_PATH, logger, DEFAULT_CONFIG)
+        globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, logger, DEFAULT_GLOBAL_CONFIG)
         logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
         clientID = str(uuid.uuid4())
         logger.info(f"[autohack] Client ID: {clientID}")
