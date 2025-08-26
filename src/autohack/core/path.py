@@ -19,6 +19,8 @@ CURRENT_HACK_DATA_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "hackdata")
 
 HACK_DATA_STORAGE_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "datastorage")
 
+TRANSLATION_FOLDER_PATH = os.path.join(os.path.dirname(__file__), "..", "i18n")
+
 
 def getTempInputFilePath(clientID: str) -> str:
     return os.path.join(TEMP_FOLDER_PATH, clientID, "input")
