@@ -9,9 +9,9 @@ class I18N:
         language: str,
         logger: logging.Logger,
     ) -> None:
-        self.translationFile = os.path.join(translationFileDir, language)
+        self.translationFile = os.path.join(translationFileDir, f"{language}.json")
         self.logger = logger
-        self.logger.info(f"[i18n] Translation file: {self.translationFile}")
+        self.logger.info(f"[i18n] Translation file: \"{self.translationFile}\"")
         self.translations = self.loadTranslationFile()
 
     def loadTranslationFile(self) -> Dict[str, str]:
