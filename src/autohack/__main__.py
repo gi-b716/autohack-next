@@ -233,14 +233,20 @@ def main() -> None:
         if saveData:
             lastStatusError = True
             errorDataCount += 1
-            writeData(getHackDataFilePath(errorDataCount, inputFilePath), dataInput)
-            writeData(getHackDataFilePath(errorDataCount, answerFilePath), dataAnswer)
             writeData(
-                getHackDataFilePath(errorDataCount, outputFilePath), result.stdout
+                getHackDataFilePath(clientID, errorDataCount, inputFilePath), dataInput
+            )
+            writeData(
+                getHackDataFilePath(clientID, errorDataCount, answerFilePath),
+                dataAnswer,
+            )
+            writeData(
+                getHackDataFilePath(clientID, errorDataCount, outputFilePath),
+                result.stdout,
             )
             write(f"[{errorDataCount}]: {termMessage}", 1, True)
             if extMessage is not None:
-                write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", 1)
+                write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", 1, True)
             logger.info(f"[autohack] {logMessage}")
 
     endTime = time.time()
@@ -287,7 +293,7 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
         errorFilePath = (
             pathlib.Path(os.getcwd()) / f"autohack-error.{time.time():.0f}.log"
         )
-        errorFile = open(errorFilePath, "w+")
+        errorFile = open(errorFilePath, "w+", encoding="utf-8")
         traceback.print_exc(file=errorFile)
         errorFile.close()
 

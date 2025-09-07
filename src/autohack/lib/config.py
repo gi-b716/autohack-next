@@ -18,18 +18,24 @@ class Config:
 
     def loadConfig(self) -> dict[str, Any]:
         if not os.path.exists(self.configFilePath):
-            json.dump(self.defaultConfig, open(self.configFilePath, "w"), indent=4)
+            json.dump(
+                self.defaultConfig,
+                open(self.configFilePath, "w", encoding="utf-8"),
+                indent=4,
+            )
             self.logger.info("[config] Config file created.")
             write(f"Config file created at {self.configFilePath}.")
             exitProgram(0)
 
-        with open(self.configFilePath, "r") as configFile:
+        with open(self.configFilePath, "r", encoding="utf-8") as configFile:
             config = json.load(configFile)
 
         if self.defaultConfig["_version"] > config.get("_version", 0):
             mergedConfig = self.mergeConfigs(config, self.defaultConfig)
             mergedConfig["_version"] = self.defaultConfig["_version"]
-            json.dump(mergedConfig, open(self.configFilePath, "w"), indent=4)
+            json.dump(
+                mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4
+            )
             self.logger.info("[config] Config file updated.")
             config = mergedConfig
 
@@ -83,6 +89,8 @@ class Config:
             return False
         currentLevel[lastLevel] = newValue
 
-        json.dump(self.config, open(self.configFilePath, "w"), indent=4)
+        json.dump(
+            self.config, open(self.configFilePath, "w", encoding="utf-8"), indent=4
+        )
         self.logger.debug(f'[config] Modify entry: "{entryName}" = "{newValue}"')
         return True

@@ -1,4 +1,4 @@
-import platformdirs, pathlib, os
+import platformdirs, pathlib, time, os
 
 dirs = platformdirs.PlatformDirs("autohack", "Gavin", version="v1")
 
@@ -18,8 +18,13 @@ TRANSLATION_FOLDER_PATH = pathlib.Path(__file__).parent.parent / "i18n"
 
 
 def getHackDataStorageFolderPath(clientID: str) -> pathlib.Path:
-    return HACK_DATA_STORAGE_FOLDER_PATH / clientID
+    return (
+        HACK_DATA_STORAGE_FOLDER_PATH
+        / f"{time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))}_{clientID}"
+    )
 
 
-def getHackDataFilePath(dataID: int, filePath: str) -> pathlib.Path:
-    return HACK_DATA_STORAGE_FOLDER_PATH / filePath.replace("$(id)", str(dataID))
+def getHackDataFilePath(clientID: str, dataID: int, filePath: str) -> pathlib.Path:
+    return getHackDataStorageFolderPath(clientID) / filePath.replace(
+        "$(id)", str(dataID)
+    )
