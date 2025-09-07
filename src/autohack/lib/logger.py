@@ -1,26 +1,30 @@
-import logging, time, os
+from autohack.core.util import *
+import logging, pathlib, time, os
 
 
 class Logger:
-    def __init__(self, logFolder: str, logLevel=logging.WARNING) -> None:
+    def __init__(
+        self, logFolder: pathlib.Path, logLevel: int = logging.WARNING
+    ) -> None:
         self.logFolder = logFolder
         self.logLevel = logLevel
 
-        # Create log folder
-        if not os.path.isdir(self.logFolder):
-            os.mkdir(self.logFolder)
+        ensureDirExists(self.logFolder)
 
         self.logger = logging.getLogger("autohack")
         self.logger.setLevel(logLevel)
-        self.logFilePath = os.path.join(
-            self.logFolder,
-            f"autohack-{time.strftime("%Y-%m-%d_%H-%M-%S",time.localtime(time.time()))}.log",
+
+        self.logFilePath = (
+            self.logFolder
+            / f"autohack-{time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))}.log"
         )
+
         logFile = logging.FileHandler(self.logFilePath, encoding="utf-8")
         logFile.setLevel(logLevel)
         logFile.setFormatter(
             logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
         )
+
         self.logger.addHandler(logFile)
 
         self.logger.info(f'[logger] Log file: "{self.logFilePath}"')
@@ -30,5 +34,5 @@ class Logger:
     def getLogger(self) -> logging.Logger:
         return self.logger
 
-    def getLogFilePath(self) -> str:
+    def getLogFilePath(self) -> pathlib.Path:
         return self.logFilePath

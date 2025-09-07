@@ -1,44 +1,25 @@
-import platformdirs, os
+import platformdirs, pathlib, os
 
 dirs = platformdirs.PlatformDirs("autohack", "Gavin", version="v1")
 
-DATA_FOLDER_PATH = os.path.join(os.getcwd(), ".autohack")
-GLOBAL_DATA_FOLDER_PATH = dirs.user_data_dir
+DATA_FOLDER_PATH = pathlib.Path(os.getcwd()) / ".autohack"
 
-RECORD_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "record.txt")
+HACK_DATA_STORAGE_FOLDER_PATH = DATA_FOLDER_PATH / "datastorage"
 
-LOG_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "logs")
-# LOG_FOLDER_PATH = dirs.user_log_dir
+LOG_FOLDER_PATH = DATA_FOLDER_PATH / "logs"
 
-TEMP_FOLDER_PATH = dirs.user_runtime_dir
+CONFIG_FILE_PATH = DATA_FOLDER_PATH / "config.json"
 
-CONFIG_FILE_PATH = os.path.join(DATA_FOLDER_PATH, "config.json")
-GLOBAL_CONFIG_FILE_PATH = os.path.join(GLOBAL_DATA_FOLDER_PATH, "config.json")
+GLOBAL_DATA_FOLDER_PATH = pathlib.Path(dirs.user_data_dir)
 
-CURRENT_HACK_DATA_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "hackdata")
+GLOBAL_CONFIG_FILE_PATH = GLOBAL_DATA_FOLDER_PATH / "config.json"
 
-HACK_DATA_STORAGE_FOLDER_PATH = os.path.join(DATA_FOLDER_PATH, "datastorage")
-
-TRANSLATION_FOLDER_PATH = os.path.join(os.path.dirname(__file__), "..", "i18n")
+TRANSLATION_FOLDER_PATH = pathlib.Path(__file__).parent.parent / "i18n"
 
 
-def getTempInputFilePath(clientID: str) -> str:
-    return os.path.join(TEMP_FOLDER_PATH, clientID, "input")
+def getHackDataStorageFolderPath(clientID: str) -> pathlib.Path:
+    return HACK_DATA_STORAGE_FOLDER_PATH / clientID
 
 
-def getTempAnswerFilePath(clientID: str) -> str:
-    return os.path.join(TEMP_FOLDER_PATH, clientID, "answer")
-
-
-def getHackDataStorageFolderPath(clientID: str) -> str:
-    return os.path.join(HACK_DATA_STORAGE_FOLDER_PATH, clientID)
-
-
-def getHackDataFilePath(dataID: int, filePath: str) -> str:
-    return os.path.join(
-        CURRENT_HACK_DATA_FOLDER_PATH, filePath.replace("$(id)", str(dataID))
-    )
-
-
-def getHackDataFolderPath(dataID: int, filePath: str) -> str:
-    return os.path.dirname(getHackDataFilePath(dataID, filePath))
+def getHackDataFilePath(dataID: int, filePath: str) -> pathlib.Path:
+    return HACK_DATA_STORAGE_FOLDER_PATH / filePath.replace("$(id)", str(dataID))

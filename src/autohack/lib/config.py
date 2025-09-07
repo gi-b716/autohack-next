@@ -1,44 +1,44 @@
-from typing import Dict, Any
-import logging, json, sys, os
+from autohack.core.util import *
+from typing import Any
+import logging, pathlib, json, os
 
 
 class Config:
     def __init__(
         self,
-        configFilePath: str,
+        configFilePath: pathlib.Path,
+        defaultConfig: dict[str, Any],
         logger: logging.Logger,
-        defaultConfig: Dict[str, Any],
     ) -> None:
         self.defaultConfig = defaultConfig
-        self.logger = logger
         self.configFilePath = configFilePath
+        self.logger = logger
         self.logger.info(f'[config] Config file path: "{self.configFilePath}"')
         self.config = self.loadConfig()
 
-    def loadConfig(self) -> Dict[str, Any]:
+    def loadConfig(self) -> dict[str, Any]:
         if not os.path.exists(self.configFilePath):
             json.dump(self.defaultConfig, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file created.")
-            sys.stdout.write(f"Config file created at {self.configFilePath}.\x1b[?25h")
-            sys.exit(0)
-            # return Config.DEFAULT_CONFIG.copy()
+            write(f"Config file created at {self.configFilePath}.")
+            exitProgram(0)
 
         with open(self.configFilePath, "r") as configFile:
             config = json.load(configFile)
 
         if self.defaultConfig["_version"] > config.get("_version", 0):
-            merged_config = self.mergeConfigs(config, self.defaultConfig)
-            merged_config["_version"] = self.defaultConfig["_version"]
-            json.dump(merged_config, open(self.configFilePath, "w"), indent=4)
+            mergedConfig = self.mergeConfigs(config, self.defaultConfig)
+            mergedConfig["_version"] = self.defaultConfig["_version"]
+            json.dump(mergedConfig, open(self.configFilePath, "w"), indent=4)
             self.logger.info("[config] Config file updated.")
-            config = merged_config
+            config = mergedConfig
 
         self.logger.info("[config] Config file loaded.")
         return config
 
     def mergeConfigs(
-        self, old: Dict[str, Any], newDefault: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, old: dict[str, Any], newDefault: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Merge the old config with the new default config.
         - If a key exists in both, the value from the old config is used.

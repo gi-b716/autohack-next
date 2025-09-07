@@ -1,5 +1,5 @@
 from autohack.core.path import *
-import subprocess, threading, psutil, time, os
+import subprocess, threading, pathlib, psutil, time, sys, os
 
 
 class CodeRunner:
@@ -70,23 +70,14 @@ class CodeRunner:
                 ),
             )
             monitor.start()
-            stdout, stderr = process.communicate(inputContent) # type: ignore
-            # try:
-            #     stdout, stderr = process.communicate(inputContent, timeout=timeLimit)
-            # except subprocess.TimeoutExpired:
-            #     process.kill()
-            #     if mswindows():
-            #         stdout, stderr = process.communicate()
-            #     else:
-            #         process.wait()
-            #     timeOut = True
+            stdout, stderr = process.communicate(inputContent)  # type: ignore
             returnCode = process.poll()
-        return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr) # type: ignore
+        return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr)  # type: ignore
 
 
-def checkDirectoryExists(directory: str) -> None:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def ensureDirExists(dirPath: pathlib.Path) -> None:
+    if not os.path.exists(dirPath):
+        os.makedirs(dirPath)
 
 
 def mswindows() -> bool:
@@ -96,3 +87,41 @@ def mswindows() -> bool:
         return False
     else:
         return True
+
+
+def writeData(filePath: pathlib.Path, data: bytes) -> None:
+    ensureDirExists(filePath.parent)
+    open(filePath, "wb").write(data)
+
+
+def clearLine() -> None:
+    write("\x1b[2K\r")
+
+
+def prevLine() -> None:
+    write("\x1b[1A")
+
+
+def write(message: str, endl: int = 0, clear: bool = False) -> None:
+    if clear:
+        clearLine()
+    sys.stdout.write(message + "\n" * endl)
+    sys.stdout.flush()
+
+
+def hideCursor() -> None:
+    # https://www.cnblogs.com/chargedcreeper/p/-/ANSI
+    write("\x1b[?25l")
+
+
+def showCursor() -> None:
+    write("\x1b[?25h")
+
+
+def highlightText(message: str) -> str:
+    return f"\x1b[1;31m{message}\x1b[0m"
+
+
+def exitProgram(exitCode: int = 0) -> None:
+    showCursor()
+    sys.exit(exitCode)

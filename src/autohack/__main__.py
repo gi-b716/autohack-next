@@ -1,345 +1,299 @@
-try:
-    from autohack.core.constant import *
-    from autohack.core.exception import *
-    from autohack.core.path import *
-    from autohack.core.util import *
-    from autohack.lib.config import *
-    from autohack.lib.logger import *
-    from autohack.checker import *
-    from autohack.function import *
-    import argparse, logging, shutil, time, uuid, sys, os
+from autohack.core.constant import *
+from autohack.core.exception import *
+from autohack.core.path import *
+from autohack.core.util import *
+from autohack.lib.config import *
+from autohack.lib.logger import *
+from autohack.checker import *
+import subprocess, traceback, argparse, logging, pathlib, time, uuid, os
 
-    if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
-        DEFAULT_CONFIG = {
-            "_version": 8,
-            "refresh_speed": 10,
-            "maximum_number_of_data": 0,
-            # ms
-            "time_limit": 1000,
-            # MiB
-            "memory_limit": 256,
-            "error_data_number_limit": 1,
-            "paths": {
-                "input": "$(id)/input",
-                "answer": "$(id)/answer",
-                "output": "$(id)/output",
-            },
-            "commands": {
-                "compile": {
-                    "source": [
-                        "g++",
-                        "source.cpp",
-                        "-o",
-                        "source",
-                        "-O2",
-                    ],
-                    "std": [
-                        "g++",
-                        "std.cpp",
-                        "-o",
-                        "std",
-                        "-O2",
-                    ],
-                    "generator": [
-                        "g++",
-                        "generator.cpp",
-                        "-o",
-                        "generator",
-                        "-O2",
-                    ],
-                },
-                "run": {
-                    "source": [
-                        "./source",
-                    ],
-                    "std": [
-                        "./std",
-                    ],
-                    "generator": [
-                        "./generator",
-                    ],
-                },
-            },
-        }
 
-        DEFAULT_GLOBAL_CONFIG = {
-            "_version": 1,
-            "language": "en_US",
-        }
-
-        parser = argparse.ArgumentParser(
-            prog="autohack", description="autohack-next - Automated hack data generator"
+def compileCode(compileCommand: str, fileName: str) -> None:
+    try:
+        process = subprocess.Popen(
+            compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
         )
-        parser.add_argument(
-            "--version", action="store_true", help="Show version information"
+    except OSError:
+        return
+    output = process.communicate()[0]
+    if process.returncode != 0:
+        raise CompilationError(fileName, output, process.returncode)
+
+
+def generateInput(generateCommand: str, clientID: str) -> bytes:
+    try:
+        process = subprocess.Popen(
+            generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
         )
-        parser.add_argument("--version-id", action="store_true", help="Show version ID")
-        parser.add_argument(
-            "--debug",
-            action="store_true",
-            help="Enable debug mode with DEBUG logging level",
+    except OSError:
+        return b""
+    dataInput = process.communicate()[0]
+    if process.returncode != 0:
+        raise InputGenerationError(clientID, process.returncode)
+    return dataInput
+
+
+def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> bytes:
+    try:
+        process = subprocess.Popen(
+            generateCommand,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
         )
+    except OSError:
+        return b""
+    dataAnswer = process.communicate(dataInput)[0]
+    if process.returncode != 0:
+        raise AnswerGenerationError(clientID, process.returncode)
+    return dataAnswer
 
-        args = parser.parse_args()
 
-        if args.version:
-            sys.stdout.write(f"{VERSION}\n")
-            sys.exit(0)
-
-        if args.version_id:
-            sys.stdout.write(f"{VERSION_ID}\n")
-            sys.exit(0)
-
-        # Hide cursor
-        # https://www.cnblogs.com/chargedcreeper/p/-/ANSI
-        sys.stdout.write("\x1b[?25l")
-
-        if args.debug:
-            sys.stdout.write("Debug mode enabled. Logging level set to DEBUG.\n")
-
-        checkDirectoryExists(DATA_FOLDER_PATH)
-        checkDirectoryExists(LOG_FOLDER_PATH)
-        checkDirectoryExists(TEMP_FOLDER_PATH)
-        if mswindows():
-            os.system("attrib +h {0}".format(DATA_FOLDER_PATH))
-
-        loggerObject = Logger(
-            LOG_FOLDER_PATH,
-            logging.DEBUG if args.debug else logging.INFO,
+def runSourceCode(
+    runCommand: str, dataInput: bytes, timeLimit: float | None, memoryLimit: int | None
+) -> CodeRunner.Result:
+    try:
+        result = CodeRunner().run(
+            runCommand,
+            inputContent=dataInput,
+            timeLimit=timeLimit,
+            memoryLimit=memoryLimit,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
         )
-        logger = loggerObject.getLogger()
-        config = Config(CONFIG_FILE_PATH, logger, DEFAULT_CONFIG)
-        globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, logger, DEFAULT_GLOBAL_CONFIG)
-        logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
-        clientID = str(uuid.uuid4())
-        logger.info(f"[autohack] Client ID: {clientID}")
-        sys.stdout.write(f"autohack-next {VERSION} - Client ID: {clientID}\n")
-        logger.info(f"[autohack] Initialized. Version: {VERSION}")
+    except OSError:
+        return CodeRunner.Result(False, False, 0, b"", b"")
+    return result
 
-        symlinkFallback = False
 
-        sys.stdout.write("\n")
-        checkDirectoryExists(getHackDataStorageFolderPath(clientID))
-        if os.path.islink(CURRENT_HACK_DATA_FOLDER_PATH):
-            os.unlink(CURRENT_HACK_DATA_FOLDER_PATH)
-        elif os.path.isdir(CURRENT_HACK_DATA_FOLDER_PATH):
-            shutil.rmtree(CURRENT_HACK_DATA_FOLDER_PATH)
+def main() -> None:
+    argsParser = argparse.ArgumentParser(
+        prog="autohack", description="autohack-next - Automated hack data generator"
+    )
+    argsParser.add_argument(
+        "--version", action="store_true", help="Show version information"
+    )
+    argsParser.add_argument("--version-id", action="store_true", help="Show version ID")
+    argsParser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode with DEBUG logging level",
+    )
+
+    args = argsParser.parse_args()
+
+    if args.version:
+        write(f"{VERSION}")
+        exitProgram(0)
+
+    if args.version_id:
+        write(f"{VERSION_ID}")
+        exitProgram(0)
+
+    hideCursor()
+
+    if args.debug:
+        write("Debug mode enabled. Logging level set to DEBUG.", 2)
+
+    ensureDirExists(LOG_FOLDER_PATH)
+
+    loggerObj = Logger(LOG_FOLDER_PATH, logging.DEBUG if args.debug else logging.INFO)
+    logger = loggerObj.getLogger()
+
+    config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger)
+
+    clientID = str(uuid.uuid4())
+
+    logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
+    logger.info(f"[autohack] Client ID: {clientID}")
+    logger.info(f"[autohack] Initialized. Version: {VERSION}")
+    write(f"autohack-next {VERSION} - Client ID: {clientID}", 2)
+    write(f"Hack data storaged to {getHackDataStorageFolderPath(clientID)}", 1)
+    write(f"Log file: {loggerObj.getLogFilePath()}", 2)
+
+    for i in range(WAIT_TIME_BEFORE_START):
+        write(f"Starting in {WAIT_TIME_BEFORE_START-i} seconds...", clear=True)
+        time.sleep(1)
+
+    fileList = [
+        [config.getConfigEntry("commands.compile.source"), "source code"],
+        [config.getConfigEntry("commands.compile.std"), "standard code"],
+        [config.getConfigEntry("commands.compile.generator"), "generator code"],
+    ]
+    for file in fileList:
+        write(f"Compile {file[1]}.", clear=True)
         try:
-            os.symlink(
-                getHackDataStorageFolderPath(clientID),
-                CURRENT_HACK_DATA_FOLDER_PATH,
-                target_is_directory=True,
+            compileCode(file[0], file[1])
+        except CompilationError as e:
+            logger.error(
+                f"[autohack] {file[1].capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.message.decode()}"
             )
-        except OSError:
-            symlinkFallback = True
-            sys.stdout.write(
-                "Hack data folder symlink creation failed. Using fallback method.\n"
+            write(f"{e}", clear=True)
+            exitProgram(1)
+        else:
+            logger.debug(f"[autohack] {file[1].capitalize()} compiled successfully.")
+
+    write("Compile finished.", 2, True)
+
+    dataCount, errorDataCount = 0, 0
+    lastStatusError = False
+    generateCommand = config.getConfigEntry("commands.run.generator")
+    stdCommand = config.getConfigEntry("commands.run.std")
+    sourceCommand = config.getConfigEntry("commands.run.source")
+    timeLimit = config.getConfigEntry("time_limit") / 1000
+    memoryLimit = config.getConfigEntry("memory_limit") * 1024 * 1024
+    inputFilePath = config.getConfigEntry("paths.input")
+    answerFilePath = config.getConfigEntry("paths.answer")
+    outputFilePath = config.getConfigEntry("paths.output")
+    maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
+    errorDataLimit = config.getConfigEntry("error_data_number_limit")
+    refreshSpeed = config.getConfigEntry("refresh_speed")
+
+    startTime = time.time()
+
+    while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
+        errorDataLimit <= 0 or errorDataCount < errorDataLimit
+    ):
+        dataInput = b""
+        dataAnswer = b""
+
+        dataCount += 1
+
+        try:
+            write(f"{dataCount}: Generate input.", clear=True)
+            logger.debug(f"[autohack] Generating data {dataCount}.")
+            dataInput = generateInput(generateCommand, clientID)
+        except InputGenerationError as e:
+            logger.error(
+                f"[autohack] Input generation failed with return code {e.returnCode}."
             )
-            logger.warning("[autohack] Symlink creation failed. Using fallback method.")
-            checkDirectoryExists(CURRENT_HACK_DATA_FOLDER_PATH)
-        sys.stdout.write(
-            f"Hack data storaged to {CURRENT_HACK_DATA_FOLDER_PATH}.\n{' '*18}and {getHackDataStorageFolderPath(clientID)}\nLog file: {loggerObject.getLogFilePath()}\n"
-        )
+            # TODO: Show input file path
+            write(f"{e}", clear=True)
+            exitProgram(1)
 
-        sys.stdout.write("\n")
-        for i in range(3):
-            sys.stdout.write(f"\x1b[1K\rStarting in {3-i} seconds...")
-            time.sleep(1)
+        try:
+            write(f"{dataCount}: Generate answer.", clear=True)
+            logger.debug(f"[autohack] Generating answer for data {dataCount}.")
+            dataAnswer = generateAnswer(
+                stdCommand,
+                dataInput,
+                clientID,
+            )
+        except AnswerGenerationError as e:
+            logger.error(
+                f"[autohack] Answer generation failed with return code {e.returnCode}."
+            )
+            # TODO: Show input and answer file path
+            write(f"{e}", clear=True)
+            exitProgram(1)
 
-        fileList = [
-            [config.getConfigEntry("commands.compile.source"), "source code"],
-            [config.getConfigEntry("commands.compile.std"), "standard code"],
-            [config.getConfigEntry("commands.compile.generator"), "generator code"],
-        ]
-        for file in fileList:
-            sys.stdout.write(f"\x1b[1K\rCompile {file[1]}.")
-            try:
-                compileCode(file[0], file[1])
-            except CompilationError as e:
-                logger.error(
-                    f"[autohack] {e.fileName.capitalize()} compilation failed: {e}"
-                )
-                sys.stdout.write(f"\r{e}\n\x1b[?25h")
-                sys.exit(1)
-            else:
-                logger.debug(
-                    f"[autohack] {file[1].capitalize()} compiled successfully."
-                )
-        sys.stdout.write("\x1b[1K\rCompile finished.\n")
+        write(f"{dataCount}: Run source code.", clear=True)
+        logger.debug(f"[autohack] Run source code for data {dataCount}.")
+        result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
+        if result.stdout is None:
+            result.stdout = b""
+        if result.stderr is None:
+            result.stderr = b""
 
-        dataCount, errorDataCount = 0, 0
-        generateCommand = config.getConfigEntry("commands.run.generator")
-        stdCommand = config.getConfigEntry("commands.run.std")
-        sourceCommand = config.getConfigEntry("commands.run.source")
-        timeLimit = config.getConfigEntry("time_limit") / 1000
-        memoryLimit = config.getConfigEntry("memory_limit") * 1024 * 1024
-        inputFilePath = config.getConfigEntry("paths.input")
-        answerFilePath = config.getConfigEntry("paths.answer")
-        outputFilePath = config.getConfigEntry("paths.output")
-        maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
-        errorDataLimit = config.getConfigEntry("error_data_number_limit")
-        refreshSpeed = config.getConfigEntry("refresh_speed")
+        # TODO: Refresh when running exe. Use threading or async?
+        if dataCount % refreshSpeed == 0 or lastStatusError:
+            lastStatusError = False
+            currentTime = time.time()
+            write("", 1)
+            write(
+                f"Time taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" ({dataCount*100/maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else ""}",
+                clear=True,
+            )
+            prevLine()
 
-        lastStatusError = False
+        saveData, termMessage, logMessage, extMessage = False, "", "", None
 
-        def saveErrorData(
-            dataInput: bytes,
-            dataAnswer: bytes,
-            dataOutput: bytes,
-            message: str,
-            logMessage: str,
-        ) -> None:
-            global lastStatusError, errorDataCount, logger
+        if result.memoryOut:
+            saveData = True
+            termMessage = logMessage = f"Memory limit exceeded for data {dataCount}."
+        elif result.timeOut:
+            saveData = True
+            termMessage = logMessage = f"Time limit exceeded for data {dataCount}."
+        elif result.returnCode != 0:
+            saveData = True
+            termMessage = logMessage = (
+                f"Runtime error for data {dataCount} with return code {result.returnCode}."
+            )
+
+        checkerResult = basicChecker(result.stdout, dataAnswer)
+        if not checkerResult[0]:
+            saveData = True
+            termMessage = f"Wrong answer for data {dataCount}."
+            logMessage = (
+                f"Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}"
+            )
+            extMessage = checkerResult[1]
+
+        if saveData:
             lastStatusError = True
             errorDataCount += 1
-            checkDirectoryExists(getHackDataFolderPath(errorDataCount, inputFilePath))
-            checkDirectoryExists(getHackDataFolderPath(errorDataCount, answerFilePath))
-            checkDirectoryExists(getHackDataFolderPath(errorDataCount, outputFilePath))
-            open(getHackDataFilePath(errorDataCount, inputFilePath), "wb").write(
-                dataInput
+            writeData(getHackDataFilePath(errorDataCount, inputFilePath), dataInput)
+            writeData(getHackDataFilePath(errorDataCount, answerFilePath), dataAnswer)
+            writeData(
+                getHackDataFilePath(errorDataCount, outputFilePath), result.stdout
             )
-            open(getHackDataFilePath(errorDataCount, answerFilePath), "wb").write(
-                dataAnswer
-            )
-            open(getHackDataFilePath(errorDataCount, outputFilePath), "wb").write(
-                dataOutput
-            )
-            logger.info(logMessage)
-            sys.stdout.write(f"{message}\n")
+            write(f"[{errorDataCount}]: {termMessage}", 1, True)
+            if extMessage is not None:
+                write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", 1)
+            logger.info(f"[autohack] {logMessage}")
 
-        startTime = time.time()
+    endTime = time.time()
 
-        sys.stdout.write("\n")
-        while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
-            errorDataLimit <= 0 or errorDataCount < errorDataLimit
-        ):
-            dataCount += 1
+    write(
+        f"Finished. {dataCount} data generated, {errorDataCount} error data found.",
+        1,
+        True,
+    )
+    write(
+        f"Time taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.",
+        1,
+        True,
+    )
 
-            try:
-                logger.debug(f"[autohack] Generating data {dataCount}.")
-                sys.stdout.write(f"\x1b[2K\r{dataCount}: Generate input.")
-                dataInput = generateInput(generateCommand, clientID)
-            except InputGenerationError as e:
-                logger.error(f"[autohack] Input generation failed: {e}")
-                sys.stdout.write(f"\x1b[2K\r{e}\n\x1b[?25h")
-                sys.exit(1)
+    # if errorDataCount == 0:
+    #     shutil.rmtree(getHackDataStorageFolderPath(clientID))
+    #     write("No error data found. Hack data folder removed.", 1)
+    #     logger.info("[autohack] No error data found. Hack data folder removed.")
 
-            try:
-                logger.debug(f"[autohack] Generating answer for data {dataCount}.")
-                sys.stdout.write(f"\x1b[2K\r{dataCount}: Generate answer.")
-                dataAnswer = generateAnswer(
-                    stdCommand,
-                    dataInput,
-                    clientID,
-                )
-            except AnswerGenerationError as e:
-                logger.error(f"[autohack] Answer generation failed: {e}")
-                sys.stdout.write(f"\x1b[2K\r{e}\n\x1b[?25h")
-                sys.exit(1)
-
-            logger.debug(f"[autohack] Run source code for data {dataCount}.")
-            sys.stdout.write(f"\x1b[2K\r{dataCount}: Run source code.")
-            result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
-
-            # TODO: Refresh when running exe. Use threading or async?
-            if dataCount % refreshSpeed == 0 or lastStatusError:
-                lastStatusError = False
-                currentTime = time.time()
-                sys.stdout.write(
-                    f"\n\x1b[2K\rTime taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" ({dataCount*100/maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else ""}\x1b[1A"
-                )
-
-            if result.memoryOut:
-                saveErrorData(
-                    dataInput,
-                    dataAnswer,
-                    result.stdout,  # type: ignore
-                    f"\x1b[2K\r[{errorDataCount+1}]: Memory limit exceeded for data {dataCount}.",
-                    f"[autohack] Memory limit exceeded for data {dataCount}.",
-                )
-                continue
-            elif result.timeOut:
-                saveErrorData(
-                    dataInput,
-                    dataAnswer,
-                    result.stdout,  # type: ignore
-                    f"\x1b[2K\r[{errorDataCount+1}]: Time limit exceeded for data {dataCount}.",
-                    f"[autohack] Time limit exceeded for data {dataCount}.",
-                )
-                continue
-            elif result.returnCode != 0:
-                saveErrorData(
-                    dataInput,
-                    dataAnswer,
-                    result.stdout,  # type: ignore
-                    f"\x1b[2K\r[{errorDataCount+1}]: Runtime error for data {dataCount} with return code {result.returnCode}.",
-                    f"[autohack] Runtime error for data {dataCount} with return code {result.returnCode}.",
-                )
-                continue
-
-            checkerResult = basicChecker(result.stdout, dataAnswer)  # type: ignore
-            if not checkerResult[0]:
-                saveErrorData(
-                    dataInput,
-                    dataAnswer,
-                    result.stdout,  # type: ignore
-                    f"\x1b[2K\r[{errorDataCount+1}]: Wrong answer for data {dataCount}.\n\x1b[2K\r{(len(f"[{errorDataCount+1}]: ")-3)*' '} - {checkerResult[1]}",
-                    f"[autohack] Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}",
-                )
-
-        endTime = time.time()
-
-        sys.stdout.write(
-            f"\x1b[2K\rFinished. {dataCount} data generated, {errorDataCount} error data found.\n\x1b[2K\rTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.\n"
+    if (
+        HACK_DATA_STORAGE_FOLDER_PATH.exists()
+        and HACK_DATA_STORAGE_FOLDER_PATH.stat().st_size > DATA_FOLDER_MAX_SIZE
+    ):
+        logger.warning(
+            f"[autohack] Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}"
         )
-        if errorDataCount > 0:
-            if symlinkFallback:
-                sys.stdout.write(f"Saving hack data to data storage folder...")
-                shutil.copytree(
-                    CURRENT_HACK_DATA_FOLDER_PATH,
-                    getHackDataStorageFolderPath(clientID),
-                    dirs_exist_ok=True,
-                )
-                sys.stdout.write("\x1b[1K\rHack data saved to data storage folder.\n")
-                logger.info(
-                    f"[autohack] Hack data saved to data storage folder: {getHackDataStorageFolderPath(clientID)}"
-                )
-        else:
-            shutil.rmtree(getHackDataStorageFolderPath(clientID))
-            sys.stdout.write("No error data found. Hack data folder removed.\n")
-            logger.info("[autohack] No error data found. Hack data folder removed.")
-        if (
-            os.path.exists(HACK_DATA_STORAGE_FOLDER_PATH)
-            and os.path.getsize(HACK_DATA_STORAGE_FOLDER_PATH) > 256 * 1024 * 1024
-        ):
-            logger.warning(
-                f"[autohack] Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}"
-            )
-            sys.stdout.write(
-                f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}\n"
-            )
-
-        comment = input("\nComment (optional): \x1b[?25h")
-        sys.stdout.write("\x1b[?25l")
-        open(RECORD_FILE_PATH, "a+").write(
-            f"{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))} / {clientID}\n{dataCount} data generated, {errorDataCount} error data found.\nTime taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.\n{comment}\n\n"
+        write(
+            f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}",
+            1,
         )
-        # Remember to show cursor
-        sys.stdout.write(f"Record saved to {RECORD_FILE_PATH}.\n\x1b[?25h")
-        logger.info(f"[autohack] Record saved to {RECORD_FILE_PATH}.")
 
-except KeyboardInterrupt:
-    import sys
 
-    sys.stdout.write("\x1b[1;31mProcess interrupted by user.\n\x1b[?25h\x1b[0m")
-    sys.exit(0)
-except Exception as e:
-    import traceback, time, os
+if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
+    try:
+        main()
 
-    sys.stdout.write(f"\x1b[1;31mUnhandled exception.\n")
-    errorFilePath = os.path.join(os.getcwd(), f"autohack-error.{time.time():.0f}.log")
-    open(errorFilePath, "w+").write(repr(e))
-    sys.stdout.write(f"\x1b[1;31mError details saved to {errorFilePath}.\x1b[0m\n\n")
-    # logger.critical(f"[autohack] Unhandled exception: {e.__str__()}")
-    traceback.print_exc()
-    sys.stdout.write("\x1b[?25h")
+    except KeyboardInterrupt:
+        write(highlightText("Process interrupted by user."))
+
+    except Exception as e:
+        write(highlightText(f"Unhandled exception."), 1)
+
+        errorFilePath = (
+            pathlib.Path(os.getcwd()) / f"autohack-error.{time.time():.0f}.log"
+        )
+        errorFile = open(errorFilePath, "w+")
+        traceback.print_exc(file=errorFile)
+        errorFile.close()
+
+        write(highlightText(f"Error details saved to {errorFilePath}."), 2)
+        # logger.critical(f"[autohack] Unhandled exception.")
+
+        traceback.print_exc()
+
+    exitProgram(0)
