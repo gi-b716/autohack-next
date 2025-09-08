@@ -102,10 +102,15 @@ def prevLine() -> None:
     write("\x1b[1A")
 
 
+def outputEndl(count: int = 1) -> None:
+    sys.stdout.write("\n" * count)
+
+
 def write(message: str, endl: int = 0, clear: bool = False) -> None:
     if clear:
         clearLine()
-    sys.stdout.write(message + "\n" * endl)
+    sys.stdout.write(message)
+    outputEndl(endl)
     sys.stdout.flush()
 
 

@@ -200,7 +200,7 @@ def main() -> None:
         if dataCount % refreshSpeed == 0 or lastStatusError:
             lastStatusError = False
             currentTime = time.time()
-            write("", 1)
+            outputEndl()
             write(
                 f"Time taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" ({dataCount*100/maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else ""}",
                 clear=True,
