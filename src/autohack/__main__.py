@@ -256,7 +256,9 @@ def main() -> None:
             1,
         )
 
-    subprocess.run(config.getConfigEntry("command_at_end"), shell=True)
+    write("Executing post process command.", 1)
+    os.system(config.getConfigEntry("command_at_end"))
+    logger.info("[autohack] Finished.")
 
 
 if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":

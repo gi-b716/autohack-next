@@ -23,6 +23,9 @@ class Config:
                 open(self.configFilePath, "w", encoding="utf-8"),
                 indent=4,
             )
+            write(
+                f"Config file not found, creating a new one: {self.configFilePath}", 2
+            )
             self.logger.info("[config] Config file created.")
             write(f"Config file created at {self.configFilePath}.")
             exitProgram(0)
@@ -35,6 +38,10 @@ class Config:
             mergedConfig["_version"] = self.defaultConfig["_version"]
             json.dump(
                 mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4
+            )
+            write(
+                f"Config file {self.configFilePath} updated to version {self.defaultConfig['_version']}.",
+                2,
             )
             self.logger.info("[config] Config file updated.")
             config = mergedConfig
