@@ -104,12 +104,15 @@ def main() -> None:
     config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger)
 
     clientID = str(uuid.uuid4())
+    hackDataStorageFolderPath = getHackDataStorageFolderPath(
+        clientID, time.localtime(time.time())
+    )
 
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     logger.info(f"[autohack] Client ID: {clientID}")
     logger.info(f"[autohack] Initialized. Version: {VERSION}")
     write(f"autohack-next {VERSION} - Client ID: {clientID}", 2)
-    write(f"Hack data storaged to {getHackDataStorageFolderPath(clientID)}", 1)
+    write(f"Hack data storaged to {hackDataStorageFolderPath}", 1)
     write(f"Log file: {loggerObj.getLogFilePath()}", 2)
 
     for i in range(WAIT_TIME_BEFORE_START):
@@ -234,14 +237,21 @@ def main() -> None:
             lastStatusError = True
             errorDataCount += 1
             writeData(
-                getHackDataFilePath(clientID, errorDataCount, inputFilePath), dataInput
+                getHackDataFilePath(
+                    hackDataStorageFolderPath, errorDataCount, inputFilePath
+                ),
+                dataInput,
             )
             writeData(
-                getHackDataFilePath(clientID, errorDataCount, answerFilePath),
+                getHackDataFilePath(
+                    hackDataStorageFolderPath, errorDataCount, answerFilePath
+                ),
                 dataAnswer,
             )
             writeData(
-                getHackDataFilePath(clientID, errorDataCount, outputFilePath),
+                getHackDataFilePath(
+                    hackDataStorageFolderPath, errorDataCount, outputFilePath
+                ),
                 result.stdout,
             )
             write(f"[{errorDataCount}]: {termMessage}", 1, True)
