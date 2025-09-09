@@ -27,12 +27,8 @@ class CodeRunner:
     ) -> None:
         try:
             psutilProcess = psutil.Process(pid)
-        except psutil.NoSuchProcess:
-            # 跑的太他妈快了，没测到
-            return
-        startTime = psutilProcess.create_time()
-        while True:
-            try:
+            startTime = psutilProcess.create_time()
+            while True:
                 # psutilProcess.cpu_times();
                 if timeLimit is not None and time.time() - startTime > timeLimit:
                     self.timeOut = True
@@ -46,8 +42,8 @@ class CodeRunner:
                     self.memoryOut = True
                     psutilProcess.kill()
                     return
-            except psutil.NoSuchProcess:
-                return
+        except psutil.NoSuchProcess:
+            return
 
     def run(
         self,

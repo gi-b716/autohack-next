@@ -222,7 +222,7 @@ def main() -> None:
             )
 
         checkerResult = basicChecker(result.stdout, dataAnswer)
-        if not checkerResult[0]:
+        if not saveData and not checkerResult[0]:
             saveData = True
             termMessage = f"Wrong answer for data {dataCount}."
             logMessage = (
