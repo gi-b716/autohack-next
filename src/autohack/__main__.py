@@ -33,11 +33,11 @@ def main() -> None:
 
     if args.version:
         write(f"{VERSION}")
-        exitProgram(0)
+        exitProgram(0, True)
 
     if args.version_id:
         write(f"{VERSION_ID}")
-        exitProgram(0)
+        exitProgram(0, True)
 
     hideCursor()
 

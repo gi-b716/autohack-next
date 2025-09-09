@@ -57,6 +57,7 @@ def highlightText(message: str) -> str:
     return f"\x1b[1;31m{message}\x1b[0m"
 
 
-def exitProgram(exitCode: int = 0) -> None:
-    showCursor()
+def exitProgram(exitCode: int = 0, pure: bool = False) -> None:
+    if not pure:
+        showCursor()
     sys.exit(exitCode)
