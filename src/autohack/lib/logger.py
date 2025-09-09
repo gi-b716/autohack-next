@@ -4,7 +4,10 @@ import logging, pathlib, time, os
 
 class Logger:
     def __init__(
-        self, logFolder: pathlib.Path, logLevel: int = logging.WARNING
+        self,
+        logFolder: pathlib.Path,
+        logLevel: int = logging.WARNING,
+        logTime: time.struct_time = time.localtime(),
     ) -> None:
         self.logFolder = logFolder
         self.logLevel = logLevel
@@ -14,10 +17,7 @@ class Logger:
         self.logger = logging.getLogger("autohack")
         self.logger.setLevel(logLevel)
 
-        self.logFilePath = (
-            self.logFolder
-            / f"autohack-{time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))}.log"
-        )
+        self.logFilePath = self.logFolder / f"autohack-{formatTime(logTime)}.log"
 
         logFile = logging.FileHandler(self.logFilePath, encoding="utf-8")
         logFile.setLevel(logLevel)

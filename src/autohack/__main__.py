@@ -2,72 +2,19 @@ from autohack.core.constant import *
 from autohack.core.exception import *
 from autohack.core.path import *
 from autohack.core.util import *
+from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
 from autohack.checker import *
-import subprocess, traceback, argparse, logging, pathlib, time, uuid, os
+import traceback, argparse, logging, time, uuid, os
 
-
-def compileCode(compileCommand: str, fileName: str) -> None:
-    try:
-        process = subprocess.Popen(
-            compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        )
-    except OSError:
-        return
-    output = process.communicate()[0]
-    if process.returncode != 0:
-        raise CompilationError(fileName, output, process.returncode)
-
-
-def generateInput(generateCommand: str, clientID: str) -> bytes:
-    try:
-        process = subprocess.Popen(
-            generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
-        )
-    except OSError:
-        return b""
-    dataInput = process.communicate()[0]
-    if process.returncode != 0:
-        raise InputGenerationError(clientID, process.returncode)
-    return dataInput
-
-
-def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> bytes:
-    try:
-        process = subprocess.Popen(
-            generateCommand,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-    except OSError:
-        return b""
-    dataAnswer = process.communicate(dataInput)[0]
-    if process.returncode != 0:
-        raise AnswerGenerationError(clientID, process.returncode)
-    return dataAnswer
-
-
-def runSourceCode(
-    runCommand: str, dataInput: bytes, timeLimit: float | None, memoryLimit: int | None
-) -> CodeRunner.Result:
-    try:
-        result = CodeRunner().run(
-            runCommand,
-            inputContent=dataInput,
-            timeLimit=timeLimit,
-            memoryLimit=memoryLimit,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-    except OSError:
-        return CodeRunner.Result(False, False, 0, b"", b"")
-    return result
+CLIENT_ID = str(uuid.uuid4())
+LOG_TIME = time.localtime()
 
 
 def main() -> None:
+    global CLIENT_ID, LOG_TIME
+
     argsParser = argparse.ArgumentParser(
         prog="autohack", description="autohack-next - Automated hack data generator"
     )
@@ -80,6 +27,7 @@ def main() -> None:
         action="store_true",
         help="Enable debug mode with DEBUG logging level",
     )
+    # TODO: 添加一个参数用于清除过往数据
 
     args = argsParser.parse_args()
 
@@ -98,22 +46,22 @@ def main() -> None:
 
     ensureDirExists(LOG_FOLDER_PATH)
 
-    loggerObj = Logger(LOG_FOLDER_PATH, logging.DEBUG if args.debug else logging.INFO)
+    loggerObj = Logger(
+        LOG_FOLDER_PATH, logging.DEBUG if args.debug else logging.INFO, LOG_TIME
+    )
     logger = loggerObj.getLogger()
 
     config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger)
 
-    clientID = str(uuid.uuid4())
-    hackDataStorageFolderPath = getHackDataStorageFolderPath(
-        clientID, time.localtime(time.time())
-    )
-
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
-    logger.info(f"[autohack] Client ID: {clientID}")
+    logger.info(f"[autohack] Client ID: {CLIENT_ID}")
     logger.info(f"[autohack] Initialized. Version: {VERSION}")
-    write(f"autohack-next {VERSION} - Client ID: {clientID}", 2)
-    write(f"Hack data storaged to {hackDataStorageFolderPath}", 1)
-    write(f"Log file: {loggerObj.getLogFilePath()}", 2)
+    write(f"autohack-next {VERSION} - Client ID: {CLIENT_ID}", 2)
+    write(
+        f"Hack data storaged to {getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME)}", 1
+    )
+    write(f"Log file: {loggerObj.getLogFilePath()}", 1)
+    write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 2)
 
     for i in range(WAIT_TIME_BEFORE_START):
         write(f"Starting in {WAIT_TIME_BEFORE_START-i} seconds...", clear=True)
@@ -166,13 +114,17 @@ def main() -> None:
         try:
             write(f"{dataCount}: Generate input.", clear=True)
             logger.debug(f"[autohack] Generating data {dataCount}.")
-            dataInput = generateInput(generateCommand, clientID)
+            dataInput = generateInput(generateCommand, CLIENT_ID)
         except InputGenerationError as e:
             logger.error(
                 f"[autohack] Input generation failed with return code {e.returnCode}."
             )
-            # TODO: Show input file path
-            write(f"{e}", clear=True)
+            write(highlightText(e.__str__()), 1, True)
+            inputExportPath = getExportDataPath(
+                getExportFolderPath(LOG_TIME, CLIENT_ID), "input"
+            )
+            writeData(inputExportPath, dataInput)
+            write(highlightText(f"Input data saved to {inputExportPath}"), clear=True)
             exitProgram(1)
 
         try:
@@ -181,14 +133,23 @@ def main() -> None:
             dataAnswer = generateAnswer(
                 stdCommand,
                 dataInput,
-                clientID,
+                CLIENT_ID,
             )
         except AnswerGenerationError as e:
             logger.error(
                 f"[autohack] Answer generation failed with return code {e.returnCode}."
             )
-            # TODO: Show input and answer file path
-            write(f"{e}", clear=True)
+            write(highlightText(e.__str__()), 1, True)
+            inputExportPath = getExportDataPath(
+                getExportFolderPath(LOG_TIME, CLIENT_ID), "input"
+            )
+            writeData(inputExportPath, dataInput)
+            write(highlightText(f"Input data saved to {inputExportPath}"), 1, True)
+            answerExportPath = getExportDataPath(
+                getExportFolderPath(LOG_TIME, CLIENT_ID), "answer"
+            )
+            writeData(answerExportPath, dataAnswer)
+            write(highlightText(f"Answer data saved to {answerExportPath}"), clear=True)
             exitProgram(1)
 
         write(f"{dataCount}: Run source code.", clear=True)
@@ -238,19 +199,25 @@ def main() -> None:
             errorDataCount += 1
             writeData(
                 getHackDataFilePath(
-                    hackDataStorageFolderPath, errorDataCount, inputFilePath
+                    getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME),
+                    errorDataCount,
+                    inputFilePath,
                 ),
                 dataInput,
             )
             writeData(
                 getHackDataFilePath(
-                    hackDataStorageFolderPath, errorDataCount, answerFilePath
+                    getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME),
+                    errorDataCount,
+                    answerFilePath,
                 ),
                 dataAnswer,
             )
             writeData(
                 getHackDataFilePath(
-                    hackDataStorageFolderPath, errorDataCount, outputFilePath
+                    getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME),
+                    errorDataCount,
+                    outputFilePath,
                 ),
                 result.stdout,
             )
@@ -300,14 +267,13 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
     except Exception as e:
         write(highlightText(f"Unhandled exception."), 1)
 
-        errorFilePath = (
-            pathlib.Path(os.getcwd()) / f"autohack-error.{time.time():.0f}.log"
-        )
+        errorFilePath = getExportFolderPath(LOG_TIME, CLIENT_ID) / f"error.log"
+        ensureDirExists(errorFilePath.parent)
         errorFile = open(errorFilePath, "w+", encoding="utf-8")
         traceback.print_exc(file=errorFile)
         errorFile.close()
 
-        write(highlightText(f"Error details saved to {errorFilePath}."), 2)
+        write(highlightText(f"Error details saved to {errorFilePath}"), 2)
         # logger.critical(f"[autohack] Unhandled exception.")
 
         traceback.print_exc()

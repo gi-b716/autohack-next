@@ -1,7 +1,3 @@
-from autohack.core.util import *
-import os
-
-
 class CompilationError(Exception):
     def __init__(self, fileName: str, message: bytes, returnCode: int) -> None:
         self.fileName = fileName
@@ -9,12 +5,7 @@ class CompilationError(Exception):
         self.returnCode = returnCode
 
     def __str__(self) -> str:
-        return (
-            highlightText(
-                f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}."
-            )
-            + f"\n\n{self.message.decode()}"
-        )
+        return f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}.\n\n{self.message.decode()}"
 
 
 class InputGenerationError(Exception):
@@ -23,9 +14,7 @@ class InputGenerationError(Exception):
         self.returnCode = returnCode
 
     def __str__(self) -> str:
-        return highlightText(
-            f"Input generation failed with return code {self.returnCode}."
-        )
+        return f"Input generation failed with return code {self.returnCode}."
 
 
 class AnswerGenerationError(Exception):
@@ -34,6 +23,4 @@ class AnswerGenerationError(Exception):
         self.returnCode = returnCode
 
     def __str__(self) -> str:
-        return highlightText(
-            f"Answer generation failed with return code {self.returnCode}."
-        )
+        return f"Answer generation failed with return code {self.returnCode}."
