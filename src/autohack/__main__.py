@@ -6,7 +6,7 @@ from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
 from autohack.checker import *
-import traceback, argparse, logging, time, uuid, os
+import subprocess, traceback, argparse, logging, time, uuid, os
 
 CLIENT_ID = str(uuid.uuid4())
 LOG_TIME = time.localtime()
@@ -255,6 +255,8 @@ def main() -> None:
             f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}",
             1,
         )
+
+    subprocess.run(config.getConfigEntry("command_at_end"), shell=True)
 
 
 if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
