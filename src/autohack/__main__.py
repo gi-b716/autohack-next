@@ -1,3 +1,4 @@
+from autohack.core.checker import *
 from autohack.core.constant import *
 from autohack.core.exception import *
 from autohack.core.path import *
@@ -5,7 +6,6 @@ from autohack.core.util import *
 from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
-from autohack.checker import *
 import traceback, argparse, colorama, logging, time, uuid, os
 
 CLIENT_ID = str(uuid.uuid4())
@@ -44,6 +44,7 @@ def main() -> None:
     if args.debug:
         write("Debug mode enabled. Logging level set to DEBUG.", 2)
 
+    ensureDirExists(CHECKER_FOLDER_PATH)
     ensureDirExists(LOG_FOLDER_PATH)
 
     loggerObj = Logger(
@@ -62,6 +63,17 @@ def main() -> None:
     )
     write(f"Log file: {loggerObj.getLogFilePath()}", 1)
     write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 2)
+
+    currentChecker = None
+
+    try:
+        currentChecker = getChecker(
+            CHECKER_FOLDER_PATH, config.getConfigEntry("checker.name")
+        )
+    except Exception as e:
+        logger.critical(f"[autohack] {e}")
+        write(highlightText(e.__str__()))
+        exitProgram(1)
 
     for i in range(WAIT_TIME_BEFORE_START):
         write(f"Starting in {WAIT_TIME_BEFORE_START-i} seconds...", clear=True)
@@ -100,6 +112,7 @@ def main() -> None:
     maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
     errorDataLimit = config.getConfigEntry("error_data_number_limit")
     refreshSpeed = config.getConfigEntry("refresh_speed")
+    checkerArgs = config.getConfigEntry("checker.args")
 
     startTime = time.time()
 
@@ -185,7 +198,7 @@ def main() -> None:
                 f"Runtime error for data {dataCount} with return code {result.returnCode}."
             )
 
-        checkerResult = basicChecker(result.stdout, dataAnswer)
+        checkerResult = currentChecker(result.stdout, dataAnswer, checkerArgs)
         if not saveData and not checkerResult[0]:
             saveData = True
             termMessage = f"Wrong answer for data {dataCount}."

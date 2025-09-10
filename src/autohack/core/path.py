@@ -7,6 +7,8 @@ DATA_FOLDER_PATH = pathlib.Path(os.getcwd()) / ".autohack"
 
 HACK_DATA_STORAGE_FOLDER_PATH = DATA_FOLDER_PATH / "datastorage"
 
+CHECKER_FOLDER_PATH = DATA_FOLDER_PATH / "checkers"
+
 EXPORT_FOLDER_PATH = DATA_FOLDER_PATH / "export"
 
 LOG_FOLDER_PATH = DATA_FOLDER_PATH / "logs"
