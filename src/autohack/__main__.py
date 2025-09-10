@@ -203,7 +203,16 @@ def main() -> None:
                 f"Runtime error for data {dataCount} with return code {result.returnCode}."
             )
 
-        checkerResult = currentChecker(result.stdout, dataAnswer, checkerArgs)
+        checkerResult = (False, "Checker not executed.")
+        try:
+            checkerResult = currentChecker(result.stdout, dataAnswer, checkerArgs)
+        except Exception as e:
+            saveData = True
+            termMessage = f"Checker error for data {dataCount}."
+            logMessage = f"Checker error for data {dataCount}. Exception: {e}"
+            extMessage = f"Traceback:\n{traceback.format_exc()}"
+            checkerResult = (False, "Checker exception occurred.")
+
         if not saveData and not checkerResult[0]:
             saveData = True
             termMessage = f"Wrong answer for data {dataCount}."
