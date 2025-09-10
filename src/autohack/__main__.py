@@ -6,7 +6,7 @@ from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
 from autohack.checker import *
-import subprocess, traceback, argparse, logging, time, uuid, os
+import traceback, argparse, colorama, logging, time, uuid, os
 
 CLIENT_ID = str(uuid.uuid4())
 LOG_TIME = time.localtime()
@@ -262,6 +262,8 @@ def main() -> None:
 
 
 if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
+    colorama.just_fix_windows_console()
+
     try:
         main()
 

@@ -21,6 +21,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
+    "colorama>=0.4.6",
     "platformdirs>=4.3.8",
     "psutil>=7.0.0",
 ]
