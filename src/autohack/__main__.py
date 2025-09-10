@@ -6,6 +6,7 @@ from autohack.core.util import *
 from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
+from typing import Callable
 import traceback, argparse, colorama, logging, time, uuid, os
 
 CLIENT_ID = str(uuid.uuid4())
@@ -64,7 +65,10 @@ def main() -> None:
     write(f"Log file: {loggerObj.getLogFilePath()}", 1)
     write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 2)
 
-    currentChecker = None
+    # 将 currentChecker 设为 lambda 函数，防止未定义时报错
+    currentChecker: Callable[[bytes, bytes, list], tuple[bool, str]] = (
+        lambda o, a, ar: (True, "No checker defined.")
+    )
 
     try:
         currentChecker = getChecker(
