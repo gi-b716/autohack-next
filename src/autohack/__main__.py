@@ -80,7 +80,7 @@ def main() -> None:
             logger.error(
                 f"[autohack] {file[1].capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.message.decode()}"
             )
-            write(f"{e}", clear=True)
+            write(highlightText(e.__str__()), clear=True)
             exitProgram(1)
         else:
             logger.debug(f"[autohack] {file[1].capitalize()} compiled successfully.")
@@ -283,5 +283,6 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
         # logger.critical(f"[autohack] Unhandled exception.")
 
         traceback.print_exc()
+        exitProgram(1)
 
     exitProgram(0)
