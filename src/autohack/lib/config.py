@@ -23,9 +23,6 @@ class Config:
                 open(self.configFilePath, "w", encoding="utf-8"),
                 indent=4,
             )
-            write(
-                f"Config file not found, creating a new one: {self.configFilePath}", 2
-            )
             self.logger.info("[config] Config file created.")
             write(f"Config file created at {self.configFilePath}.")
             exitProgram(0)
