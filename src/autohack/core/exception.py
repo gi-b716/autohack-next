@@ -4,8 +4,11 @@ class CompilationError(Exception):
         self.message = message
         self.returnCode = returnCode
 
+    def getMessage(self) -> str:
+        return self.message.decode()
+
     def __str__(self) -> str:
-        return f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}.\n\n{self.message.decode()}"
+        return f"{self.fileName.capitalize()} compilation failed with return code {self.returnCode}."
 
 
 class InputGenerationError(Exception):

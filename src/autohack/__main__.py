@@ -96,7 +96,8 @@ def main() -> None:
             logger.error(
                 f"[autohack] {file[1].capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.message.decode()}"
             )
-            write(highlightText(e.__str__()), clear=True)
+            write(highlightText(e.__str__()), 2, True)
+            write(e.getMessage())
             exitProgram(1)
         else:
             logger.debug(f"[autohack] {file[1].capitalize()} compiled successfully.")
