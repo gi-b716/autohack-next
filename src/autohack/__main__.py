@@ -65,14 +65,15 @@ def main() -> None:
     write(f"Log file: {loggerObj.getLogFilePath()}", 1)
     write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 2)
 
-    # 将 currentChecker 设为 lambda 函数，防止未定义时报错
-    currentChecker: Callable[[bytes, bytes, list], tuple[bool, str]] = (
-        lambda o, a, ar: (True, "No checker defined.")
+    currentChecker: Callable[[bytes, bytes, dict], tuple[bool, str]] = (
+        lambda o, a, ar: (False, "No checker activated.")
     )
 
     try:
         currentChecker = getChecker(
-            CHECKER_FOLDER_PATH, config.getConfigEntry("checker.name")
+            CHECKER_FOLDER_PATH,
+            config.getConfigEntry("checker.name"),
+            config.getConfigEntry("checker.args"),
         )
     except Exception as e:
         logger.critical(f"[autohack] {e}")

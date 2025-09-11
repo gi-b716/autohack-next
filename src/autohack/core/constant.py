@@ -10,7 +10,7 @@ WAIT_TIME_BEFORE_START = 3
 DATA_FOLDER_MAX_SIZE = 256 * 1024 * 1024  # 256 MiB
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "_version": 10,
+    "_version": 11,
     "refresh_speed": 10,
     "maximum_number_of_data": 0,
     # ms
@@ -61,7 +61,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
     "checker": {
         "name": "builtin_basic",
-        "args": [],
+        "args": {},
     },
     "command_at_end": "",
 }
