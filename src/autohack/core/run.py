@@ -71,7 +71,7 @@ class CodeRunner:
         return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr)  # type: ignore
 
 
-def compileCode(compileCommand: str, fileName: str) -> None:
+def compileCode(compileCommand: list, fileName: str) -> None:
     try:
         process = subprocess.Popen(
             compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
@@ -83,7 +83,7 @@ def compileCode(compileCommand: str, fileName: str) -> None:
         raise CompilationError(fileName, output, process.returncode)
 
 
-def generateInput(generateCommand: str, clientID: str) -> bytes:
+def generateInput(generateCommand: list, clientID: str) -> bytes:
     try:
         process = subprocess.Popen(
             generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
@@ -96,7 +96,7 @@ def generateInput(generateCommand: str, clientID: str) -> bytes:
     return dataInput
 
 
-def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> bytes:
+def generateAnswer(generateCommand: list, dataInput: bytes, clientID: str) -> bytes:
     try:
         process = subprocess.Popen(
             generateCommand,
@@ -113,7 +113,7 @@ def generateAnswer(generateCommand: str, dataInput: bytes, clientID: str) -> byt
 
 
 def runSourceCode(
-    runCommand: str, dataInput: bytes, timeLimit: float | None, memoryLimit: int | None
+    runCommand: list, dataInput: bytes, timeLimit: float | None, memoryLimit: int | None
 ) -> CodeRunner.Result:
     try:
         result = CodeRunner().run(

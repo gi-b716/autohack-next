@@ -65,8 +65,8 @@ def main() -> None:
     write(f"Log file: {loggerObj.getLogFilePath()}", 1)
     write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 2)
 
-    currentChecker: Callable[[bytes, bytes, dict], tuple[bool, str]] = (
-        lambda o, a, ar: (False, "No checker activated.")
+    currentChecker: Callable[[bytes, bytes, bytes, dict], tuple[bool, str]] = (
+        lambda l, o, a, ar: (False, "No checker activated.")
     )
 
     try:
@@ -206,7 +206,9 @@ def main() -> None:
 
         checkerResult = (False, "Checker not executed.")
         try:
-            checkerResult = currentChecker(result.stdout, dataAnswer, checkerArgs)
+            checkerResult = currentChecker(
+                dataInput, result.stdout, dataAnswer, checkerArgs
+            )
         except Exception as e:
             saveData = True
             termMessage = f"Checker error for data {dataCount}."

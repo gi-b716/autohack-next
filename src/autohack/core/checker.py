@@ -1,16 +1,17 @@
-from tabnanny import check
 from autohack.core.constant import *
+from autohack.core.exception import *
 from autohack.core.path import *
+from autohack.core.run import *
 from autohack.core.util import *
 from typing import Any, Callable, TypeAlias
 import importlib.util, inspect, pathlib
 
-checkerType: TypeAlias = Callable[[bytes, bytes, dict], tuple[bool, str]]
+checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 
 
 def builtinBasicCheckerActivate(args: dict) -> checkerType:
     def builtinBasicChecker(
-        output: bytes, answer: bytes, args: dict
+        input: bytes, output: bytes, answer: bytes, args: dict
     ) -> tuple[bool, str]:
         outputStr = output.decode().rstrip("\n")
         answerStr = answer.decode().rstrip("\n")
@@ -28,22 +29,70 @@ def builtinBasicCheckerActivate(args: dict) -> checkerType:
 
 def builtinAlwaysACCheckerActivate(args: dict) -> checkerType:
     def builtinAlwaysACChecker(
-        output: bytes, answer: bytes, args: dict
+        input: bytes, output: bytes, answer: bytes, args: dict
     ) -> tuple[bool, str]:
         return (True, "Always AC checker.")
 
     return builtinAlwaysACChecker
 
 
+"""
+代码	        返回值	含义
+_ok	            0	    正确
+_wa	            1	    错误
+_pe	            2	    格式错误
+_fail	        3	    运行失败，程序出错
+_dirt	        4	    输出文件含有多余信息
+_points	        5	    部分分数
+_unexpected_eof	8	    文件读完时仍然尝试读入
+_partially	    16+分数	部分正确
+
+from https://www.luogu.com/article/t5rrziq7
+"""
+
+
 def builtinTestlibCheckerActivate(args: dict) -> checkerType:
+    ensureDirExists(DATA_FOLDER_PATH / "testlibCheckerCache")
+    compileCommand = [
+        args.get("compiler", "g++"),
+        args.get("checker", "checker.cpp"),
+        "-o",
+        "./autohack/testlibCheckerCache/checker",
+    ]
+    compileCommand += args.get("compile_args", [])
+    try:
+        compileCode(compileCommand, "checker")
+    except:
+        raise
+
     def builtinTestlibChecker(
-        output: bytes, answer: bytes, args: dict
+        input: bytes, output: bytes, answer: bytes, args: dict
     ) -> tuple[bool, str]:
-        testlibPath = CHECKER_FOLDER_PATH / ".cache" / "testlib.h"
-        ensureDirExists(testlibPath.parent)
-        if not testlibPath.exists():
-            return (False, "testlib.h not found in .cache folder.")
-        return (True, "Testlib checker placeholder.")
+        inputPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "input"
+        outputPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "output"
+        answerPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "answer"
+        resultPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "result"
+        writeData(inputPath, input)
+        writeData(outputPath, output)
+        writeData(answerPath, answer)
+        command = [
+            "./autohack/testlibCheckerCache/checker",
+            inputPath.as_posix(),
+            outputPath.as_posix(),
+            answerPath.as_posix(),
+            resultPath.as_posix(),
+        ]
+        result = CodeRunner().run(command)
+        if not resultPath.exists():
+            raise FileNotFoundError("Testlib checker did not produce a result file.")
+        resultContent = readData(resultPath).decode().strip()
+        if result.returnCode == 0:
+            return (True, resultContent)
+        elif result.returnCode == 3:
+            raise RuntimeError(
+                f"Testlib checker runtime error. Checker output:{resultContent}"
+            )
+        return (False, resultContent)
 
     return builtinTestlibChecker
 
@@ -93,7 +142,7 @@ def getChecker(
     params = sig.parameters
     param_types = [param.annotation for param in params.values()]
 
-    if param_types != [bytes, bytes, dict]:
+    if param_types != [bytes, bytes, bytes, dict]:
         raise TypeError(
             f"Checker '{checkerName}' function parameters must be of types (bytes, bytes, dict)."
         )

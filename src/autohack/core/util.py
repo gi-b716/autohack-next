@@ -24,6 +24,10 @@ def writeData(filePath: pathlib.Path, data: bytes) -> None:
     open(filePath, "wb").write(data)
 
 
+def readData(filePath: pathlib.Path) -> bytes:
+    return open(filePath, "rb").read()
+
+
 def clearLine() -> None:
     write("\x1b[2K\r")
 
