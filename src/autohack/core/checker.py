@@ -90,7 +90,7 @@ def builtinTestlibCheckerActivate(args: dict) -> checkerType:
             return (True, resultContent)
         elif result.returnCode == 3:
             raise RuntimeError(
-                f"Testlib checker runtime error. Checker output:{resultContent}"
+                f"Testlib checker runtime error. Checker output: {resultContent}"
             )
         return (False, resultContent)
 
