@@ -7,6 +7,7 @@ from typing import Any, Callable, TypeAlias
 import importlib.util, subprocess, inspect, pathlib
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
+activateType: TypeAlias = Callable[[dict], checkerType]
 
 
 def builtinBasicCheckerActivate(args: dict) -> checkerType:
