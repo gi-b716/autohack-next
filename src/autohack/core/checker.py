@@ -4,7 +4,7 @@ from autohack.core.path import *
 from autohack.core.run import *
 from autohack.core.util import *
 from typing import Any, Callable, TypeAlias
-import importlib.util, inspect, pathlib
+import importlib.util, subprocess, inspect, pathlib
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 
@@ -53,16 +53,18 @@ from https://www.luogu.com/article/t5rrziq7
 
 def builtinTestlibCheckerActivate(args: dict) -> checkerType:
     ensureDirExists(DATA_FOLDER_PATH / "testlibCheckerCache")
+    checkerPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "checker"
     compileCommand = [
         args.get("compiler", "g++"),
         args.get("checker", "checker.cpp"),
         "-o",
-        "./autohack/testlibCheckerCache/checker",
+        checkerPath.as_posix(),
     ]
     compileCommand += args.get("compile_args", [])
     try:
         compileCode(compileCommand, "checker")
-    except:
+    except CompilationError as e:
+        print(e.getMessage())
         raise
 
     def builtinTestlibChecker(
@@ -72,27 +74,30 @@ def builtinTestlibCheckerActivate(args: dict) -> checkerType:
         outputPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "output"
         answerPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "answer"
         resultPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "result"
+        checkerPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "checker"
         writeData(inputPath, input)
         writeData(outputPath, output)
         writeData(answerPath, answer)
         command = [
-            "./autohack/testlibCheckerCache/checker",
+            checkerPath.as_posix(),
             inputPath.as_posix(),
             outputPath.as_posix(),
             answerPath.as_posix(),
             resultPath.as_posix(),
         ]
-        result = CodeRunner().run(command)
+        result = subprocess.run(
+            command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        ).returncode
         if not resultPath.exists():
             raise FileNotFoundError("Testlib checker did not produce a result file.")
         resultContent = readData(resultPath).decode().strip()
-        if result.returnCode == 0:
-            return (True, resultContent)
-        elif result.returnCode == 3:
+        if result == 0:
+            return (True, f"{resultContent} (Code {result})")
+        elif result == 3:
             raise RuntimeError(
                 f"Testlib checker runtime error. Checker output: {resultContent}"
             )
-        return (False, resultContent)
+        return (False, f"{resultContent} (Code {result})")
 
     return builtinTestlibChecker
 
