@@ -63,7 +63,10 @@ def main() -> None:
         f"Hack data storaged to {getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME)}", 1
     )
     write(f"Log file: {loggerObj.getLogFilePath()}", 1)
-    write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 2)
+    write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 1)
+    write(f"Custom checker folder: {CHECKER_FOLDER_PATH}", 2)
+
+    write("Activating checker...")
 
     currentChecker: Callable[[bytes, bytes, bytes, dict], tuple[bool, str]] = (
         lambda l, o, a, ar: (False, "No checker activated.")
@@ -77,8 +80,11 @@ def main() -> None:
         )
     except Exception as e:
         logger.critical(f"[autohack] {e}")
+        write("Checker activation failed.", 1, True)
         write(highlightText(e.__str__()))
         exitProgram(1)
+
+    write("Checker activated.", 2, True)
 
     for i in range(WAIT_TIME_BEFORE_START):
         write(f"Starting in {WAIT_TIME_BEFORE_START-i} seconds...", clear=True)
@@ -190,7 +196,13 @@ def main() -> None:
             )
             prevLine()
 
-        saveData, termMessage, logMessage, extMessage = False, "", "", None
+        saveData, termMessage, logMessage, extMessage, exitAfterSave = (
+            False,
+            "",
+            "",
+            None,
+            False,
+        )
 
         if result.memoryOut:
             saveData = True
@@ -215,6 +227,7 @@ def main() -> None:
             logMessage = f"Checker error for data {dataCount}. Exception: {e}"
             extMessage = f"Traceback:\n{traceback.format_exc()}"
             checkerResult = (False, "Checker exception occurred.")
+            exitAfterSave = True
 
         if not saveData and not checkerResult[0]:
             saveData = True
@@ -255,6 +268,10 @@ def main() -> None:
             if extMessage is not None:
                 write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", 1, True)
             logger.info(f"[autohack] {logMessage}")
+
+        if exitAfterSave:
+            write("Exiting due to checker exception.", clear=True)
+            exitProgram(0)
 
     endTime = time.time()
 
