@@ -313,6 +313,7 @@ jobs:
           cp README.md release-package/
           cp changelog.md release-package/CHANGELOG.md
           cp autohack release-package/
+          cp -r docs release-package/
           cd release-package
           zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip .
 
@@ -324,6 +325,7 @@ jobs:
           cp README.md release-package/
           cp changelog.md release-package/CHANGELOG.md
           cp autohack.exe release-package/autohack.exe
+          cp -r docs release-package/
           cd release-package
           Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip
 
@@ -334,6 +336,7 @@ jobs:
           cp README.md release-package/
           cp changelog.md release-package/CHANGELOG.md
           cp autohack release-package/
+          cp -r docs release-package/
           cd release-package
           zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.pre-jobs.outputs.tag }}-${{ needs.pre-jobs.outputs.hash }}.zip .
 
