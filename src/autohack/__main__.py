@@ -126,6 +126,12 @@ def main() -> None:
     refreshSpeed = config.getConfigEntry("refresh_speed")
     checkerArgs = config.getConfigEntry("checker.args")
 
+    outputEndl()
+    write(
+        "Time taken: 0.00 seconds, average 0.00 data per second, 0.00 second per data."
+    )
+    prevLine()
+
     startTime = time.time()
 
     while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
