@@ -3,7 +3,7 @@ from autohack.core.exception import *
 from autohack.core.path import *
 from autohack.core.run import *
 from autohack.core.util import *
-from typing import Any, Callable, TypeAlias
+from typing import Any, Callable, TypeAlias, cast
 import importlib.util, subprocess, inspect, pathlib
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
@@ -119,13 +119,12 @@ Checker 中的 activate 函数签名为 (dict) -> Callable[[bytes, bytes, dict],
 def getChecker(
     checkerFolder: pathlib.Path, checkerName: str, args: dict[str, Any]
 ) -> checkerType:
-    # 如果 checkerName 在 BUILTIN 中，直接返回对应的函数
-    for name, func in BUILTIN:
-        if name == checkerName:
-            return func(args)
-
     checkerPath = checkerFolder / f"{checkerName}.py"
     if not checkerPath.exists():
+        # 如果 checkerName 在 BUILTIN 中，直接返回对应的函数
+        for name, func in BUILTIN:
+            if name == checkerName:
+                return func(args)
         raise FileNotFoundError(f'Checker "{checkerPath}" not found.')
 
     spec = importlib.util.spec_from_file_location(checkerName, checkerPath)
@@ -139,10 +138,22 @@ def getChecker(
             f"Checker '{checkerName}' does not have a 'activate' function."
         )
 
+    sig = inspect.signature(module.activate)
+    params = sig.parameters
+    param_types = [param.annotation for param in params.values()]
+
+    if param_types != [dict]:
+        raise TypeError(
+            f"Checker's 'activate' function parameters must be of types (dict)."
+        )
+
     try:
         checker = module.activate(args)
     except Exception as e:
         raise RuntimeError(f"Error while activating checker '{checkerName}': {e}")
+
+    if not callable(checker):
+        raise TypeError(f"Checker '{checkerName}' activate did not return a callable.")
 
     sig = inspect.signature(checker)
     params = sig.parameters
@@ -150,7 +161,7 @@ def getChecker(
 
     if param_types != [bytes, bytes, bytes, dict]:
         raise TypeError(
-            f"Checker '{checkerName}' function parameters must be of types (bytes, bytes, dict)."
+            f"Checker '{checkerName}' function parameters must be of types (bytes, bytes, bytes, dict)."
         )
 
     if sig.return_annotation != tuple[bool, str]:
@@ -158,4 +169,4 @@ def getChecker(
             f"Checker '{checkerName}' function must return tuple[bool, str]."
         )
 
-    return checker
+    return cast(checkerType, checker)
