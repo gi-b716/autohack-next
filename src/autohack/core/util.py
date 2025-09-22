@@ -1,4 +1,5 @@
-import pathlib, time, sys, os
+from typing import Callable
+import inspect, pathlib, time, sys, os
 
 
 def ensureDirExists(dirPath: pathlib.Path) -> None:
@@ -65,3 +66,10 @@ def exitProgram(exitCode: int = 0, pure: bool = False) -> None:
     if not pure:
         showCursor()
     sys.exit(exitCode)
+
+
+def getFunctionInfo(func: Callable) -> tuple[list[type], type]:
+    sig = inspect.signature(func)
+    params = sig.parameters
+    paramTypes = [param.annotation for param in params.values()]
+    return (paramTypes, sig.return_annotation)

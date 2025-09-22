@@ -4,7 +4,7 @@ from autohack.core.path import *
 from autohack.core.run import *
 from autohack.core.util import *
 from typing import Any, Callable, TypeAlias, cast
-import importlib.util, subprocess, inspect, pathlib
+import importlib.util, subprocess, pathlib
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 activateType: TypeAlias = Callable[[dict], checkerType]
@@ -111,7 +111,7 @@ BUILTIN = [
 
 
 """
-Checker 中的 activate 函数签名为 (dict) -> Callable[[bytes, bytes, dict], tuple[bool, str]]
+Checker 中的 activate 函数签名为 (dict) -> Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 即接受 args 返回 checker 函数
 """
 
@@ -133,16 +133,12 @@ def getChecker(
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 
-    if not hasattr(module, "activate"):
+    if not hasattr(module, "activate") or not callable(module.activate):
         raise AttributeError(
             f"Checker '{checkerName}' does not have a 'activate' function."
         )
 
-    sig = inspect.signature(module.activate)
-    params = sig.parameters
-    param_types = [param.annotation for param in params.values()]
-
-    if param_types != [dict]:
+    if getFunctionInfo(module.activate)[0] != [dict]:
         raise TypeError(
             f"Checker's 'activate' function parameters must be of types (dict)."
         )
@@ -155,16 +151,12 @@ def getChecker(
     if not callable(checker):
         raise TypeError(f"Checker '{checkerName}' activate did not return a callable.")
 
-    sig = inspect.signature(checker)
-    params = sig.parameters
-    param_types = [param.annotation for param in params.values()]
-
-    if param_types != [bytes, bytes, bytes, dict]:
+    if getFunctionInfo(checker)[0] != [bytes, bytes, bytes, dict]:
         raise TypeError(
             f"Checker '{checkerName}' function parameters must be of types (bytes, bytes, bytes, dict)."
         )
 
-    if sig.return_annotation != tuple[bool, str]:
+    if getFunctionInfo(checker)[1] != tuple[bool, str]:
         raise TypeError(
             f"Checker '{checkerName}' function must return tuple[bool, str]."
         )
