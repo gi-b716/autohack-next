@@ -4,10 +4,12 @@ from autohack.core.path import *
 from autohack.core.run import *
 from autohack.core.util import *
 from typing import Any, Callable, TypeAlias, cast
-import importlib.util, subprocess, pathlib
+import importlib.util, subprocess, pathlib, shutil
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 activateType: TypeAlias = Callable[[dict], checkerType]
+deactivateType: TypeAlias = Callable[[dict], None]
+emptyDeactivate: deactivateType = lambda args: None
 
 
 def builtinBasicCheckerActivate(args: dict) -> checkerType:
@@ -103,10 +105,15 @@ def builtinTestlibCheckerActivate(args: dict) -> checkerType:
     return builtinTestlibChecker
 
 
+def builtinTestlibCheckerDeactivate(args: dict) -> None:
+    dataFolderPath = DATA_FOLDER_PATH / "testlibCheckerCache"
+    shutil.rmtree(dataFolderPath, ignore_errors=True)
+
+
 BUILTIN = [
-    ("builtin_basic", builtinBasicCheckerActivate),
-    ("builtin_always_ac", builtinAlwaysACCheckerActivate),
-    ("builtin_testlib", builtinTestlibCheckerActivate),
+    ("builtin_basic", builtinBasicCheckerActivate, emptyDeactivate),
+    ("builtin_always_ac", builtinAlwaysACCheckerActivate, emptyDeactivate),
+    ("builtin_testlib", builtinTestlibCheckerActivate, builtinTestlibCheckerDeactivate),
 ]
 
 
@@ -118,13 +125,13 @@ Checker 中的 activate 函数签名为 (dict) -> Callable[[bytes, bytes, bytes,
 
 def getChecker(
     checkerFolder: pathlib.Path, checkerName: str, args: dict[str, Any]
-) -> checkerType:
+) -> tuple[checkerType, deactivateType]:
     checkerPath = checkerFolder / f"{checkerName}.py"
     if not checkerPath.exists():
         # 如果 checkerName 在 BUILTIN 中，直接返回对应的函数
-        for name, func in BUILTIN:
+        for name, func, dFunc in BUILTIN:
             if name == checkerName:
-                return func(args)
+                return (func(args), dFunc)
         raise FileNotFoundError(f'Checker "{checkerPath}" not found.')
 
     spec = importlib.util.spec_from_file_location(checkerName, checkerPath)
@@ -161,4 +168,14 @@ def getChecker(
             f"Checker '{checkerName}' function must return tuple[bool, str]."
         )
 
-    return cast(checkerType, checker)
+    # deactivate
+    deactivateFunc: deactivateType = emptyDeactivate
+
+    if (
+        hasattr(module, "deactivate")
+        and callable(module.deactivate)
+        and getFunctionInfo(module.deactivate) == ([dict], None)
+    ):
+        deactivateFunc = cast(deactivateType, module.deactivate)
+
+    return (cast(checkerType, checker), deactivateFunc)

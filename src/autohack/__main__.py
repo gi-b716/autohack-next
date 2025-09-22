@@ -68,23 +68,24 @@ def main() -> None:
 
     write("Activating checker...")
 
-    currentChecker: Callable[[bytes, bytes, bytes, dict], tuple[bool, str]] = (
-        lambda l, o, a, ar: (False, "No checker activated.")
-    )
+    currentChecker: checkerType = lambda l, o, a, ar: (False, "No checker activated.")
+    deactivateFunc: deactivateType = emptyDeactivate
 
     try:
-        currentChecker = getChecker(
+        getCheckerResult = getChecker(
             CHECKER_FOLDER_PATH,
             config.getConfigEntry("checker.name"),
             config.getConfigEntry("checker.args"),
         )
+        currentChecker = getCheckerResult[0]
+        deactivateFunc = getCheckerResult[1]
     except Exception as e:
         logger.critical(f"[autohack] {e}")
         write("Checker activation failed.", 1, True)
         write(highlightText(e.__str__()))
         exitProgram(1)
 
-    write("Checker activated.", 2, True)
+    write("Checker activated.", 1, True)
 
     for i in range(WAIT_TIME_BEFORE_START):
         write(f"Starting in {WAIT_TIME_BEFORE_START-i} seconds...", clear=True)
@@ -288,7 +289,7 @@ def main() -> None:
     )
     write(
         f"Time taken: {endTime - startTime:.2f} seconds, average {dataCount/(endTime - startTime):.2f} data per second, {(endTime - startTime)/dataCount:.2f} second per data.",
-        1,
+        2,
         True,
     )
 
@@ -306,8 +307,12 @@ def main() -> None:
         )
         write(
             f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}",
-            1,
+            2,
         )
+
+    write("Deactivating checker...")
+    deactivateFunc(config.getConfigEntry("checker.args"))
+    write("Checker deactivated.", 1, True)
 
     write("Executing post process command.", 1)
     os.system(config.getConfigEntry("command_at_end"))

@@ -1,5 +1,5 @@
 # autohack-next Todo List
 
 - [ ] i18n
-- [ ] Checker deactivate function
+- [x] Checker deactivate function
 - [ ] Colorful compiler output
