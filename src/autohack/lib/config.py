@@ -9,23 +9,25 @@ class Config:
         configFilePath: pathlib.Path,
         defaultConfig: dict[str, Any],
         logger: logging.Logger,
+        messageOnCreate: bool = False,
     ) -> None:
         self.defaultConfig = defaultConfig
         self.configFilePath = configFilePath
         self.logger = logger
         self.logger.info(f'[config] Config file path: "{self.configFilePath}"')
-        self.config = self.loadConfig()
+        self.config = self.loadConfig(messageOnCreate)
 
-    def loadConfig(self) -> dict[str, Any]:
+    def loadConfig(self, messageOnCreate: bool = False) -> dict[str, Any]:
         if not os.path.exists(self.configFilePath):
             json.dump(
                 self.defaultConfig,
                 open(self.configFilePath, "w", encoding="utf-8"),
                 indent=4,
             )
-            self.logger.info("[config] Config file created.")
-            write(f"Config file created at {self.configFilePath}.")
-            exitProgram(0)
+            if messageOnCreate:
+                self.logger.info("[config] Config file created.")
+                write(f"Config file created at {self.configFilePath}.")
+                exitProgram(0)
 
         with open(self.configFilePath, "r", encoding="utf-8") as configFile:
             config = json.load(configFile)

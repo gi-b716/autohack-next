@@ -70,3 +70,9 @@ DEFAULT_GLOBAL_CONFIG = {
     "_version": 1,
     "language": "en_US",
 }
+
+
+LANGUAGE_MAPS = [
+    ("en_US", "English (US)"),
+    ("zh_CN", "简体中文"),
+]

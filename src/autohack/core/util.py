@@ -1,3 +1,4 @@
+from autohack.lib.i18n import *
 from typing import Callable
 import inspect, pathlib, time, sys, os
 
@@ -41,12 +42,27 @@ def outputEndl(count: int = 1) -> None:
     sys.stdout.write("\n" * count)
 
 
+def inputMessage(prompt: str = "", endl: int = 0, clear: bool = False) -> str:
+    showCursor()
+    write(prompt, endl, clear)
+    try:
+        return input()
+    finally:
+        hideCursor()
+
+
 def write(message: str, endl: int = 0, clear: bool = False) -> None:
     if clear:
         clearLine()
     sys.stdout.write(message)
     outputEndl(endl)
     sys.stdout.flush()
+
+
+def writeMessage(
+    I18n: I18N, message: str, *args, endl: int = 0, clear: bool = False
+) -> None:
+    write(I18n.translate(message).format(args), endl, clear)
 
 
 def hideCursor() -> None:

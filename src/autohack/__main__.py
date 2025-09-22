@@ -6,7 +6,7 @@ from autohack.core.util import *
 from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
-from typing import Callable
+from autohack.lib.i18n import *
 import traceback, argparse, colorama, logging, time, uuid, os
 
 CLIENT_ID = str(uuid.uuid4())
@@ -42,8 +42,11 @@ def main() -> None:
 
     hideCursor()
 
-    if args.debug:
-        write("Debug mode enabled. Logging level set to DEBUG.", 2)
+    if GLOBAL_CONFIG_FILE_PATH.exists():
+        os.remove(GLOBAL_CONFIG_FILE_PATH)
+
+    # if args.debug:
+    #     write("Debug mode enabled. Logging level set to DEBUG.", 2)
 
     ensureDirExists(CHECKER_FOLDER_PATH)
     ensureDirExists(LOG_FOLDER_PATH)
@@ -53,7 +56,40 @@ def main() -> None:
     )
     logger = loggerObj.getLogger()
 
-    config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger)
+    if not GLOBAL_CONFIG_FILE_PATH.exists():
+        logger.info("[autohack] Global config file not found. Creating new one.")
+        write("Welcome to autohack-next!", 1)
+        write("A global config file will be created.", 1)
+        write("Please select your preferred language:", 1)
+        for i, (langID, langName) in enumerate(LANGUAGE_MAPS):
+            write(f"  {i+1}: {langID} / {langName}", 1)
+        showCursor()
+        while True:
+            result = inputMessage(
+                "Enter the number of your preferred language: ", 0, True
+            )
+            if result.isdigit() and 1 <= int(result) <= len(LANGUAGE_MAPS):
+                selectedLang = LANGUAGE_MAPS[int(result) - 1]
+                break
+            write("Invalid input. Please enter a valid number.")
+            prevLine()
+        globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
+        globalConfig.modifyConfigEntry("language", selectedLang[0])
+        I18n = I18N(
+            TRANSLATION_FOLDER_PATH, globalConfig.getConfigEntry("language"), logger
+        )
+        write(f"You selected: {selectedLang[1]}", 1)
+        write(
+            f"You can change this later in the global config file on {GLOBAL_CONFIG_FILE_PATH}",
+            2,
+        )
+
+    globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
+    I18n = I18N(
+        TRANSLATION_FOLDER_PATH, globalConfig.getConfigEntry("language"), logger
+    )
+
+    config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger, True)
 
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     logger.info(f"[autohack] Client ID: {CLIENT_ID}")
