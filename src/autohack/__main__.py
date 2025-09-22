@@ -66,27 +66,6 @@ def main() -> None:
     write(f"Error export to {getExportFolderPath(LOG_TIME, CLIENT_ID)}", 1)
     write(f"Custom checker folder: {CHECKER_FOLDER_PATH}", 2)
 
-    write("Activating checker...")
-
-    currentChecker: checkerType = lambda l, o, a, ar: (False, "No checker activated.")
-    deactivateFunc: deactivateType = emptyDeactivate
-
-    try:
-        getCheckerResult = getChecker(
-            CHECKER_FOLDER_PATH,
-            config.getConfigEntry("checker.name"),
-            config.getConfigEntry("checker.args"),
-        )
-        currentChecker = getCheckerResult[0]
-        deactivateFunc = getCheckerResult[1]
-    except Exception as e:
-        logger.critical(f"[autohack] {e}")
-        write("Checker activation failed.", 1, True)
-        write(highlightText(e.__str__()))
-        exitProgram(1)
-
-    write("Checker activated.", 1, True)
-
     for i in range(WAIT_TIME_BEFORE_START):
         write(f"Starting in {WAIT_TIME_BEFORE_START-i} seconds...", clear=True)
         time.sleep(1)
@@ -109,8 +88,25 @@ def main() -> None:
             exitProgram(1)
         else:
             logger.debug(f"[autohack] {file[1].capitalize()} compiled successfully.")
+    write("Compile finished.", 1, True)
 
-    write("Compile finished.", 2, True)
+    write(f"Activating checker '{config.getConfigEntry("checker.name")}'...")
+    currentChecker: checkerType = lambda l, o, a, ar: (False, "No checker activated.")
+    deactivateFunc: deactivateType = emptyDeactivate
+    try:
+        getCheckerResult = getChecker(
+            CHECKER_FOLDER_PATH,
+            config.getConfigEntry("checker.name"),
+            config.getConfigEntry("checker.args"),
+        )
+        currentChecker = getCheckerResult[0]
+        deactivateFunc = getCheckerResult[1]
+    except Exception as e:
+        logger.critical(f"[autohack] {e}")
+        write("Checker activation failed.", 1, True)
+        write(highlightText(e.__str__()))
+        exitProgram(1)
+    write(f"Checker '{config.getConfigEntry("checker.name")}' activated.", 2, True)
 
     dataCount, errorDataCount = 0, 0
     lastStatusError = False
