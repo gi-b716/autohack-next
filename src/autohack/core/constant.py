@@ -1,9 +1,9 @@
 from typing import Any
 
-VERSION = "1.0.11"
+VERSION = "1.0.12"
 
 # Windows executables will use this version.
-VERSION_ID = "1.0.11"
+VERSION_ID = "1.0.12"
 
 WAIT_TIME_BEFORE_START = 3
 
