@@ -51,18 +51,26 @@ def inputMessage(prompt: str = "", endl: int = 0, clear: bool = False) -> str:
         hideCursor()
 
 
-def write(message: str, endl: int = 0, clear: bool = False) -> None:
+def write(message: str, endl: int = 0, clear: bool = False, highlight: bool = False) -> None:
     if clear:
         clearLine()
+    if highlight:
+        message = highlightText(message)
     sys.stdout.write(message)
     outputEndl(endl)
     sys.stdout.flush()
 
 
 def writeMessage(
-    I18n: I18N, message: str, *args, endl: int = 0, clear: bool = False
+    I18n: I18N,
+    message: str,
+    *args,
+    endl: int = 0,
+    clear: bool = False,
+    highlight: bool = False,
 ) -> None:
-    write(I18n.translate(message).format(args), endl, clear)
+    finalMessage = I18n.translate(message).format(*map(str, args))
+    write(finalMessage, endl, clear, highlight)
 
 
 def hideCursor() -> None:

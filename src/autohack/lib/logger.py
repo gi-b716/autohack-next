@@ -1,5 +1,5 @@
 from autohack.core.util import *
-import logging, pathlib, time, os
+import logging, pathlib, time
 
 
 class Logger:
@@ -21,9 +21,7 @@ class Logger:
 
         logFile = logging.FileHandler(self.logFilePath, encoding="utf-8")
         logFile.setLevel(logLevel)
-        logFile.setFormatter(
-            logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
-        )
+        logFile.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s"))
 
         self.logger.addHandler(logFile)
 

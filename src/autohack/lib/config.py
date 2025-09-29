@@ -19,11 +19,7 @@ class Config:
 
     def loadConfig(self, messageOnCreate: bool = False) -> dict[str, Any]:
         if not os.path.exists(self.configFilePath):
-            json.dump(
-                self.defaultConfig,
-                open(self.configFilePath, "w", encoding="utf-8"),
-                indent=4,
-            )
+            json.dump(self.defaultConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
             if messageOnCreate:
                 self.logger.info("[config] Config file created.")
                 write(f"Config file created at {self.configFilePath}.")
@@ -35,22 +31,15 @@ class Config:
         if self.defaultConfig["_version"] > config.get("_version", 0):
             mergedConfig = self.mergeConfigs(config, self.defaultConfig)
             mergedConfig["_version"] = self.defaultConfig["_version"]
-            json.dump(
-                mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4
-            )
-            write(
-                f"Config file {self.configFilePath} updated to version {self.defaultConfig['_version']}.",
-                2,
-            )
+            json.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
+            write(f"Config file {self.configFilePath} updated to version {self.defaultConfig['_version']}.", 2)
             self.logger.info("[config] Config file updated.")
             config = mergedConfig
 
         self.logger.info("[config] Config file loaded.")
         return config
 
-    def mergeConfigs(
-        self, old: dict[str, Any], newDefault: dict[str, Any]
-    ) -> dict[str, Any]:
+    def mergeConfigs(self, old: dict[str, Any], newDefault: dict[str, Any]) -> dict[str, Any]:
         """
         Merge the old config with the new default config.
         - If a key exists in both, the value from the old config is used.
@@ -59,11 +48,7 @@ class Config:
         """
         merged = {}
         for key in newDefault:
-            if (
-                key in old
-                and isinstance(newDefault[key], dict)
-                and isinstance(old[key], dict)
-            ):
+            if key in old and isinstance(newDefault[key], dict) and isinstance(old[key], dict):
                 merged[key] = self.mergeConfigs(old[key], newDefault[key])
             else:
                 merged[key] = old.get(key, newDefault[key])
@@ -95,8 +80,6 @@ class Config:
             return False
         currentLevel[lastLevel] = newValue
 
-        json.dump(
-            self.config, open(self.configFilePath, "w", encoding="utf-8"), indent=4
-        )
+        json.dump(self.config, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
         self.logger.debug(f'[config] Modify entry: "{entryName}" = "{newValue}"')
         return True

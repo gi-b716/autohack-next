@@ -71,8 +71,7 @@ DEFAULT_GLOBAL_CONFIG = {
     "language": "en_US",
 }
 
+# empty: For developers to test missing translations.
+LANGUAGE_MAPS = ["en_US", "zh_CN", "empty"]
 
-LANGUAGE_MAPS = [
-    ("en_US", "English (US)"),
-    ("zh_CN", "简体中文"),
-]
+LOGGER_LANGUAGE_ID = "en_US"

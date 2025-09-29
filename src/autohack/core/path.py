@@ -22,21 +22,15 @@ GLOBAL_CONFIG_FILE_PATH = GLOBAL_DATA_FOLDER_PATH / "config.json"
 TRANSLATION_FOLDER_PATH = pathlib.Path(__file__).parent.parent / "i18n"
 
 
-def getHackDataStorageFolderPath(
-    clientID: str, startTime: time.struct_time
-) -> pathlib.Path:
+def getHackDataStorageFolderPath(clientID: str, startTime: time.struct_time) -> pathlib.Path:
     return HACK_DATA_STORAGE_FOLDER_PATH / f"{formatTime(startTime)}_{clientID}"
 
 
-def getHackDataFilePath(
-    hackDataStorageFolder: pathlib.Path, dataID: int, filePath: str
-) -> pathlib.Path:
+def getHackDataFilePath(hackDataStorageFolder: pathlib.Path, dataID: int, filePath: str) -> pathlib.Path:
     return hackDataStorageFolder / filePath.replace("$(id)", str(dataID))
 
 
-def getExportFolderPath(
-    startTime: time.struct_time, clientID: str | None = None
-) -> pathlib.Path:
+def getExportFolderPath(startTime: time.struct_time, clientID: str | None = None) -> pathlib.Path:
     if clientID is None:
         return EXPORT_FOLDER_PATH / formatTime(startTime)
     return EXPORT_FOLDER_PATH / f"{formatTime(startTime)}_{clientID}"
