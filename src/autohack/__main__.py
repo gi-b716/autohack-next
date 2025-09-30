@@ -72,6 +72,7 @@ def main() -> None:
         writeMessage(I18n, "__main__.language-select.info", GLOBAL_CONFIG_FILE_PATH, endl=2)
 
     globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
+    I18n.setDefaultLanguage(globalConfig.getConfigEntry("language"))
 
     config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger, True)
 
