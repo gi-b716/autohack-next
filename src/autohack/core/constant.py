@@ -1,9 +1,9 @@
 from typing import Any
 
-VERSION = "1.1.0.dev1"
+VERSION = "1.1.0.dev2"
 
 # Windows executables will use this version.
-VERSION_ID = "1.1.0.1"
+VERSION_ID = "1.1.0.2"
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "_version": 12,
