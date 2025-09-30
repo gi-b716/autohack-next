@@ -65,7 +65,7 @@ jobs:
             echo "type=Commit" >> $GITHUB_OUTPUT
           else
             echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            if [ ""${{ contains(github.ref_name, '.dev') }}" = "true" ]; then
+            if [ "${{ contains(github.ref_name, '.dev') }}" = "true" ]; then
               echo "type=Pre-release" >> $GITHUB_OUTPUT
             else
               echo "type=Release" >> $GITHUB_OUTPUT
@@ -172,7 +172,7 @@ jobs:
           echo "- **Commit**: [\`$(git rev-parse HEAD)\`](../../commit/$(git rev-parse HEAD))" >> changelog.md
           echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> changelog.md
           # echo "- **Release Type**: $(if [ '${{ contains(steps.tag.outputs.name, '-') || github.event.inputs.run_from_commit == 'true' || contains(github.event.head_commit.message, '[ci release]') }}' = 'true' ]; then echo 'Pre-release'; else echo 'Stable'; fi)" >> changelog.md
-          echo "- **Release Type**: ${{ steps.tag.outputs.type }} >> changelog.md
+          echo "- **Release Type**: ${{ steps.tag.outputs.type }}" >> changelog.md
           echo "" >> changelog.md
 
           # Platform information
