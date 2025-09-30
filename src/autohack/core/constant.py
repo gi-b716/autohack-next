@@ -5,13 +5,8 @@ VERSION = "1.0.12"
 # Windows executables will use this version.
 VERSION_ID = "1.0.12"
 
-WAIT_TIME_BEFORE_START = 3
-
-DATA_FOLDER_MAX_SIZE = 256  # 256 MiB
-
 DEFAULT_CONFIG: dict[str, Any] = {
-    "_version": 11,
-    "refresh_speed": 10,
+    "_version": 12,
     "maximum_number_of_data": 0,
     # ms
     "time_limit": 1000,
@@ -67,8 +62,11 @@ DEFAULT_CONFIG: dict[str, Any] = {
 }
 
 DEFAULT_GLOBAL_CONFIG = {
-    "_version": 1,
+    "_version": 2,
     "language": "en_US",
+    "refresh_speed": 10,
+    "wait_time_before_start": 3,
+    "data_folder_max_size": 256,  # MB
 }
 
 # empty: For developers to test missing translations.

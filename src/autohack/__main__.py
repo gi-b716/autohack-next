@@ -85,8 +85,9 @@ def main() -> None:
     writeMessage(I18n, "__main__.start.export", getExportFolderPath(LOG_TIME, CLIENT_ID), endl=1)
     writeMessage(I18n, "__main__.start.checker", CHECKER_FOLDER_PATH, endl=2)
 
-    for i in range(WAIT_TIME_BEFORE_START):
-        writeMessage(I18n, "__main__.countdown", WAIT_TIME_BEFORE_START - i, clear=True)
+    waitTimeBeforeStart = globalConfig.getConfigEntry("wait_time_before_start")
+    for i in range(waitTimeBeforeStart, 0, -1):
+        writeMessage(I18n, "__main__.countdown", i, clear=True)
         time.sleep(1)
 
     fileList = [
@@ -135,7 +136,7 @@ def main() -> None:
     outputFilePath = config.getConfigEntry("paths.output")
     maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
     errorDataLimit = config.getConfigEntry("error_data_number_limit")
-    refreshSpeed = config.getConfigEntry("refresh_speed")
+    refreshSpeed = globalConfig.getConfigEntry("refresh_speed")
     checkerArgs = config.getConfigEntry("checker.args")
 
     def updateStatus(total: float, averagePerS: float, averagePerData: float, addtional: str) -> None:
@@ -272,10 +273,11 @@ def main() -> None:
     #     write("No error data found. Hack data folder removed.", 1)
     #     logger.info("[autohack] No error data found. Hack data folder removed.")
 
-    if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > DATA_FOLDER_MAX_SIZE * 1024 * 1024:
-        logger.warning(f"[autohack] Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
+    dataFolderMaxSize = globalConfig.getConfigEntry("data_folder_max_size")
+    if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > dataFolderMaxSize * 1024 * 1024:
+        logger.warning(f"[autohack] Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
         # write(f"Warning: Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}", 2)
-        writeMessage(I18n, "__main__.data-folder-size-warning", DATA_FOLDER_MAX_SIZE, HACK_DATA_STORAGE_FOLDER_PATH, endl=2, highlight=True)
+        writeMessage(I18n, "__main__.data-folder-size-warning", dataFolderMaxSize, HACK_DATA_STORAGE_FOLDER_PATH, endl=2, highlight=True)
 
     writeMessage(I18n, "__main__.deactivate-checker.doing")
     # TODO: error handling
