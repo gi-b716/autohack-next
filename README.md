@@ -8,7 +8,7 @@ A completely refactored version of [autohack](https://github.com/gi-b716/autohac
 
 ## Installation
 
-autohack-next is published as a package on PyPI. Install it using a Python package manager, or you can download pre-built binary files to run.
+autohack-next is published as a package on PyPI. Install it using a Python package manager, or you can download pre-built binary files to run. Development (pre-release) versions are published to TestPyPI.
 
 ## Usage
 
@@ -42,13 +42,18 @@ Custom checker files need an activate function that receives the argument list (
 
 The checker function needs to accept input, output, answer, and argument list, and return a tuple. The tuple contains a boolean value (true when Accepted) and a string (the checker output).
 
+Optionally, a custom checker may also provide a `deactivate` function which accepts the same `checker.args` dictionary and returns `None`; this can be used for cleanup or post-processing.
+
 Formally, your function signatures should be as follows:
 
 ```python
+# src/autohack/core/checker.py
+
 from typing import Callable, TypeAlias
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 activateType: TypeAlias = Callable[[dict], checkerType]
+deactivateType: TypeAlias = Callable[[dict], None]
 ```
 
 There are several built-in checkers available.

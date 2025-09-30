@@ -8,7 +8,7 @@
 
 ## 安装
 
-autohack-next 作为包发布在了 pypi 上，使用 Python 包管理器安装即可，亦可以下载构建好的二进制文件运行。
+autohack-next 作为包发布在了 PyPI 上，使用 Python 包管理器安装即可，亦可以下载构建好的二进制文件运行。autohack-next 的 dev 版本发布在了 TestPyPI 上。
 
 ## 使用
 
@@ -42,13 +42,18 @@ autohack
 
 checker 函数需要接受输入、输出、答案及参数列表，返回一个元组。元组包含一个布尔值，Accepted 时为真，另外包含一个字符串即 checker 输出。
 
+可选地，自定义 checker 可以包含一个 deactivate 函数，其接收参数列表，返回 None，可以起到后处理的用处。
+
 形式化地说，您的函数签名应该如下。
 
 ```python
+# src/autohack/core/checker.py
+
 from typing import Callable, TypeAlias
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 activateType: TypeAlias = Callable[[dict], checkerType]
+deactivateType: TypeAlias = Callable[[dict], None]
 ```
 
 特殊地，有几个内置 checker。
