@@ -249,7 +249,7 @@ def main() -> None:
             writeData(getHackDataFilePath(getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME), errorDataCount, answerFilePath), dataAnswer)
             writeData(getHackDataFilePath(getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME), errorDataCount, outputFilePath), result.stdout)
             write(f"[{errorDataCount}]: {termMessage}", 1, True)
-            if extMessage is not None:
+            if extMessage is not None and extMessage != "":
                 write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", 1, True)
             logger.info(f"[autohack] {logMessage}")
 
