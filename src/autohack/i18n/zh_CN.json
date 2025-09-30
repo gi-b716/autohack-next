@@ -23,6 +23,7 @@
     "__main__.main.generate-answer": "{}：生成答案。",
     "__main__.main.run-source": "{}：运行源代码。",
     "__main__.main.finish": "完成。共生成 {} 组数据，发现 {} 组错误数据。",
+    "__main__.data-folder-size-warning": "警告: Hack 数据文件夹大小超过 {} MB: {}",
     "__main__.deactivate-checker.doing": "正在停用 checker……",
     "__main__.deactivate-checker.finish": "Checker 已停用。",
     "__main__.post-command": "正在执行结束指令。"

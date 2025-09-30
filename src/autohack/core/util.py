@@ -1,6 +1,6 @@
 from autohack.lib.i18n import *
 from typing import Callable
-import inspect, pathlib, time, sys, os
+import inspect, pathlib, shutil, time, sys, os
 
 
 def ensureDirExists(dirPath: pathlib.Path) -> None:
@@ -97,3 +97,7 @@ def getFunctionInfo(func: Callable) -> tuple[list[type], type]:
     params = sig.parameters
     paramTypes = [param.annotation for param in params.values()]
     return (paramTypes, sig.return_annotation)
+
+
+def getFolderSize(folderPath: pathlib.Path) -> int:
+    return shutil.disk_usage(folderPath).used

@@ -23,6 +23,7 @@
     "__main__.main.generate-answer": "{}: Generate answer.",
     "__main__.main.run-source": "{}: Run source code.",
     "__main__.main.finish": "Finished. {} data generated, {} error data found.",
+    "__main__.data-folder-size-warning": "Warning: Hack data storage folder size exceeds {} MB: {}",
     "__main__.deactivate-checker.doing": "Deactivating checker...",
     "__main__.deactivate-checker.finish": "Checker deactivated.",
     "__main__.post-command": "Executing post process command."

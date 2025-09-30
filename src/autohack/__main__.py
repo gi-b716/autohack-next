@@ -271,9 +271,10 @@ def main() -> None:
     #     write("No error data found. Hack data folder removed.", 1)
     #     logger.info("[autohack] No error data found. Hack data folder removed.")
 
-    if HACK_DATA_STORAGE_FOLDER_PATH.exists() and HACK_DATA_STORAGE_FOLDER_PATH.stat().st_size > DATA_FOLDER_MAX_SIZE:
-        logger.warning(f"[autohack] Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
-        write(f"Warning: Hack data storage folder size exceeds 256 MB: {HACK_DATA_STORAGE_FOLDER_PATH}", 2)
+    if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > DATA_FOLDER_MAX_SIZE * 1024 * 1024:
+        logger.warning(f"[autohack] Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
+        # write(f"Warning: Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}", 2)
+        writeMessage(I18n, "__main__.data-folder-size-warning", DATA_FOLDER_MAX_SIZE, HACK_DATA_STORAGE_FOLDER_PATH, endl=2, highlight=True)
 
     writeMessage(I18n, "__main__.deactivate-checker.doing")
     # TODO: error handling
