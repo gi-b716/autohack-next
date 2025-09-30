@@ -19,6 +19,7 @@ class Config:
 
     def loadConfig(self, messageOnCreate: bool = False) -> dict[str, Any]:
         if not os.path.exists(self.configFilePath):
+            ensureDirExists(self.configFilePath.parent)
             json.dump(self.defaultConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
             if messageOnCreate:
                 self.logger.info("[config] Config file created.")
