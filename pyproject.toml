@@ -8,13 +8,12 @@ dynamic = ["version"]
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
 requires-python = ">=3.9"
-license = {file = "COPYING"}
+license-files = ["COPYING"]
 authors = [
     {name = "gi-b716", email = "sganyunchi@163.com"}
 ]
 keywords = ["competitive-programming", "hack", "automation"]
 classifiers = [
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
