@@ -20,7 +20,7 @@ def main() -> None:
     argsParser.add_argument("--version", action="store_true", help="Show version information")
     argsParser.add_argument("--version-id", action="store_true", help="Show version ID")
     argsParser.add_argument("--debug", action="store_true", help="Enable debug mode with DEBUG logging level")
-    argsParser.add_argument("--reset-global-config", action="store_true", help="Reset the global config file (global_config.json)")
+    argsParser.add_argument("--reset-global-config", action="store_true", help="Reset the global config file")
     # TODO: 添加一个参数用于清除过往数据
 
     args = argsParser.parse_args()
