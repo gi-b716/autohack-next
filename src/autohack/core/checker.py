@@ -56,7 +56,7 @@ def builtinTestlibCheckerActivate(args: dict) -> checkerType:
     compileCommand = [args.get("compiler", "g++"), args.get("checker", "checker.cpp"), "-o", checkerPath.as_posix()]
     compileCommand += args.get("compile_args", [])
     try:
-        compileCode(compileCommand, "checker")
+        compileCode(compileCommand)
     except autohackCompilationError as e:
         raise
 

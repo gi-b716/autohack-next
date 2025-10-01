@@ -59,14 +59,14 @@ class CodeRunner:
         return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr)  # type: ignore
 
 
-def compileCode(compileCommand: list, fileName: str) -> None:
+def compileCode(compileCommand: list) -> None:
     try:
         process = subprocess.Popen(compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except OSError:
         return
     output = process.communicate()[0]
     if process.returncode != 0:
-        raise autohackCompilationError(fileName, output, process.returncode)
+        raise autohackCompilationError(output, process.returncode)
 
 
 def generateInput(generateCommand: list, clientID: str) -> bytes:

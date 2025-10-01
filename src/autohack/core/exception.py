@@ -2,8 +2,7 @@ from autohack.core.constant import *
 
 
 class autohackCompilationError(Exception):
-    def __init__(self, fileName: str, output: bytes, returnCode: int) -> None:
-        self.fileName = fileName
+    def __init__(self, output: bytes, returnCode: int) -> None:
         self.output = output
         self.returnCode = returnCode
 

@@ -102,7 +102,7 @@ def main() -> None:
     for file in fileList:
         writeMessage(I18n, "__main__.compile.doing", _(file[1]), clear=True)
         try:
-            compileCode(file[0], file[1])
+            compileCode(file[0])
         except autohackCompilationError as e:
             logger.error(
                 f"[autohack] {_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.output.decode(errors="ignore")}"
