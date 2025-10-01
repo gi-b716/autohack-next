@@ -6,7 +6,6 @@ VERSION = "1.1.0.dev3"
 VERSION_ID = "1.1.0.3"
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "_version": 12,
     "maximum_number_of_data": 0,
     # ms
     "time_limit": 1000,
@@ -62,7 +61,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
 }
 
 DEFAULT_GLOBAL_CONFIG = {
-    "_version": 2,
     "language": "en_US",
     "refresh_speed": 10,
     "wait_time_before_start": 3,

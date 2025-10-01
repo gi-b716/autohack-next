@@ -1,14 +1,14 @@
 from autohack.lib.i18n import *
 from typing import Callable
-import inspect, pathlib, shutil, time, sys, os
+import inspect, pathlib, time, sys, os
 
 
 def ensureDirExists(dirPath: pathlib.Path) -> None:
-    if not os.path.exists(dirPath):
-        os.makedirs(dirPath)
+    dirPath.mkdir(parents=True, exist_ok=True)
 
 
 def mswindows() -> bool:
+    # Trick from subprocess
     try:
         import msvcrt
     except ModuleNotFoundError:

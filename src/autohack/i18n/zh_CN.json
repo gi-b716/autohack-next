@@ -4,6 +4,8 @@
     "__main__.language-select.result": "您选择了：{}",
     "__main__.language-select.info": "后续也可以通过位于 {} 的全局配置文件更改这些设置。",
 
+    "__main__.config-created": "配置文件创建于 {}",
+
     "__main__.start.version": "autohack-next {} - 客户端 ID: {}",
     "__main__.start.data": "Hack 数据存储于 {}",
     "__main__.start.log": "日志文件：{}",

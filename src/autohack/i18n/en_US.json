@@ -4,6 +4,8 @@
     "__main__.language-select.result": "You selected: {}",
     "__main__.language-select.info": "You can change this later in the global config file on {}",
 
+    "__main__.config-created": "Config file created at {}",
+
     "__main__.start.version": "autohack-next {} - Client ID: {}",
     "__main__.start.data": "Hack data storaged to {}",
     "__main__.start.log": "Log file: {}",
