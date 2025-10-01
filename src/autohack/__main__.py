@@ -55,23 +55,28 @@ def main() -> None:
         write("Welcome to autohack-next!", 1)
         write("A global config file will be created.", 1)
         write("Please select your preferred language:", 1)
-        for i, (langID) in enumerate(LANGUAGE_MAPS):
-            write(f"  {i+1}: {langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}", 1)
-        showCursor()
-        while True:
-            result = inputMessage("Enter the number of your preferred language: ", 0, True)
-            if result.isdigit() and 1 <= int(result) <= len(LANGUAGE_MAPS):
-                selectedLang = LANGUAGE_MAPS[int(result) - 1]
-                break
-            write("Invalid input. Please enter a valid number.")
-            prevLine()
+        # for i, (langID) in enumerate(LANGUAGE_MAPS):
+        #     write(f"  {i+1}: {langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}", 1)
+        # showCursor()
+        # while True:
+        #     result = inputMessage("Enter the number of your preferred language: ", 0, True)
+        #     if result.isdigit() and 1 <= int(result) <= len(LANGUAGE_MAPS):
+        #         selectedLang = LANGUAGE_MAPS[int(result) - 1]
+        #         break
+        #     write("Invalid input. Please enter a valid number.")
+        #     prevLine()
+        selectedLangIndex = selectionMenu(
+            [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
+        )
+        selectedLang = LANGUAGE_MAPS[selectedLangIndex]
         globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
         globalConfig.modifyConfigEntry("language", selectedLang)
         I18n.setDefaultLanguage(selectedLang)
         clearLine()
-        for __ in range(4 + len(LANGUAGE_MAPS)):
-            prevLine()
-            clearLine()
+        prevLine()
+        clearLine()
+        prevLine()
+        clearLine()
         writeMessage(I18n, "__main__.language-select.result", _("language-info"), endl=1)
         writeMessage(I18n, "__main__.language-select.info", GLOBAL_CONFIG_FILE_PATH, endl=2)
 

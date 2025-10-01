@@ -1,6 +1,7 @@
+import re
 from autohack.lib.i18n import *
 from typing import Callable
-import inspect, pathlib, time, sys, os
+import readchar, inspect, pathlib, time, sys, os
 
 
 def ensureDirExists(dirPath: pathlib.Path) -> None:
@@ -113,3 +114,34 @@ def getFolderSize(folderPath: pathlib.Path) -> int:
             elif entry.is_dir():
                 totalSize += getFolderSize(pathlib.Path(entry.path))
     return totalSize
+
+
+def selectionMenu(selectionList: list[str]) -> int:
+    currentSelection = 0
+    write("Use Up/Down arrows to navigate, Enter to select.", 1)
+
+    def updateSelection() -> None:
+        for i, selectionItem in enumerate(selectionList):
+            write(
+                f"{">" if i == currentSelection else " "} {selectionItem}",
+                1 if i < len(selectionList) - 1 else 0,
+                clear=True,
+                highlight=(i == currentSelection),
+            )
+
+    while True:
+        updateSelection()
+        k = readchar.readkey()
+        if k == readchar.key.UP or k == "k":
+            currentSelection = currentSelection - 1 if currentSelection > 0 else len(selectionList) - 1
+        elif k == readchar.key.DOWN or k == "j":
+            currentSelection = currentSelection + 1 if currentSelection < len(selectionList) - 1 else 0
+        elif k == readchar.key.ENTER:
+            for _ in range(len(selectionList) + 1):
+                clearLine()
+                prevLine()
+            return currentSelection
+        elif k == readchar.key.ESC:
+            exitProgram(0)
+        for _ in range(len(selectionList) - 1):
+            prevLine()

@@ -23,6 +23,7 @@ dependencies = [
     "colorama>=0.4.6",
     "platformdirs>=4.3.8",
     "psutil>=7.0.0",
+    "readchar>=4.2.1",
 ]
 
 [tool.setuptools.dynamic]
