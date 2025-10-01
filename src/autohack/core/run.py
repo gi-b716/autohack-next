@@ -66,28 +66,28 @@ def compileCode(compileCommand: list) -> None:
         return
     output = process.communicate()[0]
     if process.returncode != 0:
-        raise autohackCompilationError(output, process.returncode)
+        raise autohackRuntimeError(output, process.returncode)
 
 
-def generateInput(generateCommand: list, clientID: str) -> bytes:
+def generateInput(generateCommand: list) -> bytes:
     try:
         process = subprocess.Popen(generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     except OSError:
         return b""
     dataInput = process.communicate()[0]
     if process.returncode != 0:
-        raise InputGenerationError(clientID, process.returncode)
+        raise autohackRuntimeError(dataInput, process.returncode)
     return dataInput
 
 
-def generateAnswer(generateCommand: list, dataInput: bytes, clientID: str) -> bytes:
+def generateAnswer(generateCommand: list, dataInput: bytes) -> bytes:
     try:
         process = subprocess.Popen(generateCommand, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     except OSError:
         return b""
     dataAnswer = process.communicate(dataInput)[0]
     if process.returncode != 0:
-        raise AnswerGenerationError(clientID, process.returncode)
+        raise autohackRuntimeError(dataAnswer, process.returncode)
     return dataAnswer
 
 

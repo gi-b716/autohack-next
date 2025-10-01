@@ -1,25 +1,7 @@
 from autohack.core.constant import *
 
 
-class autohackCompilationError(Exception):
+class autohackRuntimeError(Exception):
     def __init__(self, output: bytes, returnCode: int) -> None:
         self.output = output
         self.returnCode = returnCode
-
-
-class InputGenerationError(Exception):
-    def __init__(self, clientID: str, returnCode: int) -> None:
-        self.clientID = clientID
-        self.returnCode = returnCode
-
-    def __str__(self) -> str:
-        return f"Input generation failed with return code {self.returnCode}."
-
-
-class AnswerGenerationError(Exception):
-    def __init__(self, clientID: str, returnCode: int) -> None:
-        self.clientID = clientID
-        self.returnCode = returnCode
-
-    def __str__(self) -> str:
-        return f"Answer generation failed with return code {self.returnCode}."

@@ -103,7 +103,7 @@ def main() -> None:
         writeMessage(I18n, "__main__.compile.doing", _(file[1]), clear=True)
         try:
             compileCode(file[0])
-        except autohackCompilationError as e:
+        except autohackRuntimeError as e:
             logger.error(
                 f"[autohack] {_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.output.decode(errors="ignore")}"
             )
@@ -166,29 +166,29 @@ def main() -> None:
             # write(f"{dataCount}: Generate input.", clear=True)
             writeMessage(I18n, "__main__.main.generate-input", dataCount, clear=True)
             logger.debug(f"[autohack] Generating data {dataCount}.")
-            dataInput = generateInput(generateCommand, CLIENT_ID)
-        except InputGenerationError as e:
+            dataInput = generateInput(generateCommand)
+        except autohackRuntimeError as e:
             logger.error(f"[autohack] Input generation failed with return code {e.returnCode}.")
-            write(highlightText(e.__str__()), 1, True)
+            writeMessage(I18n, "__main__.main.generate-input-failed", e.returnCode, endl=1, clear=True, highlight=True)
             inputExportPath = getExportDataPath(getExportFolderPath(LOG_TIME, CLIENT_ID), "input")
-            writeData(inputExportPath, dataInput)
-            write(highlightText(f"Input data saved to {inputExportPath}"), clear=True)
+            writeData(inputExportPath, e.output)
+            writeMessage(I18n, "__main__.main.save-input-data", inputExportPath, clear=True)
             exitProgram(1)
 
         try:
             # write(f"{dataCount}: Generate answer.", clear=True)
             writeMessage(I18n, "__main__.main.generate-answer", dataCount, clear=True)
             logger.debug(f"[autohack] Generating answer for data {dataCount}.")
-            dataAnswer = generateAnswer(stdCommand, dataInput, CLIENT_ID)
-        except AnswerGenerationError as e:
+            dataAnswer = generateAnswer(stdCommand, dataInput)
+        except autohackRuntimeError as e:
             logger.error(f"[autohack] Answer generation failed with return code {e.returnCode}.")
-            write(highlightText(e.__str__()), 1, True)
+            writeMessage(I18n, "__main__.main.generate-answer-failed", e.returnCode, endl=1, clear=True, highlight=True)
             inputExportPath = getExportDataPath(getExportFolderPath(LOG_TIME, CLIENT_ID), "input")
             writeData(inputExportPath, dataInput)
-            write(highlightText(f"Input data saved to {inputExportPath}"), 1, True)
+            writeMessage(I18n, "__main__.main.save-input-data", inputExportPath, endl=1, clear=True)
             answerExportPath = getExportDataPath(getExportFolderPath(LOG_TIME, CLIENT_ID), "answer")
-            writeData(answerExportPath, dataAnswer)
-            write(highlightText(f"Answer data saved to {answerExportPath}"), clear=True)
+            writeData(answerExportPath, e.output)
+            writeMessage(I18n, "__main__.main.save-answer-data", answerExportPath, clear=True)
             exitProgram(1)
 
         # write(f"{dataCount}: Run source code.", clear=True)

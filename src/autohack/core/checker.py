@@ -57,7 +57,7 @@ def builtinTestlibCheckerActivate(args: dict) -> checkerType:
     compileCommand += args.get("compile_args", [])
     try:
         compileCode(compileCommand)
-    except autohackCompilationError as e:
+    except autohackRuntimeError as e:
         raise
 
     def builtinTestlibChecker(input: bytes, output: bytes, answer: bytes, args: dict) -> tuple[bool, str]:

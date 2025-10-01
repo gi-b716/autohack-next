@@ -27,6 +27,10 @@
     "__main__.status": "已用时：{} 秒，平均速度 {} 数据/秒，{} 秒/数据。{}",
 
     "__main__.main.generate-input": "{}：生成输入。",
+    "__main__.main.generate-input-failed": "输入生成失败，返回值为 {}。",
+    "__main__.main.generate-answer-failed": "答案生成失败，返回值为 {}。",
+    "__main__.main.save-input-data": "输入数据已保存至 {}",
+    "__main__.main.save-answer-data": "答案数据已保存至 {}",
     "__main__.main.generate-answer": "{}：生成答案。",
     "__main__.main.run-source": "{}：运行源代码。",
     "__main__.main.memory-limit-exceeded": "第 {} 组数据超出内存限制。",
