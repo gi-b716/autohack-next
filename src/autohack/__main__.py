@@ -258,7 +258,7 @@ def main() -> None:
             logger.info(f"[autohack] {logMessage}")
 
         if exitAfterSave:
-            write("Exiting due to checker exception.", clear=True)
+            writeMessage(I18n, "__main__.main.checker-failed-exit", clear=True, highlight=True)
             exitProgram(0)
 
     endTime = time.time()
