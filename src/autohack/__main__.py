@@ -68,6 +68,10 @@ def main() -> None:
         globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
         globalConfig.modifyConfigEntry("language", selectedLang)
         I18n.setDefaultLanguage(selectedLang)
+        clearLine()
+        for __ in range(4 + len(LANGUAGE_MAPS)):
+            prevLine()
+            clearLine()
         writeMessage(I18n, "__main__.language-select.result", _("language-info"), endl=1)
         writeMessage(I18n, "__main__.language-select.info", GLOBAL_CONFIG_FILE_PATH, endl=2)
 
