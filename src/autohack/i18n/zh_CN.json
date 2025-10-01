@@ -1,31 +1,49 @@
 {
     "language-info": "简体中文",
+
     "__main__.language-select.result": "您选择了：{}",
     "__main__.language-select.info": "后续也可以通过位于 {} 的全局配置文件更改这些设置。",
+
     "__main__.start.version": "autohack-next {} - 客户端 ID: {}",
     "__main__.start.data": "Hack 数据存储于 {}",
     "__main__.start.log": "日志文件：{}",
     "__main__.start.export": "错误数据导出至 {}",
     "__main__.start.checker": "自定义 checker 文件夹：{}",
+
     "__main__.countdown": "{} 秒后开始...",
+
     "__main__.compile.filename.source": "源代码",
     "__main__.compile.filename.std": "标程",
     "__main__.compile.filename.generator": "数据生成器",
     "__main__.compile.doing": "正在编译{}。",
     "__main__.compile.error": "{}编译失败，返回值为 {}。",
     "__main__.compile.finish": "编译完成。",
+
     "__main__.activate-checker.doing": "正在激活 checker \"{}\"……",
     "__main__.activate-checker.no-checker-message": "未激活 checker。",
     "__main__.activate-checker.failed": "Checker 激活失败。",
     "__main__.activate-checker.finish": "Checker \"{}\" 已激活。",
+
     "__main__.status": "已用时：{} 秒，平均速度 {} 数据/秒，{} 秒/数据。{}",
+
     "__main__.main.generate-input": "{}：生成输入。",
     "__main__.main.generate-answer": "{}：生成答案。",
     "__main__.main.run-source": "{}：运行源代码。",
+    "__main__.main.memory-limit-exceeded": "第 {} 组数据超出内存限制。",
+    "__main__.main.time-limit-exceeded": "第 {} 组数据超出时间限制。",
+    "__main__.main.runtime-error": "第 {} 组数据运行时错误，返回值为 {}。",
+    "__main__.main.checker-not-executed": "未执行 checker。",
+    "__main__.main.checker-error-without-exception": "第 {} 组数据发生 checker 错误。",
+    "__main__.main.checker-error-extra-message": "堆栈跟踪：\n{}",
+    "__main__.main.checker-exception-occurred": "Checker 发生异常。",
+    "__main__.main.wrong-answer": "第 {} 组数据答案错误。",
     "__main__.main.checker-failed-exit": "由于 checker 异常而退出。",
     "__main__.main.finish": "完成。共生成 {} 组数据，发现 {} 组错误数据。",
+
     "__main__.data-folder-size-warning": "警告: Hack 数据文件夹大小超过 {} MB: {}",
+
     "__main__.deactivate-checker.doing": "正在停用 checker……",
     "__main__.deactivate-checker.finish": "Checker 已停用。",
+
     "__main__.post-command": "正在执行结束指令。"
 }

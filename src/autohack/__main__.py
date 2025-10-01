@@ -221,28 +221,31 @@ def main() -> None:
 
         if result.memoryOut:
             saveData = True
-            termMessage = logMessage = f"Memory limit exceeded for data {dataCount}."
+            logMessage = f"Memory limit exceeded for data {dataCount}."
+            termMessage = getTranslatedMessage(I18n, "__main__.main.memory-limit-exceeded", dataCount)
         elif result.timeOut:
             saveData = True
-            termMessage = logMessage = f"Time limit exceeded for data {dataCount}."
+            logMessage = f"Time limit exceeded for data {dataCount}."
+            termMessage = getTranslatedMessage(I18n, "__main__.main.time-limit-exceeded", dataCount)
         elif result.returnCode != 0:
             saveData = True
-            termMessage = logMessage = f"Runtime error for data {dataCount} with return code {result.returnCode}."
+            logMessage = f"Runtime error for data {dataCount} with return code {result.returnCode}."
+            termMessage = getTranslatedMessage(I18n, "__main__.main.runtime-error", dataCount, result.returnCode)
 
-        checkerResult = (False, "Checker not executed.")
+        checkerResult = (False, _("__main__.main.checker-not-executed"))
         try:
             checkerResult = currentChecker(dataInput, result.stdout, dataAnswer, checkerArgs)
         except Exception as e:
             saveData = True
-            termMessage = f"Checker error for data {dataCount}."
+            termMessage = getTranslatedMessage(I18n, "__main__.main.checker-error-without-exception", dataCount)
             logMessage = f"Checker error for data {dataCount}. Exception: {e}"
-            extMessage = f"Traceback:\n{traceback.format_exc()}"
-            checkerResult = (False, "Checker exception occurred.")
+            extMessage = getTranslatedMessage(I18n, "__main__.main.checker-error-extra-message", traceback.format_exc())
+            checkerResult = (False, _("__main__.main.checker-exception-occurred"))
             exitAfterSave = True
 
         if not saveData and not checkerResult[0]:
             saveData = True
-            termMessage = f"Wrong answer for data {dataCount}."
+            termMessage = getTranslatedMessage(I18n, "__main__.main.wrong-answer", dataCount)
             logMessage = f"Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}"
             extMessage = checkerResult[1]
 
@@ -278,6 +281,7 @@ def main() -> None:
     #     logger.info("[autohack] No error data found. Hack data folder removed.")
 
     dataFolderMaxSize = globalConfig.getConfigEntry("data_folder_max_size")
+    # print(getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) / 1024 / 1024, " ", dataFolderMaxSize)
     if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > dataFolderMaxSize * 1024 * 1024:
         logger.warning(f"[autohack] Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
         # write(f"Warning: Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}", 2)
