@@ -1,9 +1,9 @@
 from typing import Any
 
-VERSION = "1.1.0.dev3"
+VERSION = "1.1.0.dev4"
 
 # Windows executables will use this version.
-VERSION_ID = "1.1.0.3"
+VERSION_ID = "1.1.0.4"
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "maximum_number_of_data": 0,
