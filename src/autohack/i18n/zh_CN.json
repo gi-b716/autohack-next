@@ -49,6 +49,7 @@
     "__main__.data-folder-size-warning": "警告: Hack 数据文件夹大小超过 {} MB: {}",
 
     "__main__.deactivate-checker.doing": "正在停用 checker……",
+    "__main__.deactivate-checker.failed": "Checker 停用失败。",
     "__main__.deactivate-checker.finish": "Checker 已停用。",
 
     "__main__.post-command": "正在执行结束指令。"

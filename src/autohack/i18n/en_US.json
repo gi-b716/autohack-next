@@ -49,6 +49,7 @@
     "__main__.data-folder-size-warning": "Warning: Hack data storage folder size exceeds {} MB: {}",
 
     "__main__.deactivate-checker.doing": "Deactivating checker...",
+    "__main__.deactivate-checker.failed": "Checker deactivation failed.",
     "__main__.deactivate-checker.finish": "Checker deactivated.",
 
     "__main__.post-command": "Executing post process command."

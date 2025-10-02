@@ -128,8 +128,8 @@ def main() -> None:
         deactivateFunc = getCheckerResult[1]
     except Exception as e:
         logger.critical(f"[autohack] {e}")
-        writeMessage(I18n, "__main__.activate-checker.failed", endl=1, clear=True)
-        write(str(e), highlight=True)
+        writeMessage(I18n, "__main__.activate-checker.failed", endl=1, clear=True, highlight=True)
+        traceback.print_exc()
         exitProgram(1)
     writeMessage(I18n, "__main__.activate-checker.finish", config.getConfigEntry("checker.name"), endl=2, clear=True)
 
@@ -293,8 +293,13 @@ def main() -> None:
         writeMessage(I18n, "__main__.data-folder-size-warning", dataFolderMaxSize, HACK_DATA_STORAGE_FOLDER_PATH, endl=2, highlight=True)
 
     writeMessage(I18n, "__main__.deactivate-checker.doing")
-    # TODO: error handling
-    deactivateFunc(config.getConfigEntry("checker.args"))
+    try:
+        deactivateFunc(config.getConfigEntry("checker.args"))
+    except Exception as e:
+        logger.error(f"[autohack] Checker deactivation failed with exception: {e}")
+        writeMessage(I18n, "__main__.deactivate-checker.failed", endl=1, clear=True, highlight=True)
+        traceback.print_exc()
+        exitProgram(1)
     writeMessage(I18n, "__main__.deactivate-checker.finish", endl=1, clear=True)
 
     writeMessage(I18n, "__main__.post-command", endl=1)
