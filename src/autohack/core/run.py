@@ -6,20 +6,26 @@ class CodeRunner:
     class Result:
         def __init__(
             self,
+            totalTime: float | None,
             timeOut: bool,
+            maxMemory: int | None,
             memoryOut: bool,
             returnCode: int | None,
             stdout: bytes | None,
             stderr: bytes | None,
         ) -> None:
+            self.totalTime = totalTime
             self.timeOut = timeOut
+            self.maxMemory = maxMemory
             self.memoryOut = memoryOut
             self.returnCode = returnCode
             self.stdout = stdout
             self.stderr = stderr
 
     def __init__(self):
+        self.totalTime = None
         self.timeOut = False
+        self.maxMemory = None
         self.memoryOut = False
 
     def memoryMonitor(self, pid: int, timeLimit: float | None, memoryLimit: int | None) -> None:
@@ -28,12 +34,14 @@ class CodeRunner:
             startTime = psutilProcess.create_time()
             while True:
                 # psutilProcess.cpu_times();
-                if timeLimit is not None and time.time() - startTime > timeLimit:
+                self.totalTime = time.time() - startTime
+                if timeLimit is not None and self.totalTime > timeLimit:
                     self.timeOut = True
                     psutilProcess.kill()
                     return
                 # 测出来是资源监视器内存中提交那栏 *1024
-                if memoryLimit is not None and psutilProcess.memory_info().vms > memoryLimit:
+                self.maxMemory = max(self.maxMemory, psutilProcess.memory_info().vms)
+                if memoryLimit is not None and self.maxMemory > memoryLimit:
                     self.memoryOut = True
                     psutilProcess.kill()
                     return
@@ -56,7 +64,7 @@ class CodeRunner:
             monitor.start()
             stdout, stderr = process.communicate(inputContent)  # type: ignore
             returnCode = process.poll()
-        return self.Result(self.timeOut, self.memoryOut, returnCode, stdout, stderr)  # type: ignore
+        return self.Result(self.totalTime, self.timeOut, self.maxMemory, self.memoryOut, returnCode, stdout, stderr)  # type: ignore
 
 
 def compileCode(compileCommand: list) -> None:
@@ -103,5 +111,5 @@ def runSourceCode(runCommand: list, dataInput: bytes, timeLimit: float | None, m
             stderr=subprocess.DEVNULL,
         )
     except OSError:
-        return CodeRunner.Result(False, False, 0, b"", b"")
+        return CodeRunner.Result(None, False, None, False, 0, b"", b"")
     return result
