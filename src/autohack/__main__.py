@@ -229,14 +229,20 @@ def main() -> None:
             saveData = True
             logMessage = f"Memory limit exceeded for data {dataCount}."
             termMessage = getTranslatedMessage(I18n, "__main__.main.memory-limit-exceeded", dataCount)
+            if result.maxMemory is not None:
+                extMessage = getTranslatedMessage(I18n, "__main__.main.memory-limit-exceeded-extra", f"{result.maxMemory / 1024 / 1024:.4f}")
         elif result.timeOut:
             saveData = True
             logMessage = f"Time limit exceeded for data {dataCount}."
             termMessage = getTranslatedMessage(I18n, "__main__.main.time-limit-exceeded", dataCount)
+            if result.totalTime is not None:
+                extMessage = getTranslatedMessage(I18n, "__main__.main.time-limit-exceeded-extra", f"{result.totalTime*1000:.4f}")
         elif result.returnCode != 0:
             saveData = True
             logMessage = f"Runtime error for data {dataCount} with return code {result.returnCode}."
-            termMessage = getTranslatedMessage(I18n, "__main__.main.runtime-error", dataCount, result.returnCode)
+            termMessage = getTranslatedMessage(I18n, "__main__.main.runtime-error", dataCount)
+            if result.returnCode is not None:
+                extMessage = getTranslatedMessage(I18n, "__main__.main.runtime-error-extra", f"{result.returnCode}")
 
         checkerResult = (False, _("__main__.main.checker-not-executed"))
         try:
