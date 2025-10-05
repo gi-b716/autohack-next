@@ -40,7 +40,7 @@ class CodeRunner:
                     psutilProcess.kill()
                     return
                 # 测出来是资源监视器内存中提交那栏 *1024
-                self.maxMemory = max(self.maxMemory, psutilProcess.memory_info().vms)
+                self.maxMemory = max(-1 if self.maxMemory is None else self.maxMemory, psutilProcess.memory_info().vms)
                 if memoryLimit is not None and self.maxMemory > memoryLimit:
                     self.memoryOut = True
                     psutilProcess.kill()
