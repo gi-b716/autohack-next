@@ -153,7 +153,8 @@ def main() -> None:
         #     f"Time taken: {total:.2f} seconds, average {averagePerS:.2f} data per second, {averagePerData:.2f} second per data.{addtional}",
         #     clear=True,
         # )
-        writeMessage(I18n, "__main__.status", f"{total:.2f}", f"{averagePerS:.2f}", f"{averagePerData:.2f}", addtional, clear=True)
+        writeMessage(I18n, "__main__.status", f"{total:.2f}", f"{averagePerS:.2f}", f"{averagePerData:.2f}", clear=True)
+        write(addtional)
 
     outputEndl()
     updateStatus(0.0, 0.0, 0.0, " (0%)" if maximumDataLimit > 0 else "")
@@ -244,7 +245,7 @@ def main() -> None:
             saveData = True
             termMessage = getTranslatedMessage(I18n, "__main__.main.checker-error-without-exception", dataCount)
             logMessage = f"Checker error for data {dataCount}. Exception: {e}"
-            extMessage = getTranslatedMessage(I18n, "__main__.main.checker-error-extra-message", traceback.format_exc())
+            extMessage = f"{_("__main__.main.checker-error-extra-message")}\n{traceback.format_exc()}"
             checkerResult = (False, _("__main__.main.checker-exception-occurred"))
             exitAfterSave = True
 
