@@ -60,6 +60,11 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "command_at_end": "",
 }
 
+
+# Do not modify checker args here, as they may contain user data.
+# They are excluded from config validation for the same reason.
+CONFIG_VALIDATION_EXCLUDE = ["checker.args"]
+
 DEFAULT_GLOBAL_CONFIG = {
     "language": "en_US",
     "refresh_speed": 10,

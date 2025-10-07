@@ -83,7 +83,9 @@ def main() -> None:
     globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
     I18n.setDefaultLanguage(globalConfig.getConfigEntry("language"))
 
-    config = Config(CONFIG_FILE_PATH, DEFAULT_CONFIG, logger, getTranslatedMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH))
+    config = Config(
+        CONFIG_FILE_PATH, DEFAULT_CONFIG, logger, CONFIG_VALIDATION_EXCLUDE, getTranslatedMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH)
+    )
 
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     logger.info(f"[autohack] Client ID: {CLIENT_ID}")

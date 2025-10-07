@@ -9,9 +9,11 @@ class Config:
         configFilePath: pathlib.Path,
         defaultConfig: dict[str, Any],
         logger: logging.Logger,
+        configValidationExclude: list[str] = [],
         messageOnCreate: str | None = None,
     ) -> None:
         self.defaultConfig = defaultConfig
+        self.configValidationExclude = configValidationExclude
         self.configFilePath = configFilePath
         self.logger = logger
         self.logger.info(f'[config] Config file path: "{self.configFilePath}"')
@@ -41,20 +43,24 @@ class Config:
         #     self.logger.info("[config] Config file updated.")
         #     config = mergedConfig
 
-        mergedConfig = self.mergeConfigs(config, self.defaultConfig)
+        mergedConfig = self.mergeConfigs(config, self.defaultConfig, self.configValidationExclude, "")
         json.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
         config = mergedConfig
 
         self.logger.info("[config] Config file loaded.")
         return config
 
-    def mergeConfigs(self, old: dict[str, Any], newDefault: dict[str, Any]) -> dict[str, Any]:
+    def mergeConfigs(self, old: dict[str, Any], newDefault: dict[str, Any], configValidationExclude: list[str], keyName: str) -> dict[str, Any]:
         merged = {}
 
         for key in newDefault:
             if key in old:
                 if isinstance(newDefault[key], dict) and isinstance(old[key], dict):
-                    merged[key] = self.mergeConfigs(old[key], newDefault[key])
+                    newKeyName = f"{keyName}.{key}" if keyName else key
+                    if newKeyName not in configValidationExclude:
+                        merged[key] = self.mergeConfigs(old[key], newDefault[key], configValidationExclude, newKeyName)
+                    else:
+                        merged[key] = old[key]
                 else:
                     if type(old[key]) is type(newDefault[key]):
                         merged[key] = old[key]
