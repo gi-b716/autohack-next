@@ -1,6 +1,6 @@
 from autohack.core.util import *
 from typing import Any
-import logging, pathlib, json, os
+import logging, pathlib, json5, os
 
 
 class Config:
@@ -29,22 +29,21 @@ class Config:
     def loadConfig(self) -> dict[str, Any]:
         if not os.path.exists(self.configFilePath):
             ensureDirExists(self.configFilePath.parent)
-            json.dump(self.defaultConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
+            json5.dump(self.defaultConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
             self.logger.info("[config] Config file created.")
 
-        with open(self.configFilePath, "r", encoding="utf-8") as configFile:
-            config = json.load(configFile)
+        config = json5.load(open(self.configFilePath, "r", encoding="utf-8"))
 
         # if self.defaultConfig["_version"] > config.get("_version", 0):
         #     mergedConfig = self.mergeConfigs(config, self.defaultConfig)
         #     mergedConfig["_version"] = self.defaultConfig["_version"]
-        #     json.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
+        #     json5.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
         #     write(f"Config file {self.configFilePath} updated to version {self.defaultConfig['_version']}.", 2)
         #     self.logger.info("[config] Config file updated.")
         #     config = mergedConfig
 
         mergedConfig = self.mergeConfigs(config, self.defaultConfig, self.configValidationExclude, "")
-        json.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
+        json5.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
         config = mergedConfig
 
         self.logger.info("[config] Config file loaded.")
@@ -97,6 +96,6 @@ class Config:
             return False
         currentLevel[lastLevel] = newValue
 
-        json.dump(self.config, open(self.configFilePath, "w", encoding="utf-8"), indent=4)
+        json5.dump(self.config, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
         self.logger.debug(f'[config] Modify entry: "{entryName}" = "{newValue}"')
         return True
