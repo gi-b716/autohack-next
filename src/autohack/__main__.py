@@ -150,6 +150,9 @@ def main() -> None:
     refreshSpeed = globalConfig.getConfigEntry("refresh_speed")
     checkerArgs = config.getConfigEntry("checker.args")
 
+    timeLimit = None if timeLimit == 0 else timeLimit
+    memoryLimit = None if memoryLimit == 0 else memoryLimit
+
     def updateStatus(total: float, averagePerS: float, averagePerData: float, addtional: str) -> None:
         # write(
         #     f"Time taken: {total:.2f} seconds, average {averagePerS:.2f} data per second, {averagePerData:.2f} second per data.{addtional}",
