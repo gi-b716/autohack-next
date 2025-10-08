@@ -326,7 +326,7 @@ if __name__ == "__main__" or os.getenv("AUTOHACK_ENTRYPOINT", "0") == "1":
         main()
 
     except KeyboardInterrupt:
-        write("Process interrupted by user.", highlight=True)
+        write("Process interrupted by user.", 1, highlight=True)
 
     except Exception as e:
         write("Unhandled exception.", 1, highlight=True)
