@@ -1,5 +1,5 @@
 from autohack.core.constant import *
-import logging, pathlib, json, os
+import logging, pathlib, json5, os
 
 
 class I18N:
@@ -28,8 +28,7 @@ class I18N:
         if not os.path.exists(filePath):
             self.logger.critical("[i18n] Translation file not found.")
             raise FileNotFoundError(f"Translation file {filePath} not found.")
-        with open(filePath, "r", encoding="utf-8") as translationFile:
-            translations = json.load(translationFile)
+        translations = json5.load(open(filePath, "r", encoding="utf-8"))
 
         self.logger.info("[i18n] Translation file loaded.")
         return translations
