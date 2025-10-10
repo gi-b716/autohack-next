@@ -7,13 +7,11 @@ on:
     tags:
       - "*"
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  commit:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
-
-    - name: Build python package on normal commit
-      uses: ./.github/workflows/build-python-package.yml
+  build-normal:
+    name: Build on normal commit
+    uses: ./.github/workflows/build-python-package.yml
