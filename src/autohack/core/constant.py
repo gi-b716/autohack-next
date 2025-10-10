@@ -1,10 +1,5 @@
 from typing import Any
 
-VERSION = "1.1.0.dev5"
-
-# Windows executables will use this version.
-VERSION_ID = "1.1.0.5"
-
 DEFAULT_CONFIG: dict[str, Any] = {
     "maximum_number_of_data": 0,
     # ms
