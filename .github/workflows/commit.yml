@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: read
 
-    uses: gi-b716/autohack-next/.github/workflows/build-python-package.yml@main
+    uses: ./.github/workflows/build-python-package.yml
 
   get-changelog:
     name: Build executable on commit
@@ -27,6 +27,13 @@ jobs:
 
     # Start if run from tags or commit message contains [ci release]
     if: startsWith(github.ref, 'refs/tags/') || contains(github.event.head_commit.message, '[ci release]')
+
+    outputs:
+      name: ${{ steps.get-info.outputs.name }}
+      type: ${{ steps.get-info.outputs.type }}
+      hash: ${{ steps.get-info.outputs.hash }}
+      version: ${{ steps.get-info.outputs.version }}
+      app-version: ${{ steps.get-info.outputs.app-version }}
 
     steps:
       - name: Checkout repository
@@ -197,18 +204,107 @@ jobs:
           name: changelog
           path: changelog.md
 
-      - name: Build executable
-        uses: gi-b716/autohack-next/.github/workflows/build-executable.yml@main
+  build-executables:
+    needs: [build-package, get-changelog]
+
+    strategy:
+      matrix:
+        include:
+          # https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+          # Linux
+          - os: ubuntu-24.04
+            platform: linux
+            arch: x64
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          # Windows
+          - os: windows-2025
+            platform: windows
+            arch: x64
+          - os: windows-11-arm
+            platform: windows
+            arch: arm64
+          # macOS
+          - os: macos-13
+            platform: macos
+            arch: Intel
+          - os: macos-15
+            platform: macos
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download changelog
+        uses: actions/download-artifact@v5
         with:
-          NAME: ${{ steps.get-info.outputs.name }}
-          APP_VERSION: ${{ steps.get-info.outputs.app-version }}
-          HASH: ${{ steps.get-info.outputs.hash }}
+          name: changelog
+
+      - name: Configure Python environment
+        uses: ./.github/actions/prepare-python-env
+
+      - name: Setup UPX
+        uses: ./.github/actions/install-upx
+        env:
+          MATRIX_PLATFORM: ${{ matrix.platform }}
+
+      - name: Build executable
+        run: |
+          python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --include-data-dir="autohack/i18n"="autohack/i18n" --file-version=${{ needs.get-changelog.outputs.app-version }} --assume-yes-for-downloads autohack/__main__.py
+
+      - name: Create release package (Linux / macOS)
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
+        run: |
+          mkdir release-package
+          cp README.md release-package/
+          cp changelog.md release-package/CHANGELOG.md
+          cp __main__.bin release-package/autohack
+          cp -r docs release-package/
+          cd release-package
+          zip -r ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip .
+
+      - name: Create release package (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          mkdir release-package
+          cp README.md release-package/
+          cp changelog.md release-package/CHANGELOG.md
+          mv __main__.exe autohack.exe
+          cp autohack.exe release-package/autohack.exe
+          cp -r docs release-package/
+          cd release-package
+          Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip
+
+      - name: Upload executable artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: executable-${{ matrix.platform }}-${{ matrix.arch }}
+          path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip
+
+  publish-release:
+    needs: [build-package, get-changelog, build-executables]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download changelog
+        uses: actions/download-artifact@v5
+        with:
+          name: changelog
 
       - name: Download Python artifacts
         uses: actions/download-artifact@v5
         with:
           name: python-dist
-          path: dist
+          path: dist/
+
+      - name: Download executable artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: executable-*
+          merge-multiple: true
 
       - name: Read changelog for release
         id: read-changelog
@@ -222,7 +318,7 @@ jobs:
       - name: Check if release exists
         id: check-release
         run: |
-          if gh release view ${{ steps.get-info.outputs.name }} > /dev/null 2>&1; then
+          if gh release view ${{ needs.get-changelog.outputs.name }} > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -237,17 +333,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get-info.outputs.name }}
-          release_name: ${{ steps.get-info.outputs.name }}
+          tag_name: ${{ needs.get-changelog.outputs.name }}
+          release_name: ${{ needs.get-changelog.outputs.name }}
           body: ${{ steps.read-changelog.outputs.changelog }}
           draft: false
-          prerelease: ${{ steps.get-info.outputs.type }} != 'release'
+          prerelease: ${{ needs.get-changelog.outputs.type }} != 'Release'
 
       - name: Update existing release
         if: steps.check-release.outputs.exists == 'true'
         run: |
           # Update the existing release with new changelog
-          gh release edit ${{ steps.get-info.outputs.tag }} \
+          gh release edit ${{ needs.get-changelog.outputs.name }} \
             --notes "${{ steps.read-changelog.outputs.changelog }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -257,8 +353,8 @@ jobs:
           # Upload Python packages
           for file in dist/*; do
             # Check if file already exists in release
-            if ! gh release view ${{ steps.get-info.outputs.name }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
-              gh release upload ${{ steps.get-info.outputs.name }} "$file"
+            if ! gh release view ${{ needs.get-changelog.outputs.name }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+              gh release upload ${{ needs.get-changelog.outputs.name }} "$file"
             else
               echo "File $(basename "$file") already exists in release, skipping..."
             fi
@@ -266,8 +362,8 @@ jobs:
           # Upload executable packages
           for file in autohack-*-*-*-*.zip; do
             # Check if file already exists in release
-            if ! gh release view ${{ steps.get-info.outputs.name }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
-              gh release upload ${{ steps.get-info.outputs.name }} "$file"
+            if ! gh release view ${{ needs.get-changelog.outputs.name }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+              gh release upload ${{ needs.get-changelog.outputs.name}} "$file"
             else
               echo "File $(basename "$file") already exists in release, skipping..."
             fi
@@ -284,7 +380,7 @@ jobs:
           uv run twine upload --repository testpypi dist/*
 
       - name: Publish to PyPI
-        if: ${{ steps.get-info.outputs.type }} == 'Release'
+        if: ${{ needs.get-changelog.outputs.type }} == 'Release'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
