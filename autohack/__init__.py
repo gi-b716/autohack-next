@@ -14,4 +14,4 @@ timeInfo = time.strftime("%Y%m%d", time.localtime())
 
 __version__ = f"{__version__}{"" if __version_type__ == 'release' else f".{__version_type__}{timeInfo}"}"
 
-__app_version__ = ".".join(__version__.split(".")[:3]) + f".{timeInfo}"
+__app_version__ = __version__
