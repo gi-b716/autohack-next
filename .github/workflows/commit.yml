@@ -15,6 +15,278 @@ jobs:
   build-package:
     name: Build python package on commit
     permissions:
-        contents: read
+      contents: read
 
     uses: ./.github/workflows/build-python-package.yml
+
+  get-changelog:
+    name: Build executable on commit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    # Start if run from tags or commit message contains [ci release]
+    if: startsWith(github.ref, 'refs/tags/') || contains(github.event.head_commit.message, '[ci release]')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure Python environment
+        uses: ./.github/actions/prepare-python-env
+
+      - name: Get info
+        id: get-info
+        run: |
+          if [ "${{ contains(github.event.head_commit.message, '[ci release]') }}" = "true" ]; then
+            echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            echo "type=Commit" >> $GITHUB_OUTPUT
+          else
+            echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            if [ "${{ contains(github.ref_name, '.dev') }}" = "true" ]; then
+              echo "type=Pre-release" >> $GITHUB_OUTPUT
+            else
+              echo "type=Release" >> $GITHUB_OUTPUT
+            fi
+          fi
+          echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "version=$(uv run python -m autohack --version)" >> $GITHUB_OUTPUT
+          echo "app-version=$(uv run python -m autohack --app-version)" >> $GITHUB_OUTPUT
+
+      - name: Generate complete changelog
+        run: |
+          # Fetch all tags to ensure we have complete history
+          git fetch --tags --unshallow --force || git fetch --tags --force
+
+          # Get the latest non-prerelease tag (excluding current tag if it exists)
+          CURRENT_TAG="${{ steps.get-info.outputs.name }}"
+
+          # Get all tags sorted by version, excluding prereleases and current tag
+          PREV_TAG=$(git tag --list --sort=-version:refname | \
+            grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | \
+            grep -v "^$CURRENT_TAG$" | \
+            head -1)
+
+          if [ -z "$PREV_TAG" ]; then
+            # If no previous release found, use the first commit
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+            echo "No previous release found, using first commit: $PREV_TAG"
+          else
+            echo "Previous release found: $PREV_TAG"
+          fi
+
+          # Create changelog file
+          echo "# ${{ steps.get-info.outputs.type }} $CURRENT_TAG" > changelog.md
+          echo "" >> changelog.md
+
+          # Get commits between previous tag and current commit
+          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
+            if [ "$PREV_TAG" = "$(git rev-list --max-parents=0 HEAD)" ]; then
+              COMMIT_RANGE="HEAD"
+              echo "## 📝 All Changes (Initial Release)" >> changelog.md
+            else
+              COMMIT_RANGE="$PREV_TAG..HEAD"
+              echo "## 📝 Changes since $PREV_TAG" >> changelog.md
+            fi
+          else
+            COMMIT_RANGE="HEAD"
+            echo "## 📝 All Changes" >> changelog.md
+          fi
+
+          echo "" >> changelog.md
+
+          # Count commits
+          COMMIT_COUNT=$(git rev-list --count $COMMIT_RANGE)
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "No new commits since last release." >> changelog.md
+          else
+            echo "**$COMMIT_COUNT commits** in this release:" >> changelog.md
+            echo "" >> changelog.md
+
+            # Generate commit log with better formatting
+            git log $COMMIT_RANGE \
+              --pretty=format:"- [\`%h\`](../../commit/%H) %s (%an, %ad)" \
+              --date=short \
+              --reverse >> changelog.md
+          fi
+
+          echo "" >> changelog.md
+          echo "" >> changelog.md
+
+          # Generate contributors list with commit counts
+          echo "## 👥 Contributors" >> changelog.md
+          echo "" >> changelog.md
+
+          if [ "$COMMIT_COUNT" -gt 0 ]; then
+            # Get contributors with commit counts
+            git log $COMMIT_RANGE \
+              --pretty=format:"%an | <%ae>" | \
+              sort | uniq -c | sort -nr | \
+              while read count info; do
+                echo "- **$info** ($count commits)" >> changelog.md
+              done
+          else
+            echo "No contributors in this release." >> changelog.md
+          fi
+
+          echo "" >> changelog.md
+
+          # Add build information
+          echo "## 🏗️ Build Information" >> changelog.md
+          echo "" >> changelog.md
+          echo "- **Commit**: [\`$(git rev-parse HEAD)\`](../../commit/$(git rev-parse HEAD))" >> changelog.md
+          echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> changelog.md
+          echo "- **Release Type**: ${{ steps.get-info.outputs.type }}" >> changelog.md
+          echo "" >> changelog.md
+
+          # Platform information
+          echo "## 🖥️ Supported Platforms" >> changelog.md
+          echo "" >> changelog.md
+          echo "| Platform | Architecture | Package Name |" >> changelog.md
+          echo "|----------|--------------|--------------|" >> changelog.md
+          echo "| Linux | x64 | \`autohack-linux-x64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Linux | ARM64 | \`autohack-linux-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Windows | x64 | \`autohack-windows-x64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| Windows | ARM64 | \`autohack-windows-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| macOS | Intel | \`autohack-macos-Intel-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "| macOS | ARM64 (Apple Silicon) | \`autohack-macos-arm64-$CURRENT_TAG-$(git rev-parse --short HEAD).zip\` |" >> changelog.md
+          echo "" >> changelog.md
+
+          echo "## 📦 Installation" >> changelog.md
+          echo "" >> changelog.md
+          echo "### Python Package" >> changelog.md
+          echo "" >> changelog.md
+          if [ "${{ steps.get-info.outputs.type }}" = "Pre-release" ]; then
+            echo "This is a pre-release version. To install from TestPyPI, use the following command:" >> changelog.md
+            echo "" >> changelog.md
+            echo "\`\`\`bash" >> changelog.md
+            echo "pip install -i https://test.pypi.org/simple/ autohack-next==${{ steps.get-info.outputs.version }}" >> changelog.md
+            echo "\`\`\`" >> changelog.md
+            echo "" >> changelog.md
+            echo "For stable releases, use the command below:" >> changelog.md
+            echo "" >> changelog.md
+            echo "\`\`\`bash" >> changelog.md
+            echo "pip install autohack-next" >> changelog.md
+            echo "\`\`\`" >> changelog.md
+          elif [ "${{ steps.get-info.outputs.type }}" = "Commit" ]; then
+            echo "This is a development version built from a specific commit. To install, download the .whl file from the assets below and use the following command (replace <file_name> with the actual file name):" >> changelog.md
+            echo "" >> changelog.md
+            echo "\`\`\`bash" >> changelog.md
+            echo "pip install <file_name>.whl" >> changelog.md
+            echo "\`\`\`" >> changelog.md
+          else
+            echo "To install the latest stable release from PyPI, use the following command:" >> changelog.md
+            echo "" >> changelog.md
+            echo "\`\`\`bash" >> changelog.md
+            echo "pip install autohack-next==${{ steps.get-info.outputs.version }}" >> changelog.md
+            echo "\`\`\`" >> changelog.md
+          fi
+          # echo "\`\`\`bash" >> changelog.md
+          # echo "pip install autohack-next==${{ steps.get-info.outputs.version }}" >> changelog.md
+          # echo "\`\`\`" >> changelog.md
+          echo "" >> changelog.md
+          echo "### Standalone Executable" >> changelog.md
+          echo "" >> changelog.md
+          echo "1. Download the appropriate package for your platform from the assets below" >> changelog.md
+          echo "2. Extract the zip file" >> changelog.md
+          echo "3. Run the \`autohack\` executable" >> changelog.md
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+
+      - name: Build executable
+        uses: ./.github/workflows/build-executable.yml
+        with:
+          NAME: ${{ steps.get-info.outputs.name }}
+          APP_VERSION: ${{ steps.get-info.outputs.app-version }}
+          HASH: ${{ steps.get-info.outputs.hash }}
+
+      - name: Download Python artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: python-dist
+          path: dist
+
+      - name: Read changelog for release
+        id: read-changelog
+        run: |
+          {
+            echo 'changelog<<EOF'
+            cat changelog.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+
+      - name: Check if release exists
+        id: check-release
+        run: |
+          if gh release view ${{ steps.get-info.outputs.name }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        if: steps.check-release.outputs.exists == 'false'
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-info.outputs.name }}
+          release_name: ${{ steps.get-info.outputs.name }}
+          body: ${{ steps.read-changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ steps.get-info.outputs.type }} != 'release'
+
+      - name: Update existing release
+        if: steps.check-release.outputs.exists == 'true'
+        run: |
+          # Update the existing release with new changelog
+          gh release edit ${{ steps.get-info.outputs.tag }} \
+            --notes "${{ steps.read-changelog.outputs.changelog }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        run: |
+          # Upload Python packages
+          for file in dist/*; do
+            # Check if file already exists in release
+            if ! gh release view ${{ steps.get-info.outputs.name }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+              gh release upload ${{ steps.get-info.outputs.name }} "$file"
+            else
+              echo "File $(basename "$file") already exists in release, skipping..."
+            fi
+          done
+          # Upload executable packages
+          for file in autohack-*-*-*-*.zip; do
+            # Check if file already exists in release
+            if ! gh release view ${{ steps.get-info.outputs.name }} --json assets --jq '.assets[].name' | grep -q "$(basename "$file")"; then
+              gh release upload ${{ steps.get-info.outputs.name }} "$file"
+            else
+              echo "File $(basename "$file") already exists in release, skipping..."
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to TestPyPI
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
+        run: |
+          uv run twine upload --repository testpypi dist/*
+
+      - name: Publish to PyPI
+        if: ${{ steps.get-info.outputs.type }} == 'Release'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          uv run twine upload dist/*
