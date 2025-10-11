@@ -47,7 +47,7 @@ checker 函数需要接受输入、输出、答案及参数列表，返回一个
 形式化地说，您的函数签名应该如下。
 
 ```python
-# src/autohack/core/checker.py
+# autohack/core/checker.py
 
 from typing import Callable, TypeAlias
 

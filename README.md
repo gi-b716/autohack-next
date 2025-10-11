@@ -47,7 +47,7 @@ Optionally, a custom checker may also provide a `deactivate` function which acce
 Formally, your function signatures should be as follows:
 
 ```python
-# src/autohack/core/checker.py
+# autohack/core/checker.py
 
 from typing import Callable, TypeAlias
 
