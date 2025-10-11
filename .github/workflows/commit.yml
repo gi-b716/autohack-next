@@ -17,4 +17,4 @@ jobs:
     permissions:
         contents: read
 
-    uses: ./.github/actions/build-python-package.yml@main
+    uses: ./.github/workflows/build-python-package.yml@main
