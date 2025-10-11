@@ -253,7 +253,7 @@ jobs:
 
       - name: Build executable
         run: |
-          uv run nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --include-data-dir="autohack/i18n"="autohack/i18n" --file-version=${{ needs.get-changelog.outputs.app-version }} --assume-yes-for-downloads autohack/__main__.py
+          uv run python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --include-data-dir="autohack/i18n"="autohack/i18n" --file-version=${{ needs.get-changelog.outputs.app-version }} --assume-yes-for-downloads autohack/__main__.py
 
       - name: Create release package (Linux / macOS)
         if: matrix.platform == 'linux' || matrix.platform == 'macos'
