@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: read
 
-    uses: ./.github/workflows/build-python-package.yml
+    uses: gi-b716/autohack-next/.github/workflows/build-python-package.yml@main
 
   get-changelog:
     name: Build executable on commit
@@ -198,7 +198,7 @@ jobs:
           path: changelog.md
 
       - name: Build executable
-        uses: ./.github/workflows/build-executable.yml
+        uses: gi-b716/autohack-next/.github/workflows/build-executable.yml@main
         with:
           NAME: ${{ steps.get-info.outputs.name }}
           APP_VERSION: ${{ steps.get-info.outputs.app-version }}
