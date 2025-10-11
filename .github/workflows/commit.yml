@@ -12,6 +12,9 @@ defaults:
     shell: bash
 
 jobs:
-  build-normal:
-    name: Build on commit
+  build-package:
+    name: Build python package on commit
+    permissions:
+        contents: read
+
     uses: ./.github/actions/build-python-package.yml
