@@ -45,6 +45,7 @@ jobs:
       - name: Get info
         id: get-info
         run: |
+          uv run autohack --version
           if [ "${{ contains(github.event.head_commit.message, '[ci release]') }}" = "true" ]; then
             echo "name=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
             echo "type=Commit" >> $GITHUB_OUTPUT
@@ -57,8 +58,8 @@ jobs:
             fi
           fi
           echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=$(uv run python -m autohack --version)" >> $GITHUB_OUTPUT
-          echo "app-version=$(uv run python -m autohack --app-version)" >> $GITHUB_OUTPUT
+          echo "version=$(uv run autohack --version)" >> $GITHUB_OUTPUT
+          echo "app-version=$(uv run autohack --app-version)" >> $GITHUB_OUTPUT
 
       - name: Generate complete changelog
         run: |
@@ -252,7 +253,7 @@ jobs:
 
       - name: Build executable
         run: |
-          python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --include-data-dir="autohack/i18n"="autohack/i18n" --file-version=${{ needs.get-changelog.outputs.app-version }} --assume-yes-for-downloads autohack/__main__.py
+          uv run nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --include-data-dir="autohack/i18n"="autohack/i18n" --file-version=${{ needs.get-changelog.outputs.app-version }} --assume-yes-for-downloads autohack/__main__.py
 
       - name: Create release package (Linux / macOS)
         if: matrix.platform == 'linux' || matrix.platform == 'macos'
@@ -289,6 +290,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Configure Python environment
+        uses: ./.github/actions/prepare-python-env
+
       - name: Download changelog
         uses: actions/download-artifact@v5
         with:
