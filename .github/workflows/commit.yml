@@ -352,7 +352,7 @@ jobs:
           release_name: ${{ needs.get-changelog.outputs.name }}
           body: ${{ steps.read-changelog.outputs.changelog }}
           draft: false
-          prerelease: ${{ needs.get-changelog.outputs.type }} != 'Release'
+          prerelease: ${{ needs.get-changelog.outputs.type != 'Release' }}
 
       - name: Update existing release
         if: steps.check-release.outputs.exists == 'true'
@@ -395,7 +395,7 @@ jobs:
           uv run twine upload --repository testpypi dist/*
 
       - name: Publish to PyPI
-        if: ${{ needs.get-changelog.outputs.type }} == 'Release'
+        if: ${{ needs.get-changelog.outputs.type == 'Release' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
