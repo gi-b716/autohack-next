@@ -238,13 +238,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Configure Python environment
+        uses: ./.github/actions/prepare-python-env
+
       - name: Download changelog
         uses: actions/download-artifact@v5
         with:
           name: changelog
-
-      - name: Configure Python environment
-        uses: ./.github/actions/prepare-python-env
 
       - name: Setup UPX
         uses: ./.github/actions/install-upx
@@ -290,6 +290,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Configure Python environment
         uses: ./.github/actions/prepare-python-env
 
