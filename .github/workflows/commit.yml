@@ -249,7 +249,7 @@ jobs:
         uses: ./.github/actions/prepare-python-env
 
       - name: Download changelog
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: changelog
 
@@ -305,18 +305,18 @@ jobs:
         uses: ./.github/actions/prepare-python-env
 
       - name: Download changelog
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: changelog
 
       - name: Download Python artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: python-dist
           path: dist/
 
       - name: Download executable artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: executable-*
           merge-multiple: true
