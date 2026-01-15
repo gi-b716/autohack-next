@@ -207,7 +207,7 @@ jobs:
           echo "3. Run the \`autohack\` executable" >> changelog.md
 
       - name: Upload changelog
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: changelog
           path: changelog.md
@@ -287,7 +287,7 @@ jobs:
           Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip
 
       - name: Upload executable artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: executable-${{ matrix.platform }}-${{ matrix.arch }}
           path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip
