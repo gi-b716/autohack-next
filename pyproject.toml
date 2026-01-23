@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [tool.setuptools.dynamic]
-version = {attr = "autohack.__version__"}
+version = {attr = "autohack.__VERSION__"}
 
 [project.urls]
 Homepage = "https://github.com/gi-b716/autohack-next"

@@ -66,7 +66,7 @@ jobs:
           fi
           echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "version=$(uv run autohack --version)" >> $GITHUB_OUTPUT
-          echo "app-version=$(uv run autohack --app-version)" >> $GITHUB_OUTPUT
+          echo "app-version=$(uv run python get_executable_version.py $(uv run autohack --version))" >> $GITHUB_OUTPUT
 
       - name: Generate complete changelog
         run: |

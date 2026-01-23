@@ -1,4 +1,4 @@
-from autohack import __version__, __app_version__
+from autohack import __VERSION__
 from autohack.core.checker import *
 from autohack.core.constant import *
 from autohack.core.exception import *
@@ -18,8 +18,7 @@ def main() -> None:
     global CLIENT_ID, LOG_TIME
 
     argsParser = argparse.ArgumentParser(prog="autohack", description="autohack-next - Automated hack data generator")
-    argsParser.add_argument("--version", action="store_true", help="Show version information")
-    argsParser.add_argument("--app-version", action="store_true", help="Show internal version ID")
+    argsParser.add_argument("--version", "-V", action="store_true", help="Show version information")
     argsParser.add_argument("--debug", action="store_true", help="Enable debug mode with DEBUG logging level")
     argsParser.add_argument("--reset-global-config", action="store_true", help="Reset the global config file")
     # TODO: 添加一个参数用于清除过往数据
@@ -27,11 +26,7 @@ def main() -> None:
     args = argsParser.parse_args()
 
     if args.version:
-        write(f"{__version__}")
-        exitProgram(0, True)
-
-    if args.app_version:
-        write(f"{__app_version__}")
+        write(f"{__VERSION__}")
         exitProgram(0, True)
 
     hideCursor()
@@ -90,8 +85,8 @@ def main() -> None:
 
     logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
     logger.info(f"[autohack] Client ID: {CLIENT_ID}")
-    logger.info(f"[autohack] Initialized. Version: {__version__}")
-    writeMessage(I18n, "__main__.start.version", __version__, CLIENT_ID, endl=2)
+    logger.info(f"[autohack] Initialized. Version: {__VERSION__}")
+    writeMessage(I18n, "__main__.start.version", __VERSION__, CLIENT_ID, endl=2)
     writeMessage(I18n, "__main__.start.data", getHackDataStorageFolderPath(CLIENT_ID, LOG_TIME), endl=1)
     writeMessage(I18n, "__main__.start.log", loggerObj.getLogFilePath(), endl=1)
     writeMessage(I18n, "__main__.start.export", getExportFolderPath(LOG_TIME, CLIENT_ID), endl=1)
