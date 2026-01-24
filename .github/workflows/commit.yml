@@ -234,7 +234,7 @@ jobs:
             platform: windows
             arch: arm64
           # macOS
-          - os: macos-13
+          - os: macos-15-intel
             platform: macos
             arch: Intel
           - os: macos-15
