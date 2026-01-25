@@ -37,7 +37,7 @@ Repository = "https://github.com/gi-b716/autohack-next.git"
 "Bug Tracker" = "https://github.com/gi-b716/autohack-next/issues"
 
 [project.scripts]
-autohack = "autohack.scripts:entrypoint"
+autohack = "autohack:entrypoint"
 
 [project.optional-dependencies]
 build = [
