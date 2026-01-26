@@ -3,6 +3,36 @@ from typing import Callable
 import readchar, inspect, pathlib, time, sys, os
 
 
+class ANSIHelper:
+    TEMPLATE = "\x1b[{}m"
+
+    RESET = "0"
+    BOLD = "1"
+    DIM = "2"
+    ITALIC = "3"
+    UNDERLINE = "4"
+    REVERSED = "7"
+    DELETELINE = "9"
+
+    BLACK = "30"
+    RED = "31"
+    GREEN = "32"
+    YELLOW = "33"
+    BLUE = "34"
+    MAGENTA = "35"
+    CYAN = "36"
+    WHITE = "37"
+
+    @staticmethod
+    def formatCode(effect: list[str]) -> str:
+        return f"{ANSIHelper.TEMPLATE.format(';'.join(effect))}"
+
+    @staticmethod
+    def colorText(text: str, effect: str | list[str] | None) -> str:
+        effect = [effect] if isinstance(effect, str) else (effect or [])
+        return f"{ANSIHelper.formatCode(effect)}{text}{ANSIHelper.formatCode([ANSIHelper.RESET])}"
+
+
 def ensureDirExists(dirPath: pathlib.Path) -> None:
     dirPath.mkdir(parents=True, exist_ok=True)
 
