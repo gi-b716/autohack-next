@@ -4,6 +4,10 @@ import readchar, inspect, pathlib, time, sys, os
 
 
 class ANSIHelper:
+    CLEAR_LINE = "\x1b[2K\r"
+    PREV_LINE = "\x1b[1A"
+    NEXT_LINE = "\n"
+
     TEMPLATE = "\x1b[{}m"
 
     RESET = "0"
@@ -60,35 +64,35 @@ def readData(filePath: pathlib.Path) -> bytes:
     return open(filePath, "rb").read()
 
 
-def clearLine() -> None:
-    write("\x1b[2K\r")
-
-
-def prevLine() -> None:
-    write("\x1b[1A")
-
-
-def outputEndl(count: int = 1) -> None:
-    sys.stdout.write("\n" * count)
-
-
 def inputMessage(prompt: str = "", endl: int = 0, clear: bool = False) -> str:
     showCursor()
-    write(prompt, endl, clear)
+    write(prompt, endl=endl, clear=clear)
     try:
         return input()
     finally:
         hideCursor()
 
 
-def write(message: str, endl: int = 0, clear: bool = False, highlight: bool = False) -> None:
+# def write(message: str, endl: int = 0, clear: bool = False, highlight: bool = False) -> None:
+#     if clear:
+#         clearLine()
+#     if highlight:
+#         message = highlightText(message)
+#     sys.stdout.write(message)
+#     outputEndl(endl)
+#     sys.stdout.flush()
+
+
+def write(*messages: str, endl: int = 0, sep: str = "", clear: bool = False, highlight: bool = False, flush: bool = True) -> None:
     if clear:
-        clearLine()
+        sys.stdout.write(ANSIHelper.CLEAR_LINE)
+    message = sep.join(messages)
     if highlight:
         message = highlightText(message)
     sys.stdout.write(message)
-    outputEndl(endl)
-    sys.stdout.flush()
+    sys.stdout.write("\n" * endl)
+    if flush:
+        sys.stdout.flush()
 
 
 def getTranslatedMessage(I18n: I18N, message: str, *args, language: str = "") -> str:
@@ -104,7 +108,7 @@ def writeMessage(
     clear: bool = False,
     highlight: bool = False,
 ) -> None:
-    write(I18n.translate(message, language).format(*map(str, args)), endl, clear, highlight)
+    write(I18n.translate(message, language).format(*map(str, args)), endl=endl, clear=clear, highlight=highlight)
 
 
 def hideCursor() -> None:
@@ -147,13 +151,13 @@ def getFolderSize(folderPath: pathlib.Path) -> int:
 
 def selectionMenu(selectionList: list[str]) -> int:
     currentSelection = 0
-    write("Use Up/Down arrows to navigate, Enter to select.", 1)
+    write("Use Up/Down arrows to navigate, Enter to select.", endl=1)
 
     def updateSelection() -> None:
         for i, selectionItem in enumerate(selectionList):
             write(
                 f"{">" if i == currentSelection else " "} {selectionItem}",
-                1 if i < len(selectionList) - 1 else 0,
+                endl=1 if i < len(selectionList) - 1 else 0,
                 clear=True,
                 highlight=(i == currentSelection),
             )
@@ -167,10 +171,10 @@ def selectionMenu(selectionList: list[str]) -> int:
             currentSelection = currentSelection + 1 if currentSelection < len(selectionList) - 1 else 0
         elif k == readchar.key.ENTER:
             for _ in range(len(selectionList) + 1):
-                clearLine()
-                prevLine()
+                write(ANSIHelper.CLEAR_LINE)
+                write(ANSIHelper.PREV_LINE)
             return currentSelection
         elif k == readchar.key.ESC:
             exitProgram(0)
         for _ in range(len(selectionList) - 1):
-            prevLine()
+            write(ANSIHelper.PREV_LINE)

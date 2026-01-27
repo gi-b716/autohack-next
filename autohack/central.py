@@ -33,9 +33,9 @@ class AppCentral:
 
         if not GLOBAL_CONFIG_FILE_PATH.exists():
             logger.info("[autohack] Global config file not found. Creating new one.")
-            write("Welcome to autohack-next!", 1)
-            write("A global config file will be created.", 1)
-            write("Please select your preferred language:", 1)
+            write("Welcome to autohack-next!", endl=1)
+            write("A global config file will be created.", endl=1)
+            write("Please select your preferred language:", endl=1)
             # for i, (langID) in enumerate(LANGUAGE_MAPS):
             #     write(f"  {i+1}: {langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}", 1)
             # showCursor()
@@ -53,11 +53,11 @@ class AppCentral:
             globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
             globalConfig.modifyConfigEntry("language", selectedLang)
             I18n.setDefaultLanguage(selectedLang)
-            clearLine()
-            prevLine()
-            clearLine()
-            prevLine()
-            clearLine()
+            write(ANSIHelper.CLEAR_LINE)
+            write(ANSIHelper.PREV_LINE)
+            write(ANSIHelper.CLEAR_LINE)
+            write(ANSIHelper.PREV_LINE)
+            write(ANSIHelper.CLEAR_LINE)
             writeMessage(I18n, "__main__.language-select.result", _("language-info"), endl=1)
             writeMessage(I18n, "__main__.language-select.info", GLOBAL_CONFIG_FILE_PATH, endl=2)
 
@@ -146,9 +146,9 @@ class AppCentral:
             writeMessage(I18n, "__main__.status", f"{total:.2f}", f"{averagePerS:.2f}", f"{averagePerData:.2f}", clear=True)
             write(addtional)
 
-        outputEndl()
+        write(endl=1)
         updateStatus(0.0, 0.0, 0.0, " (0%)" if maximumDataLimit > 0 else "")
-        prevLine()
+        write(ANSIHelper.PREV_LINE)
 
         startTime = time.time()
 
@@ -200,7 +200,7 @@ class AppCentral:
             if dataCount % refreshSpeed == 0 or lastStatusError:
                 lastStatusError = False
                 currentTime = time.time()
-                outputEndl()
+                write(endl=1)
                 # write(
                 #     f"Time taken: {currentTime - startTime:.2f} seconds, average {dataCount/(currentTime - startTime):.2f} data per second, {(currentTime - startTime)/dataCount:.2f} second per data.{f" ({dataCount*100/maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else ""}",
                 #     clear=True,
@@ -211,7 +211,7 @@ class AppCentral:
                     (currentTime - startTime) / dataCount,
                     f" ({dataCount*100/maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else "",
                 )
-                prevLine()
+                write(ANSIHelper.PREV_LINE)
 
             saveData, termMessage, logMessage, extMessage, exitAfterSave = (False, "", "", None, False)
 
@@ -259,9 +259,9 @@ class AppCentral:
                 writeData(
                     getHackDataFilePath(getHackDataStorageFolderPath(self.clientID, self.logTime), errorDataCount, outputFilePath), result.stdout
                 )
-                write(f"[{errorDataCount}]: {termMessage}", 1, True)
+                write(f"[{errorDataCount}]: {termMessage}", endl=1, clear=True)
                 if extMessage is not None and extMessage != "":
-                    write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", 1, True)
+                    write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", endl=1, clear=True)
                 logger.info(f"[autohack] {logMessage}")
 
             if exitAfterSave:
@@ -277,7 +277,7 @@ class AppCentral:
         #     True,
         # )
         updateStatus(endTime - startTime, dataCount / (endTime - startTime), (endTime - startTime) / dataCount, "")
-        outputEndl(2)
+        write(endl=2)
 
         # if errorDataCount == 0:
         #     shutil.rmtree(getHackDataStorageFolderPath(clientID))
