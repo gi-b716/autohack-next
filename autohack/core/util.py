@@ -73,22 +73,10 @@ def inputMessage(prompt: str = "", endl: int = 0, clear: bool = False) -> str:
         hideCursor()
 
 
-# def write(message: str, endl: int = 0, clear: bool = False, highlight: bool = False) -> None:
-#     if clear:
-#         clearLine()
-#     if highlight:
-#         message = highlightText(message)
-#     sys.stdout.write(message)
-#     outputEndl(endl)
-#     sys.stdout.flush()
-
-
-def write(*messages: str, endl: int = 0, sep: str = "", clear: bool = False, highlight: bool = False, flush: bool = True) -> None:
+def write(*messages: str, endl: int = 0, sep: str = "", clear: bool = False, flush: bool = True) -> None:
     if clear:
         sys.stdout.write(ANSIHelper.CLEAR_LINE)
     message = sep.join(messages)
-    if highlight:
-        message = highlightText(message)
     sys.stdout.write(message)
     sys.stdout.write("\n" * endl)
     if flush:
@@ -108,7 +96,10 @@ def writeMessage(
     clear: bool = False,
     highlight: bool = False,
 ) -> None:
-    write(I18n.translate(message, language).format(*map(str, args)), endl=endl, clear=clear, highlight=highlight)
+    message = I18n.translate(message, language).format(*map(str, args))
+    if highlight:
+        message = ANSIHelper.colorText(message, [ANSIHelper.BOLD, ANSIHelper.RED])
+    write(message, endl=endl, clear=clear)
 
 
 def hideCursor() -> None:
@@ -118,10 +109,6 @@ def hideCursor() -> None:
 
 def showCursor() -> None:
     write("\x1b[?25h")
-
-
-def highlightText(message: str) -> str:
-    return f"\x1b[1;31m{message}\x1b[0m"
 
 
 def exitProgram(exitCode: int = 0, pure: bool = False) -> None:
@@ -156,10 +143,12 @@ def selectionMenu(selectionList: list[str]) -> int:
     def updateSelection() -> None:
         for i, selectionItem in enumerate(selectionList):
             write(
-                f"{">" if i == currentSelection else " "} {selectionItem}",
+                ANSIHelper.colorText(
+                    f"{">" if i == currentSelection else " "} {selectionItem}", [ANSIHelper.RED, ANSIHelper.BOLD] if i == currentSelection else []
+                ),
                 endl=1 if i < len(selectionList) - 1 else 0,
                 clear=True,
-                highlight=(i == currentSelection),
+                # highlight=(i == currentSelection),
             )
 
     while True:
