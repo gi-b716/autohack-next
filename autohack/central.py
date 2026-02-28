@@ -8,7 +8,7 @@ from autohack.core.run import *
 from autohack.lib.config import *
 from autohack.lib.logger import *
 from autohack.lib.i18n import *
-import traceback, logging, time, os
+import traceback, time, os
 from uuid import UUID
 
 
@@ -25,14 +25,14 @@ class AppCentral:
         ensureDirExists(LOG_FOLDER_PATH)
 
         # TODO: Debug
-        loggerObj = Logger(LOG_FOLDER_PATH, logging.DEBUG if self.debug else logging.INFO, self.logTime)
-        logger = loggerObj.getLogger()
+        loggerObj = Logger(LOG_FOLDER_PATH, self.debug)
+        logger = loggerObj.getLogger().bind(module="autohack")
 
         I18n = I18N(TRANSLATION_FOLDER_PATH, logger)
         _ = I18n.translate
 
         if not GLOBAL_CONFIG_FILE_PATH.exists():
-            logger.info("[autohack] Global config file not found. Creating new one.")
+            logger.info("Global config file not found. Creating new one.")
             write("Welcome to autohack-next!", endl=1)
             write("A global config file will be created.", endl=1)
             write("Please select your preferred language:", endl=1)
@@ -72,9 +72,9 @@ class AppCentral:
             getTranslatedMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH),
         )
 
-        logger.info(f'[autohack] Data folder path: "{DATA_FOLDER_PATH}"')
-        logger.info(f"[autohack] Client ID: {self.clientID}")
-        logger.info(f"[autohack] Initialized. Version: {__VERSION__}")
+        logger.info(f'Data folder path: "{DATA_FOLDER_PATH}"')
+        logger.info(f"Client ID: {self.clientID}")
+        logger.info(f"Initialized. Version: {__VERSION__}")
         writeMessage(I18n, "__main__.start.version", __VERSION__, self.clientID, endl=2)
         writeMessage(I18n, "__main__.start.data", getHackDataStorageFolderPath(self.clientID, self.logTime), endl=1)
         writeMessage(I18n, "__main__.start.log", loggerObj.getLogFilePath(), endl=1)
@@ -97,13 +97,13 @@ class AppCentral:
                 compileCode(file[0])
             except autohackRuntimeError as e:
                 logger.error(
-                    f"[autohack] {_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.output.decode(errors="ignore")}"
+                    f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.output.decode(errors="ignore")}"
                 )
                 writeMessage(I18n, "__main__.compile.error", _(file[1]).capitalize(), e.returnCode, endl=2, clear=True, highlight=True)
                 write(e.output.decode(errors="ignore"))
                 exitProgram(1)
             else:
-                logger.debug(f"[autohack] {_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compiled successfully.")
+                logger.debug(f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compiled successfully.")
         writeMessage(I18n, "__main__.compile.finish", endl=1, clear=True)
 
         writeMessage(I18n, "__main__.activate-checker.doing", config.getConfigEntry("checker.name"))
@@ -114,7 +114,7 @@ class AppCentral:
             currentChecker = getCheckerResult[0]
             deactivateFunc = getCheckerResult[1]
         except Exception as e:
-            logger.critical(f"[autohack] {e}")
+            logger.critical(f"{e}")
             writeMessage(I18n, "__main__.activate-checker.failed", endl=1, clear=True, highlight=True)
             traceback.print_exc()
             exitProgram(1)
@@ -161,10 +161,10 @@ class AppCentral:
             try:
                 # write(f"{dataCount}: Generate input.", clear=True)
                 writeMessage(I18n, "__main__.main.generate-input", dataCount, clear=True)
-                logger.debug(f"[autohack] Generating data {dataCount}.")
+                logger.debug(f"Generating data {dataCount}.")
                 dataInput = generateInput(generateCommand)
             except autohackRuntimeError as e:
-                logger.error(f"[autohack] Input generation failed with return code {e.returnCode}.")
+                logger.error(f"Input generation failed with return code {e.returnCode}.")
                 writeMessage(I18n, "__main__.main.generate-input-failed", e.returnCode, endl=1, clear=True, highlight=True)
                 inputExportPath = getExportDataPath(getExportFolderPath(self.logTime, self.clientID), "input")
                 writeData(inputExportPath, e.output)
@@ -174,10 +174,10 @@ class AppCentral:
             try:
                 # write(f"{dataCount}: Generate answer.", clear=True)
                 writeMessage(I18n, "__main__.main.generate-answer", dataCount, clear=True)
-                logger.debug(f"[autohack] Generating answer for data {dataCount}.")
+                logger.debug(f"Generating answer for data {dataCount}.")
                 dataAnswer = generateAnswer(stdCommand, dataInput)
             except autohackRuntimeError as e:
-                logger.error(f"[autohack] Answer generation failed with return code {e.returnCode}.")
+                logger.error(f"Answer generation failed with return code {e.returnCode}.")
                 writeMessage(I18n, "__main__.main.generate-answer-failed", e.returnCode, endl=1, clear=True, highlight=True)
                 inputExportPath = getExportDataPath(getExportFolderPath(self.logTime, self.clientID), "input")
                 writeData(inputExportPath, dataInput)
@@ -189,7 +189,7 @@ class AppCentral:
 
             # write(f"{dataCount}: Run source code.", clear=True)
             writeMessage(I18n, "__main__.main.run-source", dataCount, clear=True)
-            logger.debug(f"[autohack] Run source code for data {dataCount}.")
+            logger.debug(f"Run source code for data {dataCount}.")
             result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
             if result.stdout is None:
                 result.stdout = b""
@@ -262,7 +262,7 @@ class AppCentral:
                 write(f"[{errorDataCount}]: {termMessage}", endl=1, clear=True)
                 if extMessage is not None and extMessage != "":
                     write(f"{(len(f'[{errorDataCount}]: ')-3)*' '} - {extMessage}", endl=1, clear=True)
-                logger.info(f"[autohack] {logMessage}")
+                logger.info(f"{logMessage}")
 
             if exitAfterSave:
                 writeMessage(I18n, "__main__.main.checker-failed-exit", clear=True, highlight=True)
@@ -282,12 +282,12 @@ class AppCentral:
         # if errorDataCount == 0:
         #     shutil.rmtree(getHackDataStorageFolderPath(clientID))
         #     write("No error data found. Hack data folder removed.", 1)
-        #     logger.info("[autohack] No error data found. Hack data folder removed.")
+        #     logger.info("No error data found. Hack data folder removed.")
 
         dataFolderMaxSize = globalConfig.getConfigEntry("data_folder_max_size")
         # print(getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) / 1024 / 1024, " ", dataFolderMaxSize)
         if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > dataFolderMaxSize * 1024 * 1024:
-            logger.warning(f"[autohack] Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
+            logger.warning(f"Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
             # write(f"Warning: Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}", 2)
             writeMessage(I18n, "__main__.data-folder-size-warning", dataFolderMaxSize, HACK_DATA_STORAGE_FOLDER_PATH, endl=2, highlight=True)
 
@@ -295,7 +295,7 @@ class AppCentral:
         try:
             deactivateFunc(config.getConfigEntry("checker.args"))
         except Exception as e:
-            logger.error(f"[autohack] Checker deactivation failed with exception: {e}")
+            logger.error(f"Checker deactivation failed with exception: {e}")
             writeMessage(I18n, "__main__.deactivate-checker.failed", endl=1, clear=True, highlight=True)
             traceback.print_exc()
             exitProgram(1)
@@ -303,4 +303,4 @@ class AppCentral:
 
         writeMessage(I18n, "__main__.post-command", endl=1)
         os.system(config.getConfigEntry("command_at_end"))
-        logger.info("[autohack] Finished.")
+        logger.info("Finished.")

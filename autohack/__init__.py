@@ -14,10 +14,11 @@ def entrypoint():
         description="autohack-next - Automated hack data generator",
     )
     argsParser.add_argument("--version", "-v", action="version", version=__VERSION__)
+    argsParser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode", default=False)
 
     args = argsParser.parse_args()
 
-    app = AppCentral(str(uuid.uuid4()), time.localtime(), debug=False)
+    app = AppCentral(str(uuid.uuid4()), time.localtime(), debug=args.debug)
     app.run()
 
     # TODO: Keyboard interrupt handling
