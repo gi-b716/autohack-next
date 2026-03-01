@@ -3,7 +3,7 @@ __VERSION__ = "1.1.0.dev5"
 
 def entrypoint():
     from argparse import ArgumentParser
-    import uuid, time
+    import secrets, time
     import colorama
     from autohack.central import AppCentral
 
@@ -18,7 +18,8 @@ def entrypoint():
 
     args = argsParser.parse_args()
 
-    app = AppCentral(str(uuid.uuid4()), time.localtime(), debug=args.debug)
+    # 使用 8位 短随机字符代替过长的 UUID，防止冗长同时保证多个实例独立
+    app = AppCentral(secrets.token_hex(4), time.localtime(), debug=args.debug)
     app.run()
 
     # TODO: Keyboard interrupt handling

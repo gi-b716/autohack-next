@@ -23,7 +23,9 @@ TRANSLATION_FOLDER_PATH = pathlib.Path(__file__).parent.parent / "i18n"
 
 
 def getHackDataStorageFolderPath(clientID: str, startTime: time.struct_time) -> pathlib.Path:
-    return HACK_DATA_STORAGE_FOLDER_PATH / f"{formatTime(startTime)}_{clientID}"
+    dateStr = time.strftime("%Y-%m-%d", startTime)
+    timeStr = time.strftime("%H-%M-%S", startTime)
+    return HACK_DATA_STORAGE_FOLDER_PATH / dateStr / f"{timeStr}_{clientID}"
 
 
 def getHackDataFilePath(hackDataStorageFolder: pathlib.Path, dataID: int, filePath: str) -> pathlib.Path:
@@ -31,9 +33,11 @@ def getHackDataFilePath(hackDataStorageFolder: pathlib.Path, dataID: int, filePa
 
 
 def getExportFolderPath(startTime: time.struct_time, clientID: str | None = None) -> pathlib.Path:
+    dateStr = time.strftime("%Y-%m-%d", startTime)
+    timeStr = time.strftime("%H-%M-%S", startTime)
     if clientID is None:
-        return EXPORT_FOLDER_PATH / formatTime(startTime)
-    return EXPORT_FOLDER_PATH / f"{formatTime(startTime)}_{clientID}"
+        return EXPORT_FOLDER_PATH / dateStr / timeStr
+    return EXPORT_FOLDER_PATH / dateStr / f"{timeStr}_{clientID}"
 
 
 def getExportDataPath(exportFolder: pathlib.Path, filePath: str) -> pathlib.Path:
