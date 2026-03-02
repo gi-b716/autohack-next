@@ -1,4 +1,10 @@
-__VERSION__ = "1.1.0.dev5"
+__VERSION__ = None
+try:
+    from importlib.metadata import version
+
+    __VERSION__ = version("autohack-next")
+except Exception:
+    pass
 
 
 def entrypoint():

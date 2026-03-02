@@ -45,6 +45,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Configure Python environment
         uses: ./.github/actions/prepare-python-env
@@ -53,6 +55,7 @@ jobs:
         id: get-info
         run: |
           uv run autohack --version
+          VERSION=$(uv run autohack --version)
           if [ "${{ startsWith(github.ref, 'refs/tags') }}" = "true" ]; then
             echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
             if [ "${{ contains(github.ref_name, '.dev') }}" = "true" ]; then
@@ -65,8 +68,14 @@ jobs:
             echo "type=Commit" >> $GITHUB_OUTPUT
           fi
           echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "version=$(uv run autohack --version)" >> $GITHUB_OUTPUT
-          echo "app-version=$(uv run python get_executable_version.py $(uv run autohack --version))" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Convert version like 1.1.0.dev5 to 1.1.0 for executable
+          APP_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3}')
+          if [ -z "$APP_VERSION" ] || [ "$APP_VERSION" = ".." ]; then
+            APP_VERSION="0.0.0"
+          fi
+          echo "app-version=$APP_VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate complete changelog
         run: |

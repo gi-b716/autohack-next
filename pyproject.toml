@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "autohack-next"
-dynamic = ["version"]
+version = "1.1.0.dev5"
 description = " highly customizable competitive programming Hack tool written in Python."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -26,9 +26,6 @@ dependencies = [
     "psutil>=7.1.0",
     "readchar>=4.2.1",
 ]
-
-[tool.setuptools.dynamic]
-version = {attr = "autohack.__VERSION__"}
 
 [project.urls]
 Homepage = "https://github.com/gi-b716/autohack-next"
