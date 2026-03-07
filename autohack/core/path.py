@@ -1,4 +1,3 @@
-from autohack.core.util import *
 import platformdirs, pathlib, time, os
 
 dirs = platformdirs.PlatformDirs("autohack", "Gavin", version="v1")
@@ -19,7 +18,7 @@ GLOBAL_DATA_FOLDER_PATH = pathlib.Path(dirs.user_data_dir)
 
 GLOBAL_CONFIG_FILE_PATH = GLOBAL_DATA_FOLDER_PATH / "config.json"
 
-TRANSLATION_FOLDER_PATH = pathlib.Path(__file__).parent.parent / "i18n"
+TRANSLATION_FOLDER_PATH = pathlib.Path(__file__).parent.parent / "assets" / "i18n"
 
 
 def getHackDataStorageFolderPath(clientID: str, startTime: time.struct_time) -> pathlib.Path:

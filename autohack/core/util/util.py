@@ -1,4 +1,4 @@
-from autohack.lib.i18n import *
+from autohack.core.lib.i18n import *
 from typing import Callable
 import readchar, inspect, pathlib, time, sys, os
 

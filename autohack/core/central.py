@@ -1,15 +1,14 @@
 from autohack import __VERSION__
-from autohack.core.checker import *
+from autohack.core.plugin.checker import *
 from autohack.core.constant import *
 from autohack.core.exception import *
 from autohack.core.path import *
-from autohack.core.util import *
-from autohack.core.run import *
-from autohack.lib.config import *
-from autohack.lib.logger import *
-from autohack.lib.i18n import *
+from autohack.core.util.util import *
+from autohack.core.util.run import *
+from autohack.core.lib.config import *
+from autohack.core.lib.logger import *
+from autohack.core.lib.i18n import *
 import traceback, time, os
-from uuid import UUID
 
 
 class AppCentral:

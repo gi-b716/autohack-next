@@ -1,6 +1,6 @@
-from autohack.core.util import *
+from autohack.core.util.util import *
 from typing import Any
-import logging, pathlib, json5, os
+import pathlib, json5, os
 
 
 class Config:
