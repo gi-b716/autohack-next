@@ -216,7 +216,7 @@ jobs:
           echo "3. Run the \`autohack\` executable" >> changelog.md
 
       - name: Upload changelog
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: changelog
           path: changelog.md
@@ -258,7 +258,7 @@ jobs:
         uses: ./.github/actions/prepare-python-env
 
       - name: Download changelog
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: changelog
 
@@ -296,7 +296,7 @@ jobs:
           Compress-Archive -Path * -DestinationPath ../autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip
 
       - name: Upload executable artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: executable-${{ matrix.platform }}-${{ matrix.arch }}
           path: autohack-${{ matrix.platform }}-${{ matrix.arch }}-${{ needs.get-changelog.outputs.name }}-${{ needs.get-changelog.outputs.hash }}.zip
@@ -314,18 +314,18 @@ jobs:
         uses: ./.github/actions/prepare-python-env
 
       - name: Download changelog
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: changelog
 
       - name: Download Python artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: python-dist
           path: dist/
 
       - name: Download executable artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: executable-*
           merge-multiple: true
