@@ -38,7 +38,7 @@
     "__main__.main.memory-limit-exceeded": "Memory limit exceeded for data {}.",
     "__main__.main.memory-limit-exceeded-extra": "Max {} MB.",
     "__main__.main.time-limit-exceeded": "Time limit exceeded for data {}.",
-    "__main__.main.time-limit-exceeded-extra": "Total {} ms.",
+    "__main__.main.time-limit-exceeded-extra": "Truncated at {} ms.",
     "__main__.main.runtime-error": "Runtime error for data {}.",
     "__main__.main.runtime-error-extra": "Return code: {}",
     "__main__.main.checker-not-executed": "Checker not executed.",
