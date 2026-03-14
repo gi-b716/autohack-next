@@ -36,6 +36,12 @@ def entrypoint():
 
     # 使用 8位 短随机字符代替过长的 UUID，防止冗长同时保证多个实例独立
     app = AppCentral(secrets.token_hex(4), time.localtime(), debug=args.debug)
-    app.run()
+
+    try:
+        app.run()
+    except KeyboardInterrupt:
+        import sys
+
+        sys.stdout.write("\nKeyboard interrupt received. Exiting...\n")
 
     # TODO: Keyboard interrupt handling
