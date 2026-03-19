@@ -9,7 +9,7 @@ There's nothing.
 ### Improvements
 
 - [ ] Better Config File Handling
-- [ ] Refactor Utility Modules
+- [x] Refactor Utility Modules
 
 ### Bug Fixes
 

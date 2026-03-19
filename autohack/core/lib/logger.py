@@ -3,7 +3,7 @@ import pathlib
 import tarfile
 import time
 
-from autohack.core.util.util import *
+from autohack.core.util import *
 
 from loguru import logger as baseLogger
 

@@ -3,8 +3,7 @@ from autohack.core.plugin.checker import *
 from autohack.core.constant import *
 from autohack.core.exception import *
 from autohack.core.path import *
-from autohack.core.util.util import *
-from autohack.core.util.run import *
+from autohack.core.util import *
 from autohack.core.lib.config import *
 from autohack.core.lib.logger import *
 from autohack.core.lib.i18n import *
@@ -35,16 +34,6 @@ class AppCentral:
             write("Welcome to autohack-next!", endl=1)
             write("A global config file will be created.", endl=1)
             write("Please select your preferred language:", endl=1)
-            # for i, (langID) in enumerate(LANGUAGE_MAPS):
-            #     write(f"  {i+1}: {langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}", 1)
-            # showCursor()
-            # while True:
-            #     result = inputMessage("Enter the number of your preferred language: ", 0, True)
-            #     if result.isdigit() and 1 <= int(result) <= len(LANGUAGE_MAPS):
-            #         selectedLang = LANGUAGE_MAPS[int(result) - 1]
-            #         break
-            #     write("Invalid input. Please enter a valid number.")
-            #     prevLine()
             selectedLangIndex = selectionMenu(
                 [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
             )
@@ -52,11 +41,11 @@ class AppCentral:
             globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
             globalConfig.modifyConfigEntry("language", selectedLang)
             I18n.setDefaultLanguage(selectedLang)
-            write(ANSIHelper.CLEAR_LINE)
-            write(ANSIHelper.PREV_LINE)
-            write(ANSIHelper.CLEAR_LINE)
-            write(ANSIHelper.PREV_LINE)
-            write(ANSIHelper.CLEAR_LINE)
+            write(ANSIHelper.clearLine())
+            write(ANSIHelper.prevLine())
+            write(ANSIHelper.clearLine())
+            write(ANSIHelper.prevLine())
+            write(ANSIHelper.clearLine())
             writeMessage(I18n, "__main__.language-select.result", _("language-info"), endl=1)
             writeMessage(I18n, "__main__.language-select.info", GLOBAL_CONFIG_FILE_PATH, endl=2)
 
@@ -147,7 +136,7 @@ class AppCentral:
 
         write(endl=1)
         updateStatus(0.0, 0.0, 0.0, " (0%)" if maximumDataLimit > 0 else "")
-        write(ANSIHelper.PREV_LINE)
+        write(ANSIHelper.prevLine())
 
         startTime = time.time()
 
@@ -210,7 +199,7 @@ class AppCentral:
                     (currentTime - startTime) / dataCount,
                     f" ({dataCount*100/maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else "",
                 )
-                write(ANSIHelper.PREV_LINE)
+                write(ANSIHelper.prevLine())
 
             saveData, termMessage, logMessage, extMessage, exitAfterSave = (False, "", "", None, False)
 

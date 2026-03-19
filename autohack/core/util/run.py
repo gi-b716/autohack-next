@@ -1,5 +1,9 @@
+import subprocess
+import threading
+import psutil
+import time
+
 from autohack.core.exception import *
-import subprocess, threading, psutil, time
 
 
 class CodeRunner:

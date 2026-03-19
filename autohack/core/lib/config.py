@@ -1,4 +1,4 @@
-from autohack.core.util.util import *
+from autohack.core.util import *
 from typing import Any
 import pathlib, json5, os
 
