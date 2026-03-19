@@ -48,7 +48,7 @@ def entrypoint():
         app.run()
     except KeyboardInterrupt:
         import sys
+        from autohack.core.util import showCursor
 
+        showCursor()
         sys.stdout.write("\nKeyboard interrupt received. Exiting...\n")
-
-    # TODO: Keyboard interrupt handling
