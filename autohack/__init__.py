@@ -1,4 +1,4 @@
-__VERSION__ = None
+__VERSION__ = "0.0.0"
 try:
     from importlib.metadata import version
 
@@ -19,11 +19,18 @@ def entrypoint():
         prog="autohack",
         description="autohack-next - Automated hack data generator",
     )
-    argsParser.add_argument("--version", "-v", action="version", version="Unknown" if __VERSION__ is None else __VERSION__)
+    argsParser.add_argument("--version", "-v", action="version", version=__VERSION__)
     argsParser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode", default=False)
     argsParser.add_argument("--reset", action="store_true", help="Reset all configuration", default=False)
+    argsParser.add_argument("--fix", action="store_true", help="Fix console issues", default=False)
 
     args = argsParser.parse_args()
+
+    if args.fix:
+        from autohack.core.util import showCursor
+
+        showCursor()
+        return
 
     if args.reset:
         from autohack.core.path import GLOBAL_CONFIG_FILE_PATH
