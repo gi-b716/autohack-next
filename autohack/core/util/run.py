@@ -1,7 +1,4 @@
-import subprocess
-import threading
-import psutil
-import time
+import subprocess, threading, psutil, time
 
 from autohack.core.exception import *
 

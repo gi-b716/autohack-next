@@ -1,12 +1,63 @@
-from autohack.core.util import *
+from pathlib import Path
 from typing import Any
-import pathlib, json5, os
+import os
+
+import json5
+
+from autohack.core.util import *
+
+
+def _typeCheck(value: Any, types: type | tuple[type, ...], strict: bool) -> bool:
+    if strict:
+        return type(value) in (types if isinstance(types, tuple) else (types,))
+    else:
+        return isinstance(value, types)
+
+
+class ConfigEntry:
+    def __init__(
+        self,
+        types: type | tuple[type, ...],
+        defaultValue: Any,
+        strict: bool = False,
+    ) -> None:
+        """
+        if not isinstance(types, tuple):
+            types = (types,)
+
+        if strict:
+            if type(defaultValue) not in types:
+                raise TypeError(f"Type of defaultValue must be exactly one of {types}")
+        else:
+            if not isinstance(defaultValue, types):
+                raise TypeError(f"Type of defaultValue must be in {types}")
+        """
+
+        if not _typeCheck(defaultValue, types, strict):
+            raise TypeError(f"Type of defaultValue must be {'exactly one of' if strict else 'in'} {types}")
+
+        self.types = types
+        self.strict = strict
+        self._setValue(defaultValue)
+
+    @property
+    def value(self) -> Any:
+        return self._value
+
+    @value.setter
+    def value(self, new: Any) -> None:
+        self._setValue(new)
+
+    def _setValue(self, new: Any) -> None:
+        if not _typeCheck(new, self.types, self.strict):
+            raise TypeError(f"Type of new value must be {'exactly one of' if self.strict else 'in'} {self.types}")
+        self._value = new
 
 
 class Config:
     def __init__(
         self,
-        configFilePath: pathlib.Path,
+        configFilePath: Path,
         defaultConfig: dict[str, Any],
         logger: Any,
         configValidationExclude: list[str] = [],

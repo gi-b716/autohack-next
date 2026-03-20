@@ -42,3 +42,8 @@ build = [
     "nuitka>=2.7.12",
     "twine>=6.1.0"
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]

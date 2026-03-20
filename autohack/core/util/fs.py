@@ -1,5 +1,4 @@
-import pathlib
-import os
+import pathlib, os
 
 
 def ensureDirExists(dirPath: pathlib.Path) -> None:

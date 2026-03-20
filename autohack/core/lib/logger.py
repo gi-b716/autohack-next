@@ -1,11 +1,9 @@
 from typing import Any
-import pathlib
-import tarfile
-import time
-
-from autohack.core.util import *
+import pathlib, tarfile, time
 
 from loguru import logger as baseLogger
+
+from autohack.core.util import *
 
 
 class Logger:
