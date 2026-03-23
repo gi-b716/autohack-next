@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 import os
 
 import json5
@@ -33,9 +33,6 @@ class ConfigEntry:
                 raise TypeError(f"Type of defaultValue must be in {types}")
         """
 
-        if not _typeCheck(defaultValue, types, strict):
-            raise TypeError(f"Type of defaultValue must be {'exactly one of' if strict else 'in'} {types}")
-
         self.types = types
         self.strict = strict
         self._setValue(defaultValue)
@@ -52,6 +49,33 @@ class ConfigEntry:
         if not _typeCheck(new, self.types, self.strict):
             raise TypeError(f"Type of new value must be {'exactly one of' if self.strict else 'in'} {self.types}")
         self._value = new
+
+
+class ConfigEntryGroup:
+    def __init__(self) -> None:
+        pass
+
+    @classmethod
+    def iterMembers(cls) -> Iterator[tuple[str, Any]]:
+        for key in dir(cls):
+            if key.startswith("_"):
+                continue
+            attr = getattr(cls, key)
+            if isinstance(attr, ConfigEntry):
+                yield key, attr
+            elif isinstance(attr, type) and issubclass(attr, ConfigEntryGroup):
+                if attr not in (ConfigEntryGroup, cls):
+                    yield key, attr
+
+    @classmethod
+    def todict(cls) -> dict[str, Any]:
+        result = {}
+        for key, attr in cls.iterMembers():
+            if isinstance(attr, ConfigEntry):
+                result[key] = attr.value
+            elif isinstance(attr, type) and issubclass(attr, ConfigEntryGroup):
+                result[key] = attr.todict()
+        return result
 
 
 class Config:
