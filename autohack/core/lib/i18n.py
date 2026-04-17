@@ -1,16 +1,17 @@
 from typing import Any
 from autohack.core.constant import *
-import logging, pathlib, json5, os
+import pathlib, json5, os
+
+from autohack.core.lib.logger import Logger
 
 
 class I18N:
     def __init__(
         self,
         translationFileDir: pathlib.Path,
-        logger: Any,
     ) -> None:
         self.translationFileDir = translationFileDir
-        self.logger = logger.bind(module="i18n")
+        self.logger = Logger.getBindLogger("i18n")
         self.translations = {}
         self.setDefaultLanguage(LOGGER_LANGUAGE_ID)
 

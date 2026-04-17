@@ -1,10 +1,9 @@
 from pathlib import Path
 from typing import Any, Iterator
-import os
 
 import json5
 
-from autohack.core.util import *
+from autohack.core.lib.logger import Logger
 
 
 def _typeCheck(value: Any, types: type | tuple[type, ...], strict: bool) -> bool:
@@ -82,95 +81,44 @@ class Config:
     def __init__(
         self,
         configFilePath: Path,
-        defaultConfig: dict[str, Any],
-        logger: Any,
-        configValidationExclude: list[str] = [],
-        messageOnCreate: str | None = None,
+        rootConfig: type[ConfigEntryGroup],
     ) -> None:
-        self.defaultConfig = defaultConfig
-        self.configValidationExclude = configValidationExclude
         self.configFilePath = configFilePath
-        self.logger = logger.bind(module="config")
-        self.logger.info(f'Config file path: "{self.configFilePath}"')
-        configFileExists = self.configFileExists()
-        self.config = self.loadConfig()
-        if not configFileExists and messageOnCreate is not None:
-            write(messageOnCreate)
-            exitProgram(0)
+        self.rootConfig = rootConfig
+        self._logger = Logger.getBindLogger("config")
 
-    def configFileExists(self) -> bool:
-        return self.configFilePath.exists()
+        self._load()
 
-    def loadConfig(self) -> dict[str, Any]:
-        if not os.path.exists(self.configFilePath):
-            ensureDirExists(self.configFilePath.parent)
-            json5.dump(self.defaultConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
-            self.logger.info("Config file created.")
+    def _loadGroup(self, group: type[ConfigEntryGroup], data: dict[str, Any], path: list[str]) -> None:
+        group_keys = {key for key, _ in group.iterMembers()}
+        for k in data.keys():
+            if k not in group_keys:
+                key_path = ".".join(path + [k])
+                self._logger.warning(f"Unrecognized config entry: {key_path}")
 
-        config = json5.load(open(self.configFilePath, "r", encoding="utf-8"))
-
-        # if self.defaultConfig["_version"] > config.get("_version", 0):
-        #     mergedConfig = self.mergeConfigs(config, self.defaultConfig)
-        #     mergedConfig["_version"] = self.defaultConfig["_version"]
-        #     json5.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
-        #     write(f"Config file {self.configFilePath} updated to version {self.defaultConfig['_version']}.", 2)
-        #     self.logger.info("Config file updated.")
-        #     config = mergedConfig
-
-        mergedConfig = self.mergeConfigs(config, self.defaultConfig, self.configValidationExclude, "")
-        json5.dump(mergedConfig, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
-        config = mergedConfig
-
-        self.logger.info("Config file loaded.")
-        return config
-
-    def mergeConfigs(self, old: dict[str, Any], newDefault: dict[str, Any], configValidationExclude: list[str], keyName: str) -> dict[str, Any]:
-        merged = {}
-
-        for key in newDefault:
-            if key in old:
-                if isinstance(newDefault[key], dict) and isinstance(old[key], dict):
-                    newKeyName = f"{keyName}.{key}" if keyName else key
-                    if newKeyName not in configValidationExclude:
-                        merged[key] = self.mergeConfigs(old[key], newDefault[key], configValidationExclude, newKeyName)
+        for key, attr in group.iterMembers():
+            if key in data:
+                val = data[key]
+                if isinstance(attr, ConfigEntry):
+                    try:
+                        attr.value = val
+                    except TypeError:
+                        key_path = ".".join(path + [key])
+                        self._logger.warning(f"Type mismatch for config entry: {key_path}. Expected {attr.types}, got {type(val).__name__}.")
+                elif isinstance(attr, type) and issubclass(attr, ConfigEntryGroup):
+                    if isinstance(val, dict):
+                        self._loadGroup(attr, val, path + [key])
                     else:
-                        merged[key] = old[key]
-                else:
-                    if type(old[key]) is type(newDefault[key]):
-                        merged[key] = old[key]
-                    else:
-                        merged[key] = newDefault[key]
-            else:
-                merged[key] = newDefault[key]
+                        key_path = ".".join(path + [key])
+                        self._logger.warning(f"Type mismatch for config group: {key_path}. Expected dict, got {type(val).__name__}.")
 
-        return merged
+    def _load(self) -> None:
+        if not self.configFilePath.exists():
+            self._logger.warning(f"Config file {self.configFilePath} does not exist. Using default config.")
 
-    def getConfigEntry(self, entryName: str) -> Any:
-        entryTree = entryName.split(".")
-        result = self.config
+        configFile = json5.load(self.configFilePath.open("r", encoding="utf-8")) if self.configFilePath.exists() else {}
+        self._loadGroup(self.rootConfig, configFile, [])
 
-        for entryItem in entryTree:
-            result = result.get(entryItem, None)
-            if result is None:
-                break
 
-        self.logger.debug(f'Get config entry: "{entryName}" = "{result}"')
-        return result
-
-    def modifyConfigEntry(self, entryName: str, newValue: Any) -> bool:
-        """Returns True if the entry was modified, False if it does not exist."""
-        entryTree = entryName.split(".")
-        currentLevel = self.config
-
-        for level in entryTree[:-1]:
-            if not isinstance(currentLevel, dict) or level not in currentLevel:
-                return False
-            currentLevel = currentLevel[level]
-        lastLevel = entryTree[-1]
-        if not isinstance(currentLevel, dict) or lastLevel not in currentLevel:
-            return False
-        currentLevel[lastLevel] = newValue
-
-        json5.dump(self.config, open(self.configFilePath, "w", encoding="utf-8"), indent=4, quote_keys=True, trailing_commas=False)
-        self.logger.debug(f'Modify entry: "{entryName}" = "{newValue}"')
-        return True
+def loadConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]):
+    Config(configFilePath, rootConfig)

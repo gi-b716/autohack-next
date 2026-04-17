@@ -22,11 +22,10 @@ class AppCentral:
         ensureDirExists(CHECKER_FOLDER_PATH)
         ensureDirExists(LOG_FOLDER_PATH)
 
-        # TODO: Debug
-        loggerObj = Logger(LOG_FOLDER_PATH, self.debug)
-        logger = loggerObj.getLogger().bind(module="autohack")
+        Logger(LOG_FOLDER_PATH, self.debug)
+        logger = Logger.getBindLogger("autohack")
 
-        I18n = I18N(TRANSLATION_FOLDER_PATH, logger)
+        I18n = I18N(TRANSLATION_FOLDER_PATH)
         _ = I18n.translate
 
         if not GLOBAL_CONFIG_FILE_PATH.exists():
@@ -35,7 +34,7 @@ class AppCentral:
             write("A global config file will be created.", endl=1)
             write("Please select your preferred language:", endl=1)
             selectedLangIndex = selectionMenu(
-                [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH, logger).translate("language-info", langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
+                [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH).translate("language-info", langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
             )
             selectedLang = LANGUAGE_MAPS[selectedLangIndex]
             globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)

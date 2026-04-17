@@ -1,9 +1,8 @@
-from typing import Any
 import pathlib, tarfile, time
 
 from loguru import logger as baseLogger
 
-from autohack.core.util import *
+from autohack.core.util.fs import ensureDirExists
 
 
 class Logger:
@@ -26,12 +25,12 @@ class Logger:
                 dataStr = time.strftime("%Y-%m-%d", mtime)
                 idx = 1
                 while True:
-                    archive_name = self.logFolder / f"{dataStr}-{idx}.log.tar.gz"
-                    if not archive_name.exists():
+                    archiveName = self.logFolder / f"{dataStr}-{idx}.log.tar.gz"
+                    if not archiveName.exists():
                         break
                     idx += 1
 
-                with tarfile.open(archive_name, "w:gz") as tarf:
+                with tarfile.open(archiveName, "w:gz") as tarf:
                     tarf.add(self.logFilePath, arcname=f"{dataStr}-{idx}.log")
                 self.logFilePath.unlink()
             except Exception:
@@ -42,14 +41,15 @@ class Logger:
         logFormat = "{time:YYYY-MM-DD HH:mm:ss} | {level} | [{extra[module]}] {message}"
         baseLogger.add(str(self.logFilePath), format=logFormat, level=self.logLevel, encoding="utf-8")
 
-        self.logger = baseLogger.bind(module="logger")
+        self.logger = self.getBindLogger("logger")
 
         self.logger.info(f'Log file: "{self.logFilePath}"')
         self.logger.info(f"Log level: {self.logLevel}")
         self.logger.info("Logger initialized.")
 
-    def getLogger(self) -> Any:
-        return self.logger
+    @staticmethod
+    def getBindLogger(name: str):
+        return baseLogger.bind(module=name)
 
     def getLogFilePath(self) -> pathlib.Path:
         return self.logFilePath

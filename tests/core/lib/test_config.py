@@ -71,3 +71,45 @@ def test_ConfigEntryGroup():
             assert type(value) is type(CustomSubGroup)
             assert value.SUB_ENTRY_1.value == True
             assert value.SUB_ENTRY_2.value == 3.14
+
+
+def test_Config(tmp_path):
+    from autohack.core.lib.config import ConfigEntry, ConfigEntryGroup, Config
+    import json
+
+    class SubGroup(ConfigEntryGroup):
+        SUB_1 = ConfigEntry(int, 1)
+
+    class RootGroup(ConfigEntryGroup):
+        ENTRY_1 = ConfigEntry(str, "test")
+        SUB = SubGroup
+
+    config_path = tmp_path / "config.json"
+
+    # Test 1: File doesn't exist (uses defaults)
+    config = Config(config_path, RootGroup)
+    config._load()
+    assert RootGroup.ENTRY_1.value == "test"
+    assert RootGroup.SUB.SUB_1.value == 1
+
+    # Test 2: Normal load
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump({"ENTRY_1": "updated", "SUB": {"SUB_1": 2}}, f)
+
+    config = Config(config_path, RootGroup)
+    config._load()
+    assert RootGroup.ENTRY_1.value == "updated"
+    assert RootGroup.SUB.SUB_1.value == 2
+
+    # Test 3: Type mismatch & extra keys
+    RootGroup.ENTRY_1.value = "test"
+    RootGroup.SUB.SUB_1.value = 1
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump({"ENTRY_1": 123, "EXTRA": "extra_val", "SUB": {"SUB_1": "not int", "EXTRA_SUB": 2}}, f)
+
+    config = Config(config_path, RootGroup)
+    config._load()
+    # Should stay at defaults due to type error
+    assert RootGroup.ENTRY_1.value == "test"
+    assert RootGroup.SUB.SUB_1.value == 1
