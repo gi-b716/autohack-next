@@ -11,6 +11,13 @@ There's nothing.
 - [ ] Better Config File Handling
 - [x] Refactor Utility Modules
 
+### Config Details
+
+- [x] Config & ConfigEntry
+- [x] Merge config file
+- [ ] Default config
+- [ ] Config file schema
+
 ### Bug Fixes
 
 There's nothing.
