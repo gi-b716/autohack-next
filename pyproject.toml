@@ -39,7 +39,7 @@ autohack = "autohack:entrypoint"
 
 [project.optional-dependencies]
 build = [
-    "nuitka>=2.7.12",
+    "nuitka>=4.0.8",
     "twine>=6.2.0"
 ]
 
