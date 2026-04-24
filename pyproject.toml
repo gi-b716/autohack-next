@@ -23,7 +23,7 @@ dependencies = [
     "colorama>=0.4.6",
     "json5>=0.14.0",
     "loguru>=0.7.3",
-    "platformdirs>=4.5.0",
+    "platformdirs>=4.9.6",
     "psutil>=7.2.2",
     "readchar>=4.2.2",
 ]
