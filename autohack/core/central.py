@@ -5,6 +5,7 @@ from autohack.core.exception import *
 from autohack.core.path import *
 from autohack.core.util import *
 from autohack.core.lib.config import *
+from autohack.core.model import GlobalConfigRoot, ConfigRoot
 from autohack.core.lib.logger import *
 from autohack.core.lib.i18n import *
 import traceback, time, os
@@ -37,8 +38,8 @@ class AppCentral:
                 [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH).translate("language-info", langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
             )
             selectedLang = LANGUAGE_MAPS[selectedLangIndex]
-            globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
-            globalConfig.modifyConfigEntry("language", selectedLang)
+            # Merge DEFAULT_GLOBAL_CONFIG with {"language": selectedLang} and save to GLOBAL_CONFIG_FILE_PATH
+            json5.dump({**GlobalConfigRoot.todict(), "language": selectedLang}, GLOBAL_CONFIG_FILE_PATH.open("w", encoding="utf-8"), indent=4)
             I18n.setDefaultLanguage(selectedLang)
             write(ANSIHelper.clearLine())
             write(ANSIHelper.prevLine())
@@ -48,35 +49,34 @@ class AppCentral:
             writeMessage(I18n, "__main__.language-select.result", _("language-info"), endl=1)
             writeMessage(I18n, "__main__.language-select.info", GLOBAL_CONFIG_FILE_PATH, endl=2)
 
-        globalConfig = Config(GLOBAL_CONFIG_FILE_PATH, DEFAULT_GLOBAL_CONFIG, logger)
-        I18n.setDefaultLanguage(globalConfig.getConfigEntry("language"))
+        loadConfig(GLOBAL_CONFIG_FILE_PATH, GlobalConfigRoot)
+        I18n.setDefaultLanguage(GlobalConfigRoot.language.value)
 
-        config = Config(
-            CONFIG_FILE_PATH,
-            DEFAULT_CONFIG,
-            logger,
-            CONFIG_VALIDATION_EXCLUDE,
-            getTranslatedMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH),
-        )
+        firstTime = not CONFIG_FILE_PATH.exists()
+        loadConfig(CONFIG_FILE_PATH, ConfigRoot)
+        if firstTime:
+            json5.dump(ConfigRoot.todict(), CONFIG_FILE_PATH.open("w", encoding="utf-8"), indent=4)
+            writeMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH)
+            exitProgram()
 
         logger.info(f'Data folder path: "{DATA_FOLDER_PATH}"')
         logger.info(f"Client ID: {self.clientID}")
         logger.info(f"Initialized. Version: {__VERSION__}")
         writeMessage(I18n, "__main__.start.version", __VERSION__, self.clientID, endl=2)
         writeMessage(I18n, "__main__.start.data", getHackDataStorageFolderPath(self.clientID, self.logTime), endl=1)
-        writeMessage(I18n, "__main__.start.log", loggerObj.getLogFilePath(), endl=1)
+        writeMessage(I18n, "__main__.start.log", LOG_FOLDER_PATH / "latest.log", endl=1)
         writeMessage(I18n, "__main__.start.export", getExportFolderPath(self.logTime, self.clientID), endl=1)
         writeMessage(I18n, "__main__.start.checker", CHECKER_FOLDER_PATH, endl=2)
 
-        waitTimeBeforeStart = globalConfig.getConfigEntry("wait_time_before_start")
+        waitTimeBeforeStart = GlobalConfigRoot.wait_time_before_start.value
         for i in range(waitTimeBeforeStart, 0, -1):
             writeMessage(I18n, "__main__.countdown", i, clear=True)
             time.sleep(1)
 
         fileList = [
-            [config.getConfigEntry("commands.compile.source"), "__main__.compile.filename.source"],
-            [config.getConfigEntry("commands.compile.std"), "__main__.compile.filename.std"],
-            [config.getConfigEntry("commands.compile.generator"), "__main__.compile.filename.generator"],
+            [ConfigRoot.commands.compile.source.value, "__main__.compile.filename.source"],
+            [ConfigRoot.commands.compile.std.value, "__main__.compile.filename.std"],
+            [ConfigRoot.commands.compile.generator.value, "__main__.compile.filename.generator"],
         ]
         for file in fileList:
             writeMessage(I18n, "__main__.compile.doing", _(file[1]), clear=True)
@@ -93,11 +93,11 @@ class AppCentral:
                 logger.debug(f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compiled successfully.")
         writeMessage(I18n, "__main__.compile.finish", endl=1, clear=True)
 
-        writeMessage(I18n, "__main__.activate-checker.doing", config.getConfigEntry("checker.name"))
+        writeMessage(I18n, "__main__.activate-checker.doing", ConfigRoot.checker.name.value)
         currentChecker: checkerType = lambda l, o, a, ar: (False, _("__main__.activate-checker.no-checker-message"))
         deactivateFunc: deactivateType = emptyDeactivate
         try:
-            getCheckerResult = getChecker(CHECKER_FOLDER_PATH, config.getConfigEntry("checker.name"), config.getConfigEntry("checker.args"))
+            getCheckerResult = getChecker(CHECKER_FOLDER_PATH, ConfigRoot.checker.name.value, ConfigRoot.checker.args.value)
             currentChecker = getCheckerResult[0]
             deactivateFunc = getCheckerResult[1]
         except Exception as e:
@@ -105,22 +105,22 @@ class AppCentral:
             writeMessage(I18n, "__main__.activate-checker.failed", endl=1, clear=True, highlight=True)
             traceback.print_exc()
             exitProgram(1)
-        writeMessage(I18n, "__main__.activate-checker.finish", config.getConfigEntry("checker.name"), endl=2, clear=True)
+        writeMessage(I18n, "__main__.activate-checker.finish", ConfigRoot.checker.name.value, endl=2, clear=True)
 
         dataCount, errorDataCount = 0, 0
         lastStatusError = False
-        generateCommand = config.getConfigEntry("commands.run.generator")
-        stdCommand = config.getConfigEntry("commands.run.std")
-        sourceCommand = config.getConfigEntry("commands.run.source")
-        timeLimit = config.getConfigEntry("time_limit") / 1000
-        memoryLimit = config.getConfigEntry("memory_limit") * 1024 * 1024
-        inputFilePath = config.getConfigEntry("paths.input")
-        answerFilePath = config.getConfigEntry("paths.answer")
-        outputFilePath = config.getConfigEntry("paths.output")
-        maximumDataLimit = config.getConfigEntry("maximum_number_of_data")
-        errorDataLimit = config.getConfigEntry("error_data_number_limit")
-        refreshSpeed = globalConfig.getConfigEntry("refresh_speed")
-        checkerArgs = config.getConfigEntry("checker.args")
+        generateCommand = ConfigRoot.commands.run.generator.value
+        stdCommand = ConfigRoot.commands.run.std.value
+        sourceCommand = ConfigRoot.commands.run.source.value
+        timeLimit = ConfigRoot.time_limit.value / 1000
+        memoryLimit = ConfigRoot.memory_limit.value * 1024 * 1024
+        inputFilePath = ConfigRoot.paths.input.value
+        answerFilePath = ConfigRoot.paths.answer.value
+        outputFilePath = ConfigRoot.paths.output.value
+        maximumDataLimit = ConfigRoot.maximum_number_of_data.value
+        errorDataLimit = ConfigRoot.error_data_number_limit.value
+        refreshSpeed = GlobalConfigRoot.refresh_speed.value
+        checkerArgs = ConfigRoot.checker.args.value
 
         timeLimit = None if timeLimit == 0 else timeLimit
         memoryLimit = None if memoryLimit == 0 else memoryLimit
@@ -271,7 +271,7 @@ class AppCentral:
         #     write("No error data found. Hack data folder removed.", 1)
         #     logger.info("No error data found. Hack data folder removed.")
 
-        dataFolderMaxSize = globalConfig.getConfigEntry("data_folder_max_size")
+        dataFolderMaxSize = GlobalConfigRoot.data_folder_max_size.value
         # print(getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) / 1024 / 1024, " ", dataFolderMaxSize)
         if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > dataFolderMaxSize * 1024 * 1024:
             logger.warning(f"Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
@@ -280,7 +280,7 @@ class AppCentral:
 
         writeMessage(I18n, "__main__.deactivate-checker.doing")
         try:
-            deactivateFunc(config.getConfigEntry("checker.args"))
+            deactivateFunc(ConfigRoot.checker.args.value)
         except Exception as e:
             logger.error(f"Checker deactivation failed with exception: {e}")
             writeMessage(I18n, "__main__.deactivate-checker.failed", endl=1, clear=True, highlight=True)
@@ -289,5 +289,5 @@ class AppCentral:
         writeMessage(I18n, "__main__.deactivate-checker.finish", endl=1, clear=True)
 
         writeMessage(I18n, "__main__.post-command", endl=1)
-        os.system(config.getConfigEntry("command_at_end"))
+        os.system(ConfigRoot.command_at_end.value)
         logger.info("Finished.")

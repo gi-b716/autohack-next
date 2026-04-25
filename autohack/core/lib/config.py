@@ -17,7 +17,7 @@ class ConfigEntry:
     def __init__(
         self,
         types: type | tuple[type, ...],
-        defaultValue: Any,
+        default: Any,
         strict: bool = False,
     ) -> None:
         """
@@ -34,7 +34,7 @@ class ConfigEntry:
 
         self.types = types
         self.strict = strict
-        self._setValue(defaultValue)
+        self._setValue(default)
 
     @property
     def value(self) -> Any:
