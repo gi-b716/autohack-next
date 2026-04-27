@@ -2,7 +2,6 @@ import sys
 
 import readchar
 
-from autohack.core.lib.i18n import *
 from .ansi import ANSIHelper
 
 
@@ -16,20 +15,15 @@ def write(*messages: str, endl: int = 0, sep: str = "", clear: bool = False, flu
         sys.stdout.flush()
 
 
-def getTranslatedMessage(I18n: I18N, message: str, *args, language: str = "") -> str:
-    return I18n.translate(message, language).format(*map(str, args))
-
-
 def writeMessage(
-    I18n: I18N,
     message: str,
     *args,
-    language: str = "",
     endl: int = 0,
     clear: bool = False,
     highlight: bool = False,
 ) -> None:
-    message = I18n.translate(message, language).format(*map(str, args))
+    if args:
+        message = message.format(*map(str, args))
     if highlight:
         message = ANSIHelper.colorText(message, [ANSIHelper.BOLD, ANSIHelper.RED])
     write(message, endl=endl, clear=clear)

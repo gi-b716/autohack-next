@@ -41,3 +41,7 @@ class I18N:
         if language not in self.translations:
             self.loadTranslation(language)
         return self.translations[language].get(key, key)
+
+
+def getTranslatedMessage(I18n: I18N, message: str, *args, language: str = "") -> str:
+    return I18n.translate(message, language).format(*map(str, args))
