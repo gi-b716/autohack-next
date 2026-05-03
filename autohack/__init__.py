@@ -22,12 +22,9 @@ def entrypoint():
         prog="autohack",
         description="autohack-next - Automated hack data generator",
     )
-    argsParser.add_argument(
-        "--version", "-v", action="version", version=__VERSION__
-    )
+    argsParser.add_argument("--version", "-v", action="version", version=__VERSION__)
     argsParser.add_argument(
         "--debug",
-        "-d",
         action="store_true",
         help="Enable debug mode",
         default=False,
@@ -38,9 +35,7 @@ def entrypoint():
         help="Reset all configuration",
         default=False,
     )
-    argsParser.add_argument(
-        "--fix", action="store_true", help="Fix console issues", default=False
-    )
+    argsParser.add_argument("--fix", action="store_true", help="Fix console issues", default=False)
 
     args = argsParser.parse_args()
 

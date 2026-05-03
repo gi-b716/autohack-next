@@ -2,26 +2,53 @@ import os
 import time
 import traceback
 
+import json5
+
 from autohack import __VERSION__
-from autohack.core.constant import *
-from autohack.core.exception import *
-from autohack.core.lib.config import *
-from autohack.core.lib.i18n import *
-from autohack.core.lib.logger import *
+from autohack.core.constant import LANGUAGE_MAPS, LOGGER_LANGUAGE_ID
+from autohack.core.exception import autohackRuntimeError
+from autohack.core.lib.config import loadConfig
+from autohack.core.lib.i18n import I18N, getTranslatedMessage
+from autohack.core.lib.logger import Logger
 from autohack.core.model import ConfigRoot, GlobalConfigRoot
-from autohack.core.path import *
-from autohack.core.plugin.checker import *
-from autohack.core.util.ansi import *
-from autohack.core.util.console import *
-from autohack.core.util.fs import *
-from autohack.core.util.run import *
-from autohack.core.util.system import *
+from autohack.core.path import (
+    CHECKER_FOLDER_PATH,
+    CONFIG_FILE_PATH,
+    DATA_FOLDER_PATH,
+    GLOBAL_CONFIG_FILE_PATH,
+    HACK_DATA_STORAGE_FOLDER_PATH,
+    LOG_FOLDER_PATH,
+    TRANSLATION_FOLDER_PATH,
+    getExportDataPath,
+    getExportFolderPath,
+    getHackDataFilePath,
+    getHackDataStorageFolderPath,
+)
+from autohack.core.plugin.checker import (
+    checkerType,
+    deactivateType,
+    emptyDeactivate,
+    getChecker,
+)
+from autohack.core.util.ansi import ANSIHelper
+from autohack.core.util.console import (
+    hideCursor,
+    selectionMenu,
+    write,
+    writeMessage,
+)
+from autohack.core.util.fs import ensureDirExists, getFolderSize, writeData
+from autohack.core.util.run import (
+    compileCode,
+    generateAnswer,
+    generateInput,
+    runSourceCode,
+)
+from autohack.core.util.system import exitProgram
 
 
 class AppCentral:
-    def __init__(
-        self, clientID: str, logTime: time.struct_time, debug: bool = False
-    ) -> None:
+    def __init__(self, clientID: str, logTime: time.struct_time, debug: bool = False) -> None:
         self.clientID = clientID
         self.logTime = logTime
         self.debug = debug
@@ -44,10 +71,7 @@ class AppCentral:
             write("A global config file will be created.", endl=1)
             write("Please select your preferred language:", endl=1)
             selectedLangIndex = selectionMenu(
-                [
-                    f"{langID} / {I18N(TRANSLATION_FOLDER_PATH).translate('language-info', langID)}"
-                    for i, langID in enumerate(LANGUAGE_MAPS)
-                ]
+                [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH).translate('language-info', langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
             )
             selectedLang = LANGUAGE_MAPS[selectedLangIndex]
             # Merge DEFAULT_GLOBAL_CONFIG with {"language": selectedLang} and save to GLOBAL_CONFIG_FILE_PATH
@@ -63,9 +87,7 @@ class AppCentral:
             write(ANSIHelper.prevLine())
             write(ANSIHelper.clearLine())
             writeMessage(
-                getTranslatedMessage(
-                    I18n, "__main__.language-select.result", _("language-info")
-                ),
+                getTranslatedMessage(I18n, "__main__.language-select.result", _("language-info")),
                 endl=1,
             )
             writeMessage(
@@ -88,20 +110,14 @@ class AppCentral:
                 CONFIG_FILE_PATH.open("w", encoding="utf-8"),
                 indent=4,
             )
-            writeMessage(
-                getTranslatedMessage(
-                    I18n, "__main__.config-created", CONFIG_FILE_PATH
-                )
-            )
+            writeMessage(getTranslatedMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH))
             exitProgram()
 
         logger.info(f'Data folder path: "{DATA_FOLDER_PATH}"')
         logger.info(f"Client ID: {self.clientID}")
         logger.info(f"Initialized. Version: {__VERSION__}")
         writeMessage(
-            getTranslatedMessage(
-                I18n, "__main__.start.version", __VERSION__, self.clientID
-            ),
+            getTranslatedMessage(I18n, "__main__.start.version", __VERSION__, self.clientID),
             endl=2,
         )
         writeMessage(
@@ -113,9 +129,7 @@ class AppCentral:
             endl=1,
         )
         writeMessage(
-            getTranslatedMessage(
-                I18n, "__main__.start.log", LOG_FOLDER_PATH / "latest.log"
-            ),
+            getTranslatedMessage(I18n, "__main__.start.log", LOG_FOLDER_PATH / "latest.log"),
             endl=1,
         )
         writeMessage(
@@ -127,17 +141,13 @@ class AppCentral:
             endl=1,
         )
         writeMessage(
-            getTranslatedMessage(
-                I18n, "__main__.start.checker", CHECKER_FOLDER_PATH
-            ),
+            getTranslatedMessage(I18n, "__main__.start.checker", CHECKER_FOLDER_PATH),
             endl=2,
         )
 
         waitTimeBeforeStart = GlobalConfigRoot.wait_time_before_start.value
         for i in range(waitTimeBeforeStart, 0, -1):
-            writeMessage(
-                getTranslatedMessage(I18n, "__main__.countdown", i), clear=True
-            )
+            writeMessage(getTranslatedMessage(I18n, "__main__.countdown", i), clear=True)
             time.sleep(1)
 
         fileList = [
@@ -156,9 +166,7 @@ class AppCentral:
         ]
         for file in fileList:
             writeMessage(
-                getTranslatedMessage(
-                    I18n, "__main__.compile.doing", _(file[1])
-                ),
+                getTranslatedMessage(I18n, "__main__.compile.doing", _(file[1])),
                 clear=True,
             )
             try:
@@ -181,9 +189,7 @@ class AppCentral:
                 write(e.output.decode(errors="ignore"))
                 exitProgram(1)
             else:
-                logger.debug(
-                    f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compiled successfully."
-                )
+                logger.debug(f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compiled successfully.")
         writeMessage(
             getTranslatedMessage(I18n, "__main__.compile.finish"),
             endl=1,
@@ -197,10 +203,14 @@ class AppCentral:
                 ConfigRoot.checker.name.value,
             )
         )
-        currentChecker: checkerType = lambda l, o, a, ar: (
-            False,
-            _("__main__.activate-checker.no-checker-message"),
-        )
+
+        def _defaultChecker(inp: bytes, out: bytes, ans: bytes, args: dict) -> tuple[bool, str]:
+            return (
+                False,
+                _("__main__.activate-checker.no-checker-message"),
+            )
+
+        currentChecker: checkerType = _defaultChecker
         deactivateFunc: deactivateType = emptyDeactivate
         try:
             getCheckerResult = getChecker(
@@ -276,9 +286,7 @@ class AppCentral:
 
         startTime = time.time()
 
-        while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (
-            errorDataLimit <= 0 or errorDataCount < errorDataLimit
-        ):
+        while (maximumDataLimit <= 0 or dataCount < maximumDataLimit) and (errorDataLimit <= 0 or errorDataCount < errorDataLimit):
             dataInput = b""
             dataAnswer = b""
 
@@ -287,17 +295,13 @@ class AppCentral:
             try:
                 # write(f"{dataCount}: Generate input.", clear=True)
                 writeMessage(
-                    getTranslatedMessage(
-                        I18n, "__main__.main.generate-input", dataCount
-                    ),
+                    getTranslatedMessage(I18n, "__main__.main.generate-input", dataCount),
                     clear=True,
                 )
                 logger.debug(f"Generating data {dataCount}.")
                 dataInput = generateInput(generateCommand)
             except autohackRuntimeError as e:
-                logger.error(
-                    f"Input generation failed with return code {e.returnCode}."
-                )
+                logger.error(f"Input generation failed with return code {e.returnCode}.")
                 writeMessage(
                     getTranslatedMessage(
                         I18n,
@@ -308,14 +312,10 @@ class AppCentral:
                     clear=True,
                     highlight=True,
                 )
-                inputExportPath = getExportDataPath(
-                    getExportFolderPath(self.logTime, self.clientID), "input"
-                )
+                inputExportPath = getExportDataPath(getExportFolderPath(self.logTime, self.clientID), "input")
                 writeData(inputExportPath, e.output)
                 writeMessage(
-                    getTranslatedMessage(
-                        I18n, "__main__.main.save-input-data", inputExportPath
-                    ),
+                    getTranslatedMessage(I18n, "__main__.main.save-input-data", inputExportPath),
                     clear=True,
                 )
                 exitProgram(1)
@@ -323,17 +323,13 @@ class AppCentral:
             try:
                 # write(f"{dataCount}: Generate answer.", clear=True)
                 writeMessage(
-                    getTranslatedMessage(
-                        I18n, "__main__.main.generate-answer", dataCount
-                    ),
+                    getTranslatedMessage(I18n, "__main__.main.generate-answer", dataCount),
                     clear=True,
                 )
                 logger.debug(f"Generating answer for data {dataCount}.")
                 dataAnswer = generateAnswer(stdCommand, dataInput)
             except autohackRuntimeError as e:
-                logger.error(
-                    f"Answer generation failed with return code {e.returnCode}."
-                )
+                logger.error(f"Answer generation failed with return code {e.returnCode}.")
                 writeMessage(
                     getTranslatedMessage(
                         I18n,
@@ -344,40 +340,28 @@ class AppCentral:
                     clear=True,
                     highlight=True,
                 )
-                inputExportPath = getExportDataPath(
-                    getExportFolderPath(self.logTime, self.clientID), "input"
-                )
+                inputExportPath = getExportDataPath(getExportFolderPath(self.logTime, self.clientID), "input")
                 writeData(inputExportPath, dataInput)
                 writeMessage(
-                    getTranslatedMessage(
-                        I18n, "__main__.main.save-input-data", inputExportPath
-                    ),
+                    getTranslatedMessage(I18n, "__main__.main.save-input-data", inputExportPath),
                     endl=1,
                     clear=True,
                 )
-                answerExportPath = getExportDataPath(
-                    getExportFolderPath(self.logTime, self.clientID), "answer"
-                )
+                answerExportPath = getExportDataPath(getExportFolderPath(self.logTime, self.clientID), "answer")
                 writeData(answerExportPath, e.output)
                 writeMessage(
-                    getTranslatedMessage(
-                        I18n, "__main__.main.save-answer-data", answerExportPath
-                    ),
+                    getTranslatedMessage(I18n, "__main__.main.save-answer-data", answerExportPath),
                     clear=True,
                 )
                 exitProgram(1)
 
             # write(f"{dataCount}: Run source code.", clear=True)
             writeMessage(
-                getTranslatedMessage(
-                    I18n, "__main__.main.run-source", dataCount
-                ),
+                getTranslatedMessage(I18n, "__main__.main.run-source", dataCount),
                 clear=True,
             )
             logger.debug(f"Run source code for data {dataCount}.")
-            result = runSourceCode(
-                sourceCommand, dataInput, timeLimit, memoryLimit
-            )
+            result = runSourceCode(sourceCommand, dataInput, timeLimit, memoryLimit)
             if result.stdout is None:
                 result.stdout = b""
             if result.stderr is None:
@@ -396,9 +380,7 @@ class AppCentral:
                     currentTime - startTime,
                     dataCount / (currentTime - startTime),
                     (currentTime - startTime) / dataCount,
-                    f" ({dataCount * 100 / maximumDataLimit:.0f}%)"
-                    if maximumDataLimit > 0
-                    else "",
+                    f" ({dataCount * 100 / maximumDataLimit:.0f}%)" if maximumDataLimit > 0 else "",
                 )
                 write(ANSIHelper.prevLine())
 
@@ -413,9 +395,7 @@ class AppCentral:
             if result.memoryOut:
                 saveData = True
                 logMessage = f"Memory limit exceeded for data {dataCount}."
-                termMessage = getTranslatedMessage(
-                    I18n, "__main__.main.memory-limit-exceeded", dataCount
-                )
+                termMessage = getTranslatedMessage(I18n, "__main__.main.memory-limit-exceeded", dataCount)
                 if result.maxMemory is not None:
                     extMessage = getTranslatedMessage(
                         I18n,
@@ -425,9 +405,7 @@ class AppCentral:
             elif result.timeOut:
                 saveData = True
                 logMessage = f"Time limit exceeded for data {dataCount}."
-                termMessage = getTranslatedMessage(
-                    I18n, "__main__.main.time-limit-exceeded", dataCount
-                )
+                termMessage = getTranslatedMessage(I18n, "__main__.main.time-limit-exceeded", dataCount)
                 if result.totalTime is not None:
                     extMessage = getTranslatedMessage(
                         I18n,
@@ -437,9 +415,7 @@ class AppCentral:
             elif result.returnCode != 0:
                 saveData = True
                 logMessage = f"Runtime error for data {dataCount} with return code {result.returnCode}."
-                termMessage = getTranslatedMessage(
-                    I18n, "__main__.main.runtime-error", dataCount
-                )
+                termMessage = getTranslatedMessage(I18n, "__main__.main.runtime-error", dataCount)
                 if result.returnCode is not None:
                     extMessage = getTranslatedMessage(
                         I18n,
@@ -449,9 +425,7 @@ class AppCentral:
 
             checkerResult = (False, _("__main__.main.checker-not-executed"))
             try:
-                checkerResult = currentChecker(
-                    dataInput, result.stdout, dataAnswer, checkerArgs
-                )
+                checkerResult = currentChecker(dataInput, result.stdout, dataAnswer, checkerArgs)
             except Exception as e:
                 saveData = True
                 termMessage = getTranslatedMessage(
@@ -459,9 +433,7 @@ class AppCentral:
                     "__main__.main.checker-error-without-exception",
                     dataCount,
                 )
-                logMessage = (
-                    f"Checker error for data {dataCount}. Exception: {e}"
-                )
+                logMessage = f"Checker error for data {dataCount}. Exception: {e}"
                 extMessage = f"{_('__main__.main.checker-error-extra-message')}\n{traceback.format_exc()}"
                 checkerResult = (
                     False,
@@ -471,9 +443,7 @@ class AppCentral:
 
             if not saveData and not checkerResult[0]:
                 saveData = True
-                termMessage = getTranslatedMessage(
-                    I18n, "__main__.main.wrong-answer", dataCount
-                )
+                termMessage = getTranslatedMessage(I18n, "__main__.main.wrong-answer", dataCount)
                 logMessage = f"Wrong answer for data {dataCount}. Checker output: {checkerResult[1]}"
                 extMessage = checkerResult[1]
 
@@ -482,9 +452,7 @@ class AppCentral:
                 errorDataCount += 1
                 writeData(
                     getHackDataFilePath(
-                        getHackDataStorageFolderPath(
-                            self.clientID, self.logTime
-                        ),
+                        getHackDataStorageFolderPath(self.clientID, self.logTime),
                         errorDataCount,
                         inputFilePath,
                     ),
@@ -492,9 +460,7 @@ class AppCentral:
                 )
                 writeData(
                     getHackDataFilePath(
-                        getHackDataStorageFolderPath(
-                            self.clientID, self.logTime
-                        ),
+                        getHackDataStorageFolderPath(self.clientID, self.logTime),
                         errorDataCount,
                         answerFilePath,
                     ),
@@ -502,9 +468,7 @@ class AppCentral:
                 )
                 writeData(
                     getHackDataFilePath(
-                        getHackDataStorageFolderPath(
-                            self.clientID, self.logTime
-                        ),
+                        getHackDataStorageFolderPath(self.clientID, self.logTime),
                         errorDataCount,
                         outputFilePath,
                     ),
@@ -521,9 +485,7 @@ class AppCentral:
 
             if exitAfterSave:
                 writeMessage(
-                    getTranslatedMessage(
-                        I18n, "__main__.main.checker-failed-exit"
-                    ),
+                    getTranslatedMessage(I18n, "__main__.main.checker-failed-exit"),
                     clear=True,
                     highlight=True,
                 )
@@ -532,9 +494,7 @@ class AppCentral:
         endTime = time.time()
 
         writeMessage(
-            getTranslatedMessage(
-                I18n, "__main__.main.finish", dataCount, errorDataCount
-            ),
+            getTranslatedMessage(I18n, "__main__.main.finish", dataCount, errorDataCount),
             endl=1,
             clear=True,
         )
@@ -558,14 +518,8 @@ class AppCentral:
 
         dataFolderMaxSize = GlobalConfigRoot.data_folder_max_size.value
         # print(getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) / 1024 / 1024, " ", dataFolderMaxSize)
-        if (
-            HACK_DATA_STORAGE_FOLDER_PATH.exists()
-            and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH)
-            > dataFolderMaxSize * 1024 * 1024
-        ):
-            logger.warning(
-                f"Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}"
-            )
+        if HACK_DATA_STORAGE_FOLDER_PATH.exists() and getFolderSize(HACK_DATA_STORAGE_FOLDER_PATH) > dataFolderMaxSize * 1024 * 1024:
+            logger.warning(f"Hack data storage folder size exceeds {dataFolderMaxSize} MB: {HACK_DATA_STORAGE_FOLDER_PATH}")
             # write(f"Warning: Hack data storage folder size exceeds {DATA_FOLDER_MAX_SIZE} MB: {HACK_DATA_STORAGE_FOLDER_PATH}", 2)
             writeMessage(
                 getTranslatedMessage(
@@ -578,17 +532,13 @@ class AppCentral:
                 highlight=True,
             )
 
-        writeMessage(
-            getTranslatedMessage(I18n, "__main__.deactivate-checker.doing")
-        )
+        writeMessage(getTranslatedMessage(I18n, "__main__.deactivate-checker.doing"))
         try:
             deactivateFunc(ConfigRoot.checker.args.value)
         except Exception as e:
             logger.error(f"Checker deactivation failed with exception: {e}")
             writeMessage(
-                getTranslatedMessage(
-                    I18n, "__main__.deactivate-checker.failed"
-                ),
+                getTranslatedMessage(I18n, "__main__.deactivate-checker.failed"),
                 endl=1,
                 clear=True,
                 highlight=True,
@@ -601,8 +551,6 @@ class AppCentral:
             clear=True,
         )
 
-        writeMessage(
-            getTranslatedMessage(I18n, "__main__.post-command"), endl=1
-        )
+        writeMessage(getTranslatedMessage(I18n, "__main__.post-command"), endl=1)
         os.system(ConfigRoot.command_at_end.value)
         logger.info("Finished.")

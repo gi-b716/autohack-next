@@ -54,7 +54,7 @@ dev = [
 ]
 
 [tool.ruff]
-line-length = 80
+line-length = 150
 
 [tool.ruff.lint]
 select = [

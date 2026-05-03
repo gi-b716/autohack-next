@@ -4,7 +4,7 @@ import time
 
 import psutil
 
-from autohack.core.exception import *
+from autohack.core.exception import autohackRuntimeError
 
 
 class CodeRunner:
@@ -33,9 +33,7 @@ class CodeRunner:
         self.maxMemory = None
         self.memoryOut = False
 
-    def memoryMonitor(
-        self, pid: int, timeLimit: float | None, memoryLimit: int | None
-    ) -> None:
+    def memoryMonitor(self, pid: int, timeLimit: float | None, memoryLimit: int | None) -> None:
         try:
             psutilProcess = psutil.Process(pid)
             startTime = psutilProcess.create_time()
@@ -90,9 +88,7 @@ class CodeRunner:
 
 def compileCode(compileCommand: list) -> None:
     try:
-        process = subprocess.Popen(
-            compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        )
+        process = subprocess.Popen(compileCommand, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except OSError:
         return
     output = process.communicate()[0]
@@ -102,9 +98,7 @@ def compileCode(compileCommand: list) -> None:
 
 def generateInput(generateCommand: list) -> bytes:
     try:
-        process = subprocess.Popen(
-            generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
-        )
+        process = subprocess.Popen(generateCommand, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     except OSError:
         return b""
     dataInput = process.communicate()[0]

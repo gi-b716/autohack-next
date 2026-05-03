@@ -1,35 +1,27 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
 
 # Distribution / packaging
 build/
 dist/
 wheels/
 *.egg-info/
-.eggs/
-*.egg
 
 # Virtual environments
 .venv/
-venv/
-ENV/
-env.bak/
-env/
 
 # Tooling
 .ruff_cache/
 .pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-.mypy_cache/
 
 # Editors
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 *.swp
 
 # Application-specific

@@ -69,7 +69,7 @@ def test_ConfigEntryGroup():
             assert value.value == "default"
         elif key == "SUB_GROUP":
             assert type(value) is type(CustomSubGroup)
-            assert value.SUB_ENTRY_1.value == True
+            assert value.SUB_ENTRY_1.value is True
             assert value.SUB_ENTRY_2.value == 3.14
 
 

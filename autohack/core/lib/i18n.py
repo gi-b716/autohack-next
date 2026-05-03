@@ -3,7 +3,7 @@ import pathlib
 
 import json5
 
-from autohack.core.constant import *
+from autohack.core.constant import LOGGER_LANGUAGE_ID
 from autohack.core.lib.logger import Logger
 
 
@@ -26,9 +26,7 @@ class I18N:
     def loadTranslation(self, language: str) -> None:
         self.translationFile = self.translationFileDir / f"{language}.json"
         self.logger.info(f'Translation file: "{self.translationFile}"')
-        self.translations[language] = self.loadTranslationFile(
-            self.translationFile
-        )
+        self.translations[language] = self.loadTranslationFile(self.translationFile)
 
     def loadTranslationFile(self, filePath: pathlib.Path) -> dict[str, str]:
         if not os.path.exists(filePath):
@@ -47,7 +45,5 @@ class I18N:
         return self.translations[language].get(key, key)
 
 
-def getTranslatedMessage(
-    I18n: I18N, message: str, *args, language: str = ""
-) -> str:
+def getTranslatedMessage(I18n: I18N, message: str, *args, language: str = "") -> str:
     return I18n.translate(message, language).format(*map(str, args))
