@@ -20,14 +20,14 @@ defaults:
 
 jobs:
   build-package:
-    name: Build python package on commit
+    name: Build Python Package
     permissions:
       contents: read
 
     uses: ./.github/workflows/build-python-package.yml
 
   get-changelog:
-    name: Build executable on commit
+    name: Generate Info & Changelog
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,6 +93,7 @@ jobs:
           path: changelog.md
 
   build-executables:
+    name: Build Executables
     needs: [build-package, get-changelog]
     uses: ./.github/workflows/build-executables.yml
     with:
@@ -101,6 +102,7 @@ jobs:
       commit-hash: ${{ needs.get-changelog.outputs.hash }}
 
   publish-release:
+    name: Publish Release & Packages
     needs: [build-package, get-changelog, build-executables]
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.create-release == 'true') || startsWith(github.ref, 'refs/tags/') || contains(github.event.head_commit.message, '[ci release]')
