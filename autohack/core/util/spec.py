@@ -1,5 +1,5 @@
-from typing import Callable
 import inspect
+from collections.abc import Callable
 
 
 def getFunctionInfo(func: Callable) -> tuple[list[type], type]:

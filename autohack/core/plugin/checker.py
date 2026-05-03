@@ -1,9 +1,14 @@
+import importlib.util
+import pathlib
+import shutil
+import subprocess
+from collections.abc import Callable
+from typing import Any, TypeAlias, cast
+
 from autohack.core.constant import *
 from autohack.core.exception import *
 from autohack.core.path import *
 from autohack.core.util import *
-from typing import Any, Callable, TypeAlias, cast
-import importlib.util, subprocess, pathlib, shutil
 
 checkerType: TypeAlias = Callable[[bytes, bytes, bytes, dict], tuple[bool, str]]
 activateType: TypeAlias = Callable[[dict], checkerType]
@@ -12,7 +17,9 @@ emptyDeactivate: deactivateType = lambda args: None
 
 
 def builtinBasicCheckerActivate(args: dict) -> checkerType:
-    def builtinBasicChecker(input: bytes, output: bytes, answer: bytes, args: dict) -> tuple[bool, str]:
+    def builtinBasicChecker(
+        input: bytes, output: bytes, answer: bytes, args: dict
+    ) -> tuple[bool, str]:
         outputStr = output.decode().rstrip("\n")
         answerStr = answer.decode().rstrip("\n")
         outputLines = outputStr.splitlines()
@@ -28,7 +35,9 @@ def builtinBasicCheckerActivate(args: dict) -> checkerType:
 
 
 def builtinAlwaysACCheckerActivate(args: dict) -> checkerType:
-    def builtinAlwaysACChecker(input: bytes, output: bytes, answer: bytes, args: dict) -> tuple[bool, str]:
+    def builtinAlwaysACChecker(
+        input: bytes, output: bytes, answer: bytes, args: dict
+    ) -> tuple[bool, str]:
         return (True, "Always AC checker.")
 
     return builtinAlwaysACChecker
@@ -52,14 +61,21 @@ from https://www.luogu.com/article/t5rrziq7
 def builtinTestlibCheckerActivate(args: dict) -> checkerType:
     ensureDirExists(DATA_FOLDER_PATH / "testlibCheckerCache")
     checkerPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "checker"
-    compileCommand = [args.get("compiler", "g++"), args.get("checker", "checker.cpp"), "-o", checkerPath.as_posix()]
+    compileCommand = [
+        args.get("compiler", "g++"),
+        args.get("checker", "checker.cpp"),
+        "-o",
+        checkerPath.as_posix(),
+    ]
     compileCommand += args.get("compile_args", [])
     try:
         compileCode(compileCommand)
-    except autohackRuntimeError as e:
+    except autohackRuntimeError:
         raise
 
-    def builtinTestlibChecker(input: bytes, output: bytes, answer: bytes, args: dict) -> tuple[bool, str]:
+    def builtinTestlibChecker(
+        input: bytes, output: bytes, answer: bytes, args: dict
+    ) -> tuple[bool, str]:
         inputPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "input"
         outputPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "output"
         answerPath = DATA_FOLDER_PATH / "testlibCheckerCache" / "answer"
@@ -68,15 +84,27 @@ def builtinTestlibCheckerActivate(args: dict) -> checkerType:
         writeData(inputPath, input)
         writeData(outputPath, output)
         writeData(answerPath, answer)
-        command = [checkerPath.as_posix(), inputPath.as_posix(), outputPath.as_posix(), answerPath.as_posix(), resultPath.as_posix()]
-        result = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
+        command = [
+            checkerPath.as_posix(),
+            inputPath.as_posix(),
+            outputPath.as_posix(),
+            answerPath.as_posix(),
+            resultPath.as_posix(),
+        ]
+        result = subprocess.run(
+            command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        ).returncode
         if not resultPath.exists():
-            raise FileNotFoundError("Testlib checker did not produce a result file.")
+            raise FileNotFoundError(
+                "Testlib checker did not produce a result file."
+            )
         resultContent = readData(resultPath).decode().strip()
         if result == 0:
             return (True, f"{resultContent} (Code {result})")
         elif result == 3:
-            raise RuntimeError(f"Testlib checker runtime error. Checker output: {resultContent}")
+            raise RuntimeError(
+                f"Testlib checker runtime error. Checker output: {resultContent}"
+            )
         return (False, f"{resultContent} (Code {result})")
 
     return builtinTestlibChecker
@@ -90,7 +118,11 @@ def builtinTestlibCheckerDeactivate(args: dict) -> None:
 BUILTIN = [
     ("builtin_basic", builtinBasicCheckerActivate, emptyDeactivate),
     ("builtin_always_ac", builtinAlwaysACCheckerActivate, emptyDeactivate),
-    ("builtin_testlib", builtinTestlibCheckerActivate, builtinTestlibCheckerDeactivate),
+    (
+        "builtin_testlib",
+        builtinTestlibCheckerActivate,
+        builtinTestlibCheckerDeactivate,
+    ),
 ]
 
 
@@ -100,7 +132,9 @@ Checker 中的 activate 函数签名为 (dict) -> Callable[[bytes, bytes, bytes,
 """
 
 
-def getChecker(checkerFolder: pathlib.Path, checkerName: str, args: dict[str, Any]) -> tuple[checkerType, deactivateType]:
+def getChecker(
+    checkerFolder: pathlib.Path, checkerName: str, args: dict[str, Any]
+) -> tuple[checkerType, deactivateType]:
     checkerPath = checkerFolder / f"{checkerName}.py"
     if not checkerPath.exists():
         # 如果 checkerName 在 BUILTIN 中，直接返回对应的函数
@@ -116,29 +150,45 @@ def getChecker(checkerFolder: pathlib.Path, checkerName: str, args: dict[str, An
     spec.loader.exec_module(module)
 
     if not hasattr(module, "activate") or not callable(module.activate):
-        raise AttributeError(f"Checker '{checkerName}' does not have a 'activate' function.")
+        raise AttributeError(
+            f"Checker '{checkerName}' does not have a 'activate' function."
+        )
 
     if getFunctionInfo(module.activate)[0] != [dict]:
-        raise TypeError(f"Checker's 'activate' function parameters must be of types (dict).")
+        raise TypeError(
+            "Checker's 'activate' function parameters must be of types (dict)."
+        )
 
     try:
         checker = module.activate(args)
     except Exception as e:
-        raise RuntimeError(f"Error while activating checker '{checkerName}': {e}")
+        raise RuntimeError(
+            f"Error while activating checker '{checkerName}': {e}"
+        )
 
     if not callable(checker):
-        raise TypeError(f"Checker '{checkerName}' activate did not return a callable.")
+        raise TypeError(
+            f"Checker '{checkerName}' activate did not return a callable."
+        )
 
     if getFunctionInfo(checker)[0] != [bytes, bytes, bytes, dict]:
-        raise TypeError(f"Checker '{checkerName}' function parameters must be of types (bytes, bytes, bytes, dict).")
+        raise TypeError(
+            f"Checker '{checkerName}' function parameters must be of types (bytes, bytes, bytes, dict)."
+        )
 
     if getFunctionInfo(checker)[1] != tuple[bool, str]:
-        raise TypeError(f"Checker '{checkerName}' function must return tuple[bool, str].")
+        raise TypeError(
+            f"Checker '{checkerName}' function must return tuple[bool, str]."
+        )
 
     # deactivate
     deactivateFunc: deactivateType = emptyDeactivate
 
-    if hasattr(module, "deactivate") and callable(module.deactivate) and getFunctionInfo(module.deactivate) == ([dict], None):
+    if (
+        hasattr(module, "deactivate")
+        and callable(module.deactivate)
+        and getFunctionInfo(module.deactivate) == ([dict], None)
+    ):
         deactivateFunc = cast(deactivateType, module.deactivate)
 
     return (cast(checkerType, checker), deactivateFunc)

@@ -1,17 +1,36 @@
-# Python-generated files
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
+.eggs/
+*.egg
 
 # Virtual environments
-.venv
+.venv/
+venv/
+ENV/
+env.bak/
+env/
 
-# autohack data folder
-.autohack/
+# Tooling
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
 
 # Editors
 .idea/
 .vscode/
+*.swp
+
+# Application-specific
+.autohack/

@@ -8,9 +8,12 @@ except Exception:
 
 
 def entrypoint():
+    import secrets
+    import time
     from argparse import ArgumentParser
-    import secrets, time
+
     import colorama
+
     from autohack.core.central import AppCentral
 
     colorama.just_fix_windows_console()
@@ -19,10 +22,25 @@ def entrypoint():
         prog="autohack",
         description="autohack-next - Automated hack data generator",
     )
-    argsParser.add_argument("--version", "-v", action="version", version=__VERSION__)
-    argsParser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode", default=False)
-    argsParser.add_argument("--reset", action="store_true", help="Reset all configuration", default=False)
-    argsParser.add_argument("--fix", action="store_true", help="Fix console issues", default=False)
+    argsParser.add_argument(
+        "--version", "-v", action="version", version=__VERSION__
+    )
+    argsParser.add_argument(
+        "--debug",
+        "-d",
+        action="store_true",
+        help="Enable debug mode",
+        default=False,
+    )
+    argsParser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset all configuration",
+        default=False,
+    )
+    argsParser.add_argument(
+        "--fix", action="store_true", help="Fix console issues", default=False
+    )
 
     args = argsParser.parse_args()
 
@@ -33,8 +51,9 @@ def entrypoint():
         return
 
     if args.reset:
-        from autohack.core.path import GLOBAL_CONFIG_FILE_PATH
         import sys
+
+        from autohack.core.path import GLOBAL_CONFIG_FILE_PATH
 
         if GLOBAL_CONFIG_FILE_PATH.exists():
             GLOBAL_CONFIG_FILE_PATH.unlink()
@@ -48,6 +67,7 @@ def entrypoint():
         app.run()
     except KeyboardInterrupt:
         import sys
+
         from autohack.core.util import showCursor
 
         showCursor()

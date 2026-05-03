@@ -17,7 +17,9 @@ class ConfigPaths(ConfigEntryGroup):
 class ConfigCommandsCompile(ConfigEntryGroup):
     source = ConfigEntry(list, ["g++", "source.cpp", "-o", "source", "-O2"])
     std = ConfigEntry(list, ["g++", "std.cpp", "-o", "std", "-O2"])
-    generator = ConfigEntry(list, ["g++", "generator.cpp", "-o", "generator", "-O2"])
+    generator = ConfigEntry(
+        list, ["g++", "generator.cpp", "-o", "generator", "-O2"]
+    )
 
 
 class ConfigCommandsRun(ConfigEntryGroup):

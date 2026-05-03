@@ -1,7 +1,9 @@
-from typing import Any
-from autohack.core.constant import *
-import pathlib, json5, os
+import os
+import pathlib
 
+import json5
+
+from autohack.core.constant import *
 from autohack.core.lib.logger import Logger
 
 
@@ -24,13 +26,15 @@ class I18N:
     def loadTranslation(self, language: str) -> None:
         self.translationFile = self.translationFileDir / f"{language}.json"
         self.logger.info(f'Translation file: "{self.translationFile}"')
-        self.translations[language] = self.loadTranslationFile(self.translationFile)
+        self.translations[language] = self.loadTranslationFile(
+            self.translationFile
+        )
 
     def loadTranslationFile(self, filePath: pathlib.Path) -> dict[str, str]:
         if not os.path.exists(filePath):
             self.logger.critical("Translation file not found.")
             raise FileNotFoundError(f"Translation file {filePath} not found.")
-        translations = json5.load(open(filePath, "r", encoding="utf-8"))
+        translations = json5.load(open(filePath, encoding="utf-8"))
 
         self.logger.info("Translation file loaded.")
         return translations
@@ -43,5 +47,7 @@ class I18N:
         return self.translations[language].get(key, key)
 
 
-def getTranslatedMessage(I18n: I18N, message: str, *args, language: str = "") -> str:
+def getTranslatedMessage(
+    I18n: I18N, message: str, *args, language: str = ""
+) -> str:
     return I18n.translate(message, language).format(*map(str, args))

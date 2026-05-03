@@ -74,8 +74,9 @@ def test_ConfigEntryGroup():
 
 
 def test_Config(tmp_path):
-    from autohack.core.lib.config import ConfigEntry, ConfigEntryGroup, Config
     import json
+
+    from autohack.core.lib.config import Config, ConfigEntry, ConfigEntryGroup
 
     class SubGroup(ConfigEntryGroup):
         SUB_1 = ConfigEntry(int, 1)
@@ -106,7 +107,14 @@ def test_Config(tmp_path):
     RootGroup.SUB.SUB_1.value = 1
 
     with open(config_path, "w", encoding="utf-8") as f:
-        json.dump({"ENTRY_1": 123, "EXTRA": "extra_val", "SUB": {"SUB_1": "not int", "EXTRA_SUB": 2}}, f)
+        json.dump(
+            {
+                "ENTRY_1": 123,
+                "EXTRA": "extra_val",
+                "SUB": {"SUB_1": "not int", "EXTRA_SUB": 2},
+            },
+            f,
+        )
 
     config = Config(config_path, RootGroup)
     config._load()

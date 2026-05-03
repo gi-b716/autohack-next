@@ -1,4 +1,6 @@
-import pathlib, tarfile, time
+import pathlib
+import tarfile
+import time
 
 from loguru import logger as baseLogger
 
@@ -38,8 +40,15 @@ class Logger:
 
         baseLogger.remove()
 
-        logFormat = "{time:YYYY-MM-DD HH:mm:ss} | {level} | [{extra[module]}] {message}"
-        baseLogger.add(str(self.logFilePath), format=logFormat, level=self.logLevel, encoding="utf-8")
+        logFormat = (
+            "{time:YYYY-MM-DD HH:mm:ss} | {level} | [{extra[module]}] {message}"
+        )
+        baseLogger.add(
+            str(self.logFilePath),
+            format=logFormat,
+            level=self.logLevel,
+            encoding="utf-8",
+        )
 
         self.logger = self.getBindLogger("logger")
 

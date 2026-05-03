@@ -1,12 +1,15 @@
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import json5
 
 from autohack.core.lib.logger import Logger
 
 
-def _typeCheck(value: Any, types: type | tuple[type, ...], strict: bool) -> bool:
+def _typeCheck(
+    value: Any, types: type | tuple[type, ...], strict: bool
+) -> bool:
     if strict:
         return type(value) in (types if isinstance(types, tuple) else (types,))
     else:
@@ -46,7 +49,9 @@ class ConfigEntry:
 
     def _setValue(self, new: Any) -> None:
         if not _typeCheck(new, self.types, self.strict):
-            raise TypeError(f"Type of new value must be {'exactly one of' if self.strict else 'in'} {self.types}")
+            raise TypeError(
+                f"Type of new value must be {'exactly one of' if self.strict else 'in'} {self.types}"
+            )
         self._value = new
 
 
@@ -89,7 +94,12 @@ class Config:
 
         self._load()
 
-    def _loadGroup(self, group: type[ConfigEntryGroup], data: dict[str, Any], path: list[str]) -> None:
+    def _loadGroup(
+        self,
+        group: type[ConfigEntryGroup],
+        data: dict[str, Any],
+        path: list[str],
+    ) -> None:
         group_keys = {key for key, _ in group.iterMembers()}
         for k in data.keys():
             if k not in group_keys:
@@ -104,19 +114,31 @@ class Config:
                         attr.value = val
                     except TypeError:
                         key_path = ".".join(path + [key])
-                        self._logger.warning(f"Type mismatch for config entry: {key_path}. Expected {attr.types}, got {type(val).__name__}.")
-                elif isinstance(attr, type) and issubclass(attr, ConfigEntryGroup):
+                        self._logger.warning(
+                            f"Type mismatch for config entry: {key_path}. Expected {attr.types}, got {type(val).__name__}."
+                        )
+                elif isinstance(attr, type) and issubclass(
+                    attr, ConfigEntryGroup
+                ):
                     if isinstance(val, dict):
                         self._loadGroup(attr, val, path + [key])
                     else:
                         key_path = ".".join(path + [key])
-                        self._logger.warning(f"Type mismatch for config group: {key_path}. Expected dict, got {type(val).__name__}.")
+                        self._logger.warning(
+                            f"Type mismatch for config group: {key_path}. Expected dict, got {type(val).__name__}."
+                        )
 
     def _load(self) -> None:
         if not self.configFilePath.exists():
-            self._logger.warning(f"Config file {self.configFilePath} does not exist. Using default config.")
+            self._logger.warning(
+                f"Config file {self.configFilePath} does not exist. Using default config."
+            )
 
-        configFile = json5.load(self.configFilePath.open("r", encoding="utf-8")) if self.configFilePath.exists() else {}
+        configFile = (
+            json5.load(self.configFilePath.open("r", encoding="utf-8"))
+            if self.configFilePath.exists()
+            else {}
+        )
         self._loadGroup(self.rootConfig, configFile, [])
 
 

@@ -5,7 +5,13 @@ import readchar
 from .ansi import ANSIHelper
 
 
-def write(*messages: str, endl: int = 0, sep: str = "", clear: bool = False, flush: bool = True) -> None:
+def write(
+    *messages: str,
+    endl: int = 0,
+    sep: str = "",
+    clear: bool = False,
+    flush: bool = True,
+) -> None:
     if clear:
         sys.stdout.write(ANSIHelper.CLEAR_LINE)
     message = sep.join(messages)
@@ -25,7 +31,9 @@ def writeMessage(
     if args:
         message = message.format(*map(str, args))
     if highlight:
-        message = ANSIHelper.colorText(message, [ANSIHelper.BOLD, ANSIHelper.RED])
+        message = ANSIHelper.colorText(
+            message, [ANSIHelper.BOLD, ANSIHelper.RED]
+        )
     write(message, endl=endl, clear=clear)
 
 
@@ -47,8 +55,10 @@ def selectionMenu(selectionList: list[str]) -> int:
         for i, selectionItem in enumerate(selectionList):
             write(
                 ANSIHelper.colorText(
-                    f"{">" if i == currentSelection else " "} {selectionItem}",
-                    [ANSIHelper.RED, ANSIHelper.BOLD] if i == currentSelection else [],
+                    f"{'>' if i == currentSelection else ' '} {selectionItem}",
+                    [ANSIHelper.RED, ANSIHelper.BOLD]
+                    if i == currentSelection
+                    else [],
                 ),
                 endl=1 if i < len(selectionList) - 1 else 0,
                 clear=True,
@@ -59,9 +69,17 @@ def selectionMenu(selectionList: list[str]) -> int:
         updateSelection()
         k = readchar.readkey()
         if k == readchar.key.UP or k == "k":
-            currentSelection = currentSelection - 1 if currentSelection > 0 else len(selectionList) - 1
+            currentSelection = (
+                currentSelection - 1
+                if currentSelection > 0
+                else len(selectionList) - 1
+            )
         elif k == readchar.key.DOWN or k == "j":
-            currentSelection = currentSelection + 1 if currentSelection < len(selectionList) - 1 else 0
+            currentSelection = (
+                currentSelection + 1
+                if currentSelection < len(selectionList) - 1
+                else 0
+            )
         elif k == readchar.key.ENTER:
             for _ in range(len(selectionList) + 1):
                 write(ANSIHelper.CLEAR_LINE)
