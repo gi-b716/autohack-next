@@ -54,7 +54,7 @@ def test_ConfigEntryGroup():
         CONFIG_ENTRY_2 = ConfigEntry(str, "default")
         SUB_GROUP = CustomSubGroup
 
-    assert CustomGroup.todict() == {
+    assert CustomGroup.toDict() == {
         "CONFIG_ENTRY_1": 10,
         "CONFIG_ENTRY_2": "default",
         "SUB_GROUP": {"SUB_ENTRY_1": True, "SUB_ENTRY_2": 3.14},
@@ -74,9 +74,9 @@ def test_ConfigEntryGroup():
 
 
 def test_Config(tmp_path):
-    import json
+    import json5
 
-    from autohack.core.lib.config import Config, ConfigEntry, ConfigEntryGroup
+    from autohack.core.lib.config import ConfigEntry, ConfigEntryGroup, loadConfig
 
     class SubGroup(ConfigEntryGroup):
         SUB_1 = ConfigEntry(int, 1)
@@ -87,37 +87,162 @@ def test_Config(tmp_path):
 
     config_path = tmp_path / "config.json"
 
-    # Test 1: File doesn't exist (uses defaults)
-    config = Config(config_path, RootGroup)
-    config._load()
+    loadConfig(config_path, RootGroup)
     assert RootGroup.ENTRY_1.value == "test"
     assert RootGroup.SUB.SUB_1.value == 1
 
-    # Test 2: Normal load
     with open(config_path, "w", encoding="utf-8") as f:
-        json.dump({"ENTRY_1": "updated", "SUB": {"SUB_1": 2}}, f)
+        json5.dump({"ENTRY_1": "updated", "SUB": {"SUB_1": 2}}, f)
 
-    config = Config(config_path, RootGroup)
-    config._load()
+    loadConfig(config_path, RootGroup)
     assert RootGroup.ENTRY_1.value == "updated"
     assert RootGroup.SUB.SUB_1.value == 2
 
-    # Test 3: Type mismatch & extra keys
     RootGroup.ENTRY_1.value = "test"
     RootGroup.SUB.SUB_1.value = 1
 
     with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(
-            {
-                "ENTRY_1": 123,
-                "EXTRA": "extra_val",
-                "SUB": {"SUB_1": "not int", "EXTRA_SUB": 2},
-            },
-            f,
-        )
+        json5.dump({"ENTRY_1": 123, "EXTRA": "extra_val", "SUB": {"SUB_1": "not int", "EXTRA_SUB": 2}}, f)
 
-    config = Config(config_path, RootGroup)
-    config._load()
-    # Should stay at defaults due to type error
+    loadConfig(config_path, RootGroup)
     assert RootGroup.ENTRY_1.value == "test"
     assert RootGroup.SUB.SUB_1.value == 1
+
+
+def test_config_version_upgrade(tmp_path):
+    from typing import Any
+
+    import json5
+
+    from autohack.core.lib.config import (
+        ConfigEntry,
+        ConfigEntryGroup,
+        loadConfig,
+        update_config,
+    )
+
+    class RootGroup(ConfigEntryGroup):
+        NAME = ConfigEntry(str, "default_name")
+        VALUE = ConfigEntry(int, 10)
+        NEW_FIELD = ConfigEntry(str, "new_default")
+
+        @staticmethod
+        @update_config(version=35)
+        def _update_to_35(config: dict[str, Any]) -> None:
+            config.setdefault("NEW_FIELD", "new_default")
+
+        @staticmethod
+        @update_config(version=36)
+        def _update_to_36(config: dict[str, Any]) -> None:
+            if "VALUE" in config:
+                config["VALUE"] = config["VALUE"] * 2
+
+    config_path = tmp_path / "config.json"
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json5.dump({"version": 34, "NAME": "test", "VALUE": 5}, f)
+
+    loadConfig(config_path, RootGroup)
+    assert RootGroup.NAME.value == "test"
+    assert RootGroup.VALUE.value == 10
+    assert RootGroup.NEW_FIELD.value == "new_default"
+
+    with open(config_path, encoding="utf-8") as f:
+        saved_data = json5.load(f)
+    assert saved_data["version"] == 36
+
+    RootGroup.NAME.value = "default_name"
+    RootGroup.VALUE.value = 10
+    RootGroup.NEW_FIELD.value = "new_default"
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json5.dump({"NAME": "test2", "VALUE": 3}, f)
+
+    loadConfig(config_path, RootGroup)
+    assert RootGroup.NAME.value == "test2"
+    assert RootGroup.VALUE.value == 6
+    assert RootGroup.NEW_FIELD.value == "new_default"
+
+    RootGroup.NAME.value = "default_name"
+    RootGroup.VALUE.value = 10
+    RootGroup.NEW_FIELD.value = "new_default"
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json5.dump({"version": 36, "NAME": "test3", "VALUE": 5, "NEW_FIELD": "custom"}, f)
+
+    loadConfig(config_path, RootGroup)
+    assert RootGroup.NAME.value == "test3"
+    assert RootGroup.VALUE.value == 5
+    assert RootGroup.NEW_FIELD.value == "custom"
+
+
+def test_save_config_value(tmp_path):
+    from typing import Any
+
+    import json5
+
+    from autohack.core.lib.config import ConfigEntry, ConfigEntryGroup, loadConfig, saveConfig, update_config
+
+    class SubGroup(ConfigEntryGroup):
+        SUB_VALUE = ConfigEntry(int, 100)
+
+    class RootGroup(ConfigEntryGroup):
+        NAME = ConfigEntry(str, "default")
+        SUB = SubGroup
+
+        @staticmethod
+        @update_config(version=1)
+        def _update_to_1(config: dict[str, Any]) -> None:
+            pass
+
+    config_path = tmp_path / "config.json"
+
+    loadConfig(config_path, RootGroup)
+
+    RootGroup.NAME.value = "updated_name"
+    assert RootGroup.NAME.value == "updated_name"
+    saveConfig(config_path, RootGroup)
+
+    with open(config_path, encoding="utf-8") as f:
+        saved_data = json5.load(f)
+    assert saved_data["NAME"] == "updated_name"
+
+    RootGroup.SUB.SUB_VALUE.value = 200
+    assert RootGroup.SUB.SUB_VALUE.value == 200
+    saveConfig(config_path, RootGroup)
+
+    with open(config_path, encoding="utf-8") as f:
+        saved_data = json5.load(f)
+    assert saved_data["SUB"]["SUB_VALUE"] == 200
+
+
+def test_load_and_save_functions(tmp_path):
+    from typing import Any
+
+    import json5
+
+    from autohack.core.lib.config import ConfigEntry, ConfigEntryGroup, loadConfig, saveConfig, update_config
+
+    class RootGroup(ConfigEntryGroup):
+        NAME = ConfigEntry(str, "default")
+        VALUE = ConfigEntry(int, 42)
+
+        @staticmethod
+        @update_config(version=1)
+        def _update_to_1(config: dict[str, Any]) -> None:
+            pass
+
+    config_path = tmp_path / "config.json"
+
+    loadConfig(config_path, RootGroup)
+    assert RootGroup.NAME.value == "default"
+    assert RootGroup.VALUE.value == 42
+
+    RootGroup.NAME.value = "updated"
+    assert RootGroup.NAME.value == "updated"
+    saveConfig(config_path, RootGroup)
+
+    with open(config_path, encoding="utf-8") as f:
+        data = json5.load(f)
+    assert data["NAME"] == "updated"
+    assert data["version"] == 1

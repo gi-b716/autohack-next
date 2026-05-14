@@ -5,7 +5,7 @@ import traceback
 import json5
 
 from autohack import __VERSION__
-from autohack.core.constant import LANGUAGE_MAPS, LOGGER_LANGUAGE_ID
+from autohack.core.constant import DEFAULT_LANGUAGE_ID, LANGUAGE_MAPS
 from autohack.core.exception import autohackRuntimeError
 from autohack.core.lib.config import loadConfig
 from autohack.core.lib.i18n import I18N, getTranslatedMessage
@@ -76,7 +76,7 @@ class AppCentral:
             selectedLang = LANGUAGE_MAPS[selectedLangIndex]
             # Merge DEFAULT_GLOBAL_CONFIG with {"language": selectedLang} and save to GLOBAL_CONFIG_FILE_PATH
             json5.dump(
-                {**GlobalConfigRoot.todict(), "language": selectedLang},
+                {**GlobalConfigRoot.toDict(), "language": selectedLang},
                 GLOBAL_CONFIG_FILE_PATH.open("w", encoding="utf-8"),
                 indent=4,
             )
@@ -105,11 +105,6 @@ class AppCentral:
         firstTime = not CONFIG_FILE_PATH.exists()
         loadConfig(CONFIG_FILE_PATH, ConfigRoot)
         if firstTime:
-            json5.dump(
-                ConfigRoot.todict(),
-                CONFIG_FILE_PATH.open("w", encoding="utf-8"),
-                indent=4,
-            )
             writeMessage(getTranslatedMessage(I18n, "__main__.config-created", CONFIG_FILE_PATH))
             exitProgram()
 
@@ -173,7 +168,7 @@ class AppCentral:
                 compileCode(file[0])
             except autohackRuntimeError as e:
                 logger.error(
-                    f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.output.decode(errors='ignore')}"
+                    f"{_(file[1], DEFAULT_LANGUAGE_ID).capitalize()} compilation failed with return code {e.returnCode} and message:\n{e.output.decode(errors='ignore')}"
                 )
                 writeMessage(
                     getTranslatedMessage(
@@ -189,7 +184,7 @@ class AppCentral:
                 write(e.output.decode(errors="ignore"))
                 exitProgram(1)
             else:
-                logger.debug(f"{_(file[1], LOGGER_LANGUAGE_ID).capitalize()} compiled successfully.")
+                logger.debug(f"{_(file[1], DEFAULT_LANGUAGE_ID).capitalize()} compiled successfully.")
         writeMessage(
             getTranslatedMessage(I18n, "__main__.compile.finish"),
             endl=1,

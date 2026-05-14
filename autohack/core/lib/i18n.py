@@ -3,7 +3,7 @@ import pathlib
 
 import json5
 
-from autohack.core.constant import LOGGER_LANGUAGE_ID
+from autohack.core.constant import DEFAULT_LANGUAGE_ID
 from autohack.core.lib.logger import Logger
 
 
@@ -15,7 +15,7 @@ class I18N:
         self.translationFileDir = translationFileDir
         self.logger = Logger.getBindLogger("i18n")
         self.translations = {}
-        self.setDefaultLanguage(LOGGER_LANGUAGE_ID)
+        self.setDefaultLanguage(DEFAULT_LANGUAGE_ID)
 
     def setDefaultLanguage(self, language: str) -> None:
         self.logger.info(f'Default language: "{language}"')

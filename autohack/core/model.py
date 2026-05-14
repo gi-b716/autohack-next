@@ -1,31 +1,31 @@
+from autohack.core.constant import DEFAULT_CONFIG, DEFAULT_GLOBAL_CONFIG
 from autohack.core.lib.config import ConfigEntry, ConfigEntryGroup
 
 
 class GlobalConfigRoot(ConfigEntryGroup):
-    language = ConfigEntry(str, "en_US")
-    refresh_speed = ConfigEntry(int, 10)
-    wait_time_before_start = ConfigEntry(int, 3)
-    data_folder_max_size = ConfigEntry(int, 256)
+    language = ConfigEntry(str, DEFAULT_GLOBAL_CONFIG["language"])
+    refresh_speed = ConfigEntry(int, DEFAULT_GLOBAL_CONFIG["refresh_speed"])
+    wait_time_before_start = ConfigEntry(int, DEFAULT_GLOBAL_CONFIG["wait_time_before_start"])
+    data_folder_max_size = ConfigEntry(int, DEFAULT_GLOBAL_CONFIG["data_folder_max_size"])
+    override = ConfigEntry(dict, DEFAULT_GLOBAL_CONFIG["override"])
 
 
 class ConfigPaths(ConfigEntryGroup):
-    input = ConfigEntry(str, "$(id)/input")
-    answer = ConfigEntry(str, "$(id)/answer")
-    output = ConfigEntry(str, "$(id)/output")
+    input = ConfigEntry(str, DEFAULT_CONFIG["paths"]["input"])
+    answer = ConfigEntry(str, DEFAULT_CONFIG["paths"]["answer"])
+    output = ConfigEntry(str, DEFAULT_CONFIG["paths"]["output"])
 
 
 class ConfigCommandsCompile(ConfigEntryGroup):
-    source = ConfigEntry(list, ["g++", "source.cpp", "-o", "source", "-O2"])
-    std = ConfigEntry(list, ["g++", "std.cpp", "-o", "std", "-O2"])
-    generator = ConfigEntry(
-        list, ["g++", "generator.cpp", "-o", "generator", "-O2"]
-    )
+    source = ConfigEntry(list, DEFAULT_CONFIG["commands"]["compile"]["source"])
+    std = ConfigEntry(list, DEFAULT_CONFIG["commands"]["compile"]["std"])
+    generator = ConfigEntry(list, DEFAULT_CONFIG["commands"]["compile"]["generator"])
 
 
 class ConfigCommandsRun(ConfigEntryGroup):
-    source = ConfigEntry(list, ["./source"])
-    std = ConfigEntry(list, ["./std"])
-    generator = ConfigEntry(list, ["./generator"])
+    source = ConfigEntry(list, DEFAULT_CONFIG["commands"]["run"]["source"])
+    std = ConfigEntry(list, DEFAULT_CONFIG["commands"]["run"]["std"])
+    generator = ConfigEntry(list, DEFAULT_CONFIG["commands"]["run"]["generator"])
 
 
 class ConfigCommands(ConfigEntryGroup):
@@ -34,16 +34,16 @@ class ConfigCommands(ConfigEntryGroup):
 
 
 class ConfigChecker(ConfigEntryGroup):
-    name = ConfigEntry(str, "builtin_basic")
-    args = ConfigEntry(dict, {})
+    name = ConfigEntry(str, DEFAULT_CONFIG["checker"]["name"])
+    args = ConfigEntry(dict, DEFAULT_CONFIG["checker"]["args"])
 
 
 class ConfigRoot(ConfigEntryGroup):
-    maximum_number_of_data = ConfigEntry(int, 0)
-    time_limit = ConfigEntry(int, 1000)
-    memory_limit = ConfigEntry(int, 256)
-    error_data_number_limit = ConfigEntry(int, 1)
+    maximum_number_of_data = ConfigEntry(int, DEFAULT_CONFIG["maximum_number_of_data"])
+    time_limit = ConfigEntry(int, DEFAULT_CONFIG["time_limit"])
+    memory_limit = ConfigEntry(int, DEFAULT_CONFIG["memory_limit"])
+    error_data_number_limit = ConfigEntry(int, DEFAULT_CONFIG["error_data_number_limit"])
     paths = ConfigPaths
     commands = ConfigCommands
     checker = ConfigChecker
-    command_at_end = ConfigEntry(str, "")
+    command_at_end = ConfigEntry(str, DEFAULT_CONFIG["command_at_end"])

@@ -56,18 +56,15 @@ DEFAULT_CONFIG: dict[str, Any] = {
 }
 
 
-# Do not modify checker args here, as they may contain user data.
-# They are excluded from config validation for the same reason.
-CONFIG_VALIDATION_EXCLUDE = ["checker.args"]
-
 DEFAULT_GLOBAL_CONFIG = {
     "language": "en_US",
     "refresh_speed": 10,
     "wait_time_before_start": 3,
     "data_folder_max_size": 256,  # MB
+    "override": {},
 }
 
 # empty: For developers to test missing translations.
 LANGUAGE_MAPS = ["en_US", "zh_CN", "empty"]
 
-LOGGER_LANGUAGE_ID = "en_US"
+DEFAULT_LANGUAGE_ID = "en_US"
