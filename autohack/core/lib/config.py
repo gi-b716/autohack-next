@@ -178,16 +178,20 @@ def loadConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]) -> None
     _upgradeConfig(configData, rootConfig)
     newVersion = configData.get("version", oldVersion)
 
+    _loadGroup(rootConfig, configData, [])
+
     if oldVersion != newVersion or not configFilePath.exists():
         saveConfig(configFilePath, rootConfig)
-
-    _loadGroup(rootConfig, configData, [])
 
 
 def saveConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]) -> None:
     configData = rootConfig.toDict()
     updaters = _collectUpdaters(rootConfig)
+
+    versionedData = {}
     if updaters:
-        configData["version"] = max(updaters.keys())
+        versionedData["version"] = max(updaters.keys())
+    versionedData.update(configData)
+
     configFilePath.parent.mkdir(parents=True, exist_ok=True)
-    configFilePath.write_text(json5.dumps(configData, indent=2, quote_keys=True, trailing_commas=False), encoding="utf-8")
+    configFilePath.write_text(json5.dumps(versionedData, indent=2, quote_keys=True, trailing_commas=False), encoding="utf-8")
