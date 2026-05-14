@@ -40,9 +40,7 @@ class Logger:
 
         baseLogger.remove()
 
-        logFormat = (
-            "{time:YYYY-MM-DD HH:mm:ss} | {level} | [{extra[module]}] {message}"
-        )
+        logFormat = "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | [{extra[module]}] {message}"
         baseLogger.add(
             str(self.logFilePath),
             format=logFormat,
