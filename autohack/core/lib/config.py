@@ -105,15 +105,17 @@ class ConfigEntryGroup(metaclass=ConfigEntryGroupMeta):
         return result
 
 
-def _collectUpdaters(group: type[ConfigEntryGroup]) -> dict[int, Callable[[dict[str, Any]], None]]:
-    updaters = {}
+def _collectUpdaters(group: type[ConfigEntryGroup]) -> dict[int, list[Callable[[dict[str, Any]], None]]]:
+    updaters: dict[int, list[Callable[[dict[str, Any]], None]]] = {}
 
     if hasattr(group, "_updaters") and group._updaters:
-        updaters.update(group._updaters)
+        for ver, func in group._updaters.items():
+            updaters.setdefault(ver, []).append(func)
 
     for _key, attr in group.iterMembers():
         if isinstance(attr, type) and issubclass(attr, ConfigEntryGroup):
-            updaters.update(_collectUpdaters(attr))
+            for ver, funcs in _collectUpdaters(attr).items():
+                updaters.setdefault(ver, []).extend(funcs)
 
     return updaters
 
@@ -161,7 +163,8 @@ def _upgradeConfig(
         _logger.info(f"Upgrading config from version {currentVer} to {maxVer}")
         for version in sorted(v for v in updaters.keys() if v > currentVer):
             try:
-                updaters[version](configData)
+                for updater in updaters[version]:
+                    updater(configData)
                 _logger.debug(f"Applied config update to version {version}")
             except Exception as e:
                 _logger.error(f"Error applying config update to version {version}: {e}")
@@ -172,15 +175,17 @@ def _upgradeConfig(
 def loadConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]) -> None:
     if not configFilePath.exists():
         _logger.warning(f"Config file {configFilePath} does not exist. Using default config.")
+        saveConfig(configFilePath, rootConfig)
+        return
 
-    configData = json5.load(configFilePath.open("r", encoding="utf-8")) if configFilePath.exists() else {}
+    configData = json5.load(configFilePath.open("r", encoding="utf-8"))
     oldVersion = configData.get("version", 0)
     _upgradeConfig(configData, rootConfig)
     newVersion = configData.get("version", oldVersion)
 
     _loadGroup(rootConfig, configData, [])
 
-    if oldVersion != newVersion or not configFilePath.exists():
+    if oldVersion != newVersion:
         saveConfig(configFilePath, rootConfig)
 
 

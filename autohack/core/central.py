@@ -2,13 +2,11 @@ import os
 import time
 import traceback
 
-import json5
-
 from autohack import __VERSION__
 from autohack.core.build import BUILD_COMMIT_HASH
 from autohack.core.constant import DEFAULT_LANGUAGE_ID, LANGUAGE_MAPS
 from autohack.core.exception import autohackRuntimeError
-from autohack.core.lib.config import loadConfig
+from autohack.core.lib.config import loadConfig, saveConfig
 from autohack.core.lib.i18n import I18N, getTranslatedMessage
 from autohack.core.lib.logger import Logger
 from autohack.core.model import ConfigRoot, GlobalConfigRoot
@@ -76,12 +74,8 @@ class AppCentral:
             )
             selectedLang = LANGUAGE_MAPS[selectedLangIndex]
             # Merge DEFAULT_GLOBAL_CONFIG with {"language": selectedLang} and save to GLOBAL_CONFIG_FILE_PATH
-            ensureDirExists(GLOBAL_CONFIG_FILE_PATH.parent)
-            json5.dump(
-                {**GlobalConfigRoot.toDict(), "language": selectedLang},
-                GLOBAL_CONFIG_FILE_PATH.open("w", encoding="utf-8"),
-                indent=4,
-            )
+            GlobalConfigRoot.language.value = selectedLang
+            saveConfig(GLOBAL_CONFIG_FILE_PATH, GlobalConfigRoot)
             I18n.setDefaultLanguage(selectedLang)
             write(ANSIHelper.clearLine())
             write(ANSIHelper.prevLine())
