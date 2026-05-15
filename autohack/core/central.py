@@ -76,6 +76,7 @@ class AppCentral:
             )
             selectedLang = LANGUAGE_MAPS[selectedLangIndex]
             # Merge DEFAULT_GLOBAL_CONFIG with {"language": selectedLang} and save to GLOBAL_CONFIG_FILE_PATH
+            ensureDirExists(GLOBAL_CONFIG_FILE_PATH.parent)
             json5.dump(
                 {**GlobalConfigRoot.toDict(), "language": selectedLang},
                 GLOBAL_CONFIG_FILE_PATH.open("w", encoding="utf-8"),
