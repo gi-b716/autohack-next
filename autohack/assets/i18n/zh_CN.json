@@ -6,8 +6,7 @@
 
     "__main__.config-created": "配置文件创建于 {}",
 
-    "__main__.start.version": "autohack-next {} - 客户端 ID: {}",
-    "__main__.start.build": "构建自 {}",
+    "__main__.start.version": "autohack-next {} ({}) - 客户端 ID: {}",
     "__main__.start.data": "Hack 数据存储于 {}",
     "__main__.start.log": "日志文件：{}",
     "__main__.start.export": "错误数据导出至 {}",

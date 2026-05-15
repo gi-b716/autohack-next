@@ -108,11 +108,7 @@ class AppCentral:
         logger.info(f"Client ID: {self.clientID}")
         logger.info(f"Initialized. Version: {__VERSION__}")
         writeMessage(
-            getTranslatedMessage(I18n, "__main__.start.version", __VERSION__, self.clientID),
-            endl=1,
-        )
-        writeMessage(
-            getTranslatedMessage(I18n, "__main__.start.build", BUILD_COMMIT_HASH),
+            getTranslatedMessage(I18n, "__main__.start.version", __VERSION__, BUILD_COMMIT_HASH, self.clientID),
             endl=2,
         )
         writeMessage(
