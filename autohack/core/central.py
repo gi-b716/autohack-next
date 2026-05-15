@@ -5,6 +5,7 @@ import traceback
 import json5
 
 from autohack import __VERSION__
+from autohack.core.build import BUILD_COMMIT_HASH
 from autohack.core.constant import DEFAULT_LANGUAGE_ID, LANGUAGE_MAPS
 from autohack.core.exception import autohackRuntimeError
 from autohack.core.lib.config import loadConfig
@@ -113,6 +114,10 @@ class AppCentral:
         logger.info(f"Initialized. Version: {__VERSION__}")
         writeMessage(
             getTranslatedMessage(I18n, "__main__.start.version", __VERSION__, self.clientID),
+            endl=1,
+        )
+        writeMessage(
+            getTranslatedMessage(I18n, "__main__.start.build", BUILD_COMMIT_HASH),
             endl=2,
         )
         writeMessage(

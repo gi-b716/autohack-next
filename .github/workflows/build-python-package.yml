@@ -25,6 +25,9 @@ jobs:
       - name: Configure Python environment
         uses: ./.github/actions/prepare-python-env
 
+      - name: Update build hash
+        run: python scripts/update_build_hash.py
+
       - name: Build package
         run: uv build
 

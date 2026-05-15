@@ -14,6 +14,7 @@ def entrypoint():
 
     import colorama
 
+    from autohack.core.build import BUILD_COMMIT_HASH
     from autohack.core.central import AppCentral
 
     colorama.just_fix_windows_console()
@@ -36,8 +37,16 @@ def entrypoint():
         default=False,
     )
     argsParser.add_argument("--fix", action="store_true", help="Fix console issues", default=False)
+    argsParser.add_argument("--build-info", action="store_true", help="Show build info and exit", default=False)
 
     args = argsParser.parse_args()
+
+    if args.build_info:
+        import sys
+
+        sys.stdout.write(BUILD_COMMIT_HASH)
+        sys.stdout.write("\n")
+        return
 
     if args.fix:
         from autohack.core.util import showCursor

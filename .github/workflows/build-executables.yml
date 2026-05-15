@@ -61,6 +61,9 @@ jobs:
         env:
           MATRIX_PLATFORM: ${{ matrix.platform }}
 
+      - name: Update build hash
+        run: python scripts/update_build_hash.py
+
       - name: Build executable
         run: |
           uv run python -m nuitka --standalone --onefile --follow-imports --enable-plugins=upx --lto=yes --warn-implicit-exceptions --warn-unusual-code --include-data-dir="autohack/assets/i18n"="autohack/assets/i18n" --file-version=${{ inputs.app-version }} --assume-yes-for-downloads autohack/__main__.py
