@@ -94,6 +94,8 @@ jobs:
 
   build-executables:
     name: Build Executables
+    permissions:
+      contents: read
     needs: [build-package, get-changelog]
     uses: ./.github/workflows/build-executables.yml
     with:
