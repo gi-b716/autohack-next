@@ -2,21 +2,22 @@
 
 ## Version 1.2.0 (2026-04)
 
+Released.
+
 ### New Features
 
 There's nothing.
 
 ### Improvements
 
-- [ ] Better Config File Handling
+- [x] Better Config File Handling
 - [x] Refactor Utility Modules
 
 ### Config Details
 
 - [x] Config & ConfigEntry
 - [x] Merge config file
-- [ ] Default config
-- [ ] Config file schema
+- [x] Default config
 
 ### Bug Fixes
 
