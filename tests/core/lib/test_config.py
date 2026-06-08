@@ -140,7 +140,7 @@ def test_config_version_upgrade(tmp_path):
     config_path = tmp_path / "config.json"
 
     with open(config_path, "w", encoding="utf-8") as f:
-        json5.dump({"version": 34, "NAME": "test", "VALUE": 5}, f)
+        json5.dump({"@version": 34, "NAME": "test", "VALUE": 5}, f)
 
     loadConfig(config_path, RootGroup)
     assert RootGroup.NAME.value == "test"
@@ -149,7 +149,7 @@ def test_config_version_upgrade(tmp_path):
 
     with open(config_path, encoding="utf-8") as f:
         saved_data = json5.load(f)
-    assert saved_data["version"] == 36
+    assert saved_data["@version"] == 36
 
     RootGroup.NAME.value = "default_name"
     RootGroup.VALUE.value = 10
@@ -168,7 +168,7 @@ def test_config_version_upgrade(tmp_path):
     RootGroup.NEW_FIELD.value = "new_default"
 
     with open(config_path, "w", encoding="utf-8") as f:
-        json5.dump({"version": 36, "NAME": "test3", "VALUE": 5, "NEW_FIELD": "custom"}, f)
+        json5.dump({"@version": 36, "NAME": "test3", "VALUE": 5, "NEW_FIELD": "custom"}, f)
 
     loadConfig(config_path, RootGroup)
     assert RootGroup.NAME.value == "test3"
@@ -245,4 +245,4 @@ def test_load_and_save_functions(tmp_path):
     with open(config_path, encoding="utf-8") as f:
         data = json5.load(f)
     assert data["NAME"] == "updated"
-    assert data["version"] == 1
+    assert data["@version"] == 1

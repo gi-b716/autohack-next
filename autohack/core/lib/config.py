@@ -4,6 +4,7 @@ from typing import Any, cast
 
 import json5
 
+from autohack.core.constant import CONFIG_VERSION_FIELD
 from autohack.core.lib.logger import Logger
 
 
@@ -126,7 +127,7 @@ _logger = Logger.getBindLogger("config")
 def _loadGroup(group: type[ConfigEntryGroup], data: dict[str, Any], path: list[str]) -> None:
     group_keys = {key for key, _ in group.iterMembers()}
     for k in data.keys():
-        if k not in group_keys and k != "version":
+        if k not in group_keys and k != CONFIG_VERSION_FIELD:
             key_path = ".".join(path + [k])
             _logger.warning(f"Unrecognized config entry: {key_path}")
 
@@ -156,7 +157,7 @@ def _upgradeConfig(
     if not updaters:
         return
 
-    currentVer = configData.get("version", 0)
+    currentVer = configData.get(CONFIG_VERSION_FIELD, 0)
     maxVer = max(updaters.keys())
 
     if currentVer < maxVer:
@@ -169,7 +170,7 @@ def _upgradeConfig(
             except Exception as e:
                 _logger.error(f"Error applying config update to version {version}: {e}")
 
-        configData["version"] = maxVer
+        configData[CONFIG_VERSION_FIELD] = maxVer
 
 
 def loadConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]) -> None:
@@ -179,9 +180,9 @@ def loadConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]) -> None
         return
 
     configData = json5.load(configFilePath.open("r", encoding="utf-8"))
-    oldVersion = configData.get("version", 0)
+    oldVersion = configData.get(CONFIG_VERSION_FIELD, 0)
     _upgradeConfig(configData, rootConfig)
-    newVersion = configData.get("version", oldVersion)
+    newVersion = configData.get(CONFIG_VERSION_FIELD, oldVersion)
 
     _loadGroup(rootConfig, configData, [])
 
@@ -195,7 +196,7 @@ def saveConfig(configFilePath: Path, rootConfig: type[ConfigEntryGroup]) -> None
 
     versionedData = {}
     if updaters:
-        versionedData["version"] = max(updaters.keys())
+        versionedData[CONFIG_VERSION_FIELD] = max(updaters.keys())
     versionedData.update(configData)
 
     configFilePath.parent.mkdir(parents=True, exist_ok=True)

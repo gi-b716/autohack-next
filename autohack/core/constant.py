@@ -1,5 +1,7 @@
 from typing import Any
 
+CONFIG_VERSION_FIELD = "@version"
+
 DEFAULT_CONFIG: dict[str, Any] = {
     "maximum_number_of_data": 0,
     # ms

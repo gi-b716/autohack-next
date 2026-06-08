@@ -17,13 +17,6 @@ class GlobalConfigRoot(ConfigEntryGroup):
     @update_config(version=1)
     def _update_to_1(config: dict[str, Any]) -> None:
         write(ANSIHelper.colorText("Config structure has been upgraded. / 配置结构已升级。", [ANSIHelper.MAGENTA, ANSIHelper.BOLD]), endl=1)
-        write(
-            ANSIHelper.colorText(
-                "There may be issues with the Dev version, please give feedback promptly. / Dev 版本可能有问题，请及时反馈。",
-                [ANSIHelper.MAGENTA, ANSIHelper.BOLD],
-            ),
-            endl=1,
-        )
 
 
 class ConfigPaths(ConfigEntryGroup):
@@ -63,14 +56,3 @@ class ConfigRoot(ConfigEntryGroup):
     commands = ConfigCommands
     checker = ConfigChecker
     command_at_end = ConfigEntry(str, DEFAULT_CONFIG["command_at_end"])
-
-    @staticmethod
-    @update_config(version=1)
-    def _update_to_1(config: dict[str, Any]) -> None:
-        write(
-            ANSIHelper.colorText(
-                "If you see this message, this instance's config file has also been upgraded. / 如果你看到了这条消息，这个实例的配置文件也得到了升级。",
-                [ANSIHelper.MAGENTA, ANSIHelper.BOLD],
-            ),
-            endl=1,
-        )
