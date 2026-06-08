@@ -23,11 +23,12 @@ There's nothing.
 
 There's nothing.
 
-## Version 1.3.0 (2026)
+## Version 1.3.0 (2026-06)
 
 ### New Features
 
 - [ ] Multi threading compile
+- [ ] Improve TUI
 
 ### Improvements
 
