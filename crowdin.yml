@@ -1,0 +1,14 @@
+# Crowdin configuration for autohack-next
+# https://crowdin.com/project/autohack-next
+
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
+
+# Preserve directory structure in Crowdin UI
+preserve_hierarchy: true
+
+files:
+  # English (US) is the source language
+  - source: /autohack/assets/i18n/en_US.json
+    translation: /autohack/assets/i18n/%locale%.json
+    type: json

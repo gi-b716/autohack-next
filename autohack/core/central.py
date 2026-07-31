@@ -1,10 +1,11 @@
+import locale
 import os
 import time
 import traceback
 
 from autohack import __VERSION__
 from autohack.core.build import BUILD_COMMIT_HASH
-from autohack.core.constant import DEFAULT_LANGUAGE_ID, LANGUAGE_MAPS
+from autohack.core.constant import AUTO_DETECT_LANG_SENTINEL, DEFAULT_LANGUAGE_ID, LANGUAGE_MAPS, SYSTEM_LOCALE_TO_LANG
 from autohack.core.exception import autohackRuntimeError
 from autohack.core.lib.config import loadConfig, saveConfig
 from autohack.core.lib.i18n import I18N, getTranslatedMessage
@@ -69,10 +70,31 @@ class AppCentral:
             write("Welcome to autohack-next!", endl=1)
             write("A global config file will be created.", endl=1)
             write("Please select your preferred language:", endl=1)
-            selectedLangIndex = selectionMenu(
-                [f"{langID} / {I18N(TRANSLATION_FOLDER_PATH).translate('language-info', langID)}" for i, langID in enumerate(LANGUAGE_MAPS)]
-            )
-            selectedLang = LANGUAGE_MAPS[selectedLangIndex]
+
+            langMenuItems: list[str] = []
+            langMenuValues: list[str] = []
+
+            systemLang, _encoding = locale.getdefaultlocale()
+            autoDetectedLang: str | None = None
+            if systemLang:
+                for sysLocale, autoLangID in SYSTEM_LOCALE_TO_LANG.items():
+                    if systemLang.startswith(sysLocale):
+                        autoDetectedLang = autoLangID
+                        break
+
+            if autoDetectedLang is not None:
+                autoLabel = I18N(TRANSLATION_FOLDER_PATH).translate("auto-detect", autoDetectedLang)
+                langInfo = I18N(TRANSLATION_FOLDER_PATH).translate("language-info", autoDetectedLang)
+                langMenuItems.append(f"{autoLabel} ({langInfo})")
+                langMenuValues.append(AUTO_DETECT_LANG_SENTINEL)
+
+            langMenuItems.extend([f"{langID} / {I18N(TRANSLATION_FOLDER_PATH).translate('language-info', langID)}" for langID in LANGUAGE_MAPS])
+            langMenuValues.extend(LANGUAGE_MAPS)
+
+            selectedLangIndex = selectionMenu(langMenuItems)
+            selectedLang = langMenuValues[selectedLangIndex]
+            if selectedLang == AUTO_DETECT_LANG_SENTINEL:
+                selectedLang = autoDetectedLang
             # Merge DEFAULT_GLOBAL_CONFIG with {"language": selectedLang} and save to GLOBAL_CONFIG_FILE_PATH
             GlobalConfigRoot.language.value = selectedLang
             saveConfig(GLOBAL_CONFIG_FILE_PATH, GlobalConfigRoot)

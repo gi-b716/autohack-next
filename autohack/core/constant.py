@@ -70,3 +70,14 @@ DEFAULT_GLOBAL_CONFIG = {
 LANGUAGE_MAPS = ["en_US", "zh_CN", "empty"]
 
 DEFAULT_LANGUAGE_ID = "en_US"
+
+SYSTEM_LOCALE_TO_LANG: dict[str, str] = {
+    "zh_CN": "zh_CN",
+    "zh_SG": "zh_CN",
+    "zh": "zh_CN",
+    "en_US": "en_US",
+    "en_GB": "en_US",
+    "en": "en_US",
+}
+
+AUTO_DETECT_LANG_SENTINEL = "__auto_detect__"
