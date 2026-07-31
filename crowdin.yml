@@ -9,6 +9,6 @@ preserve_hierarchy: true
 
 files:
   # English (US) is the source language
-  - source: /autohack/assets/i18n/en_US.json
+  - source: /autohack/assets/i18n/en-US.json
     translation: /autohack/assets/i18n/%locale%.json
     type: json

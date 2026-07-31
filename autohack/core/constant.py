@@ -66,18 +66,18 @@ DEFAULT_GLOBAL_CONFIG = {
     "override": {},
 }
 
-# empty: For developers to test missing translations.
-LANGUAGE_MAPS = ["en_US", "zh_CN", "empty"]
+# Supported language IDs (also used as Crowdin locale codes).
+LANGUAGE_MAPS = ["en-US", "zh-CN"]
 
-DEFAULT_LANGUAGE_ID = "en_US"
+DEFAULT_LANGUAGE_ID = "en-US"
 
 SYSTEM_LOCALE_TO_LANG: dict[str, str] = {
-    "zh_CN": "zh_CN",
-    "zh_SG": "zh_CN",
-    "zh": "zh_CN",
-    "en_US": "en_US",
-    "en_GB": "en_US",
-    "en": "en_US",
+    "zh_CN": "zh-CN",
+    "zh_SG": "zh-CN",
+    "zh": "zh-CN",
+    "en_US": "en-US",
+    "en_GB": "en-US",
+    "en": "en-US",
 }
 
 AUTO_DETECT_LANG_SENTINEL = "__auto_detect__"

@@ -37,13 +37,12 @@ class I18N:
         self.logger.info("Translation file loaded.")
         return translations
 
-    def translate(self, key: str, language: str = "") -> str:
+    def translate(self, key: str, *args: str, language: str = "") -> str:
         if language == "":
             language = self.defaultLanguage
         if language not in self.translations:
             self.loadTranslation(language)
-        return self.translations[language].get(key, key)
-
-
-def getTranslatedMessage(I18n: I18N, message: str, *args, language: str = "") -> str:
-    return I18n.translate(message, language).format(*map(str, args))
+        result = self.translations[language].get(key, key)
+        if args:
+            result = result.format(*map(str, args))
+        return result
